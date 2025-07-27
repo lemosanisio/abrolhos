@@ -2,10 +2,8 @@ package br.dev.demoraes.abrolhos.domain.authentication.entities
 
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
-import ulid.ULID
 
 data class User(
-    val id: ULID,
     val username: Username,
     val email: Email,
     val passwordHash: PasswordHash,

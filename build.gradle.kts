@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "3.4.8"
 	id("io.spring.dependency-management") version "1.1.7"
 	kotlin("plugin.jpa") version "1.9.23"
+	kotlin("plugin.allopen") version "1.9.23"
 	id("io.gitlab.arturbosch.detekt") version "1.23.6"
 }
 
@@ -73,4 +74,10 @@ tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
 		xml.required.set(false)
 		sarif.required.set(false)
 	}
+}
+
+allOpen {
+	annotation("jakarta.persistence.Entity")
+	annotation("jakarta.persistence.MappedSuperclass")
+	annotation("jakarta.persistence.Embeddable")
 }

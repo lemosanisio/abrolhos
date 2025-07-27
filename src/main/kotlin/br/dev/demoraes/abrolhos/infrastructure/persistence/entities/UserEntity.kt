@@ -5,21 +5,18 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 
 @Entity
 @Table(name = "users")
-data class UserEntity(
-    @Id
-    val id: String,
-    @Column(name = "username", nullable = false, unique = true)
-    val username: String,
-    @Column(name = "email", nullable = false, unique = true)
-    val email: String,
-    @Column(name = "password_hash", nullable = false, unique = true)
-    val passwordHash: String,
+open class UserEntity(
+    @Column(name = "username", nullable = false, unique = true, length = 50)
+    open var username: String,
+    @Column(name = "email", nullable = false, unique = true, length = 255)
+    open var email: String,
+    @Column(name = "password_hash", nullable = false, length = 255)
+    open var passwordHash: String,
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    val role: Role
-)
+    @Column(name = "role", nullable = false, length = 20)
+    open var role: Role
+) : BaseEntity()

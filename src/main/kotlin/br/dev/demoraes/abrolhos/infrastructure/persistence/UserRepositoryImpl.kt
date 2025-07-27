@@ -28,7 +28,6 @@ class UserRepositoryImpl(
 }
 
 private fun User.toEntity() = UserEntity(
-    id = this.id.toString(),
     username = this.username.value,
     email = this.email.value,
     passwordHash = this.passwordHash.value,
@@ -36,7 +35,6 @@ private fun User.toEntity() = UserEntity(
 )
 
 private fun UserEntity.toDomain() = User(
-    id = ULID.parseULID(this.id),
     username = Username(this.username),
     email = Email(this.email),
     passwordHash = PasswordHash(this.passwordHash),
