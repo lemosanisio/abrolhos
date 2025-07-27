@@ -1,6 +1,5 @@
 package br.dev.demoraes.abrolhos.infrastructure.configuration
 
-import br.dev.demoraes.abrolhos.infrastructure.services.UserDetailsServiceImpl
 import br.dev.demoraes.abrolhos.infrastructure.web.filters.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -24,7 +23,7 @@ class SecurityConfig(
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
-        return BCryptPasswordEncoder(12)
+        return BCryptPasswordEncoder(STRENGTH)
     }
 
     @Bean
@@ -46,5 +45,9 @@ class SecurityConfig(
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
+    }
+
+    companion object {
+        private const val STRENGTH = 12
     }
 }

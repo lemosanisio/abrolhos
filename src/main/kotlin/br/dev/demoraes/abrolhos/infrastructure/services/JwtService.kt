@@ -4,7 +4,7 @@ import br.dev.demoraes.abrolhos.infrastructure.configuration.properties.JwtPrope
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.exceptions.JWTVerificationException
+import com.auth0.jwt.interfaces.DecodedJWT
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import java.util.Date
@@ -31,25 +31,22 @@ class JwtService(
     }
 
     fun isTokenValid(token: String, userDetails: UserDetails): Boolean {
-        val username = extractUsername(token)
-        return (username == userDetails.username) && !isTokenExpired(token)
+        return verifyToken(token)
+            .map { decodedJwt ->
+                (decodedJwt.subject == userDetails.username) && !isTokenExpired(decodedJwt)
+            }
+            .getOrDefault(false)
     }
 
     fun extractUsername(token: String): String? {
-        return try {
-            val decodedJWT = verifier.verify(token)
-            decodedJWT.subject
-        } catch (e: JWTVerificationException) {
-            null
-        }
+        return verifyToken(token).getOrNull()?.subject
     }
 
-    private fun isTokenExpired(token: String): Boolean {
-        return try {
-            val expiration = verifier.verify(token).expiresAt
-            expiration.before(Date())
-        } catch (e: JWTVerificationException) {
-            true
-        }
+    private fun verifyToken(token: String): Result<DecodedJWT> {
+        return runCatching { verifier.verify(token) }
+    }
+
+    private fun isTokenExpired(decodedJWT: DecodedJWT): Boolean {
+        return decodedJWT.expiresAt.before(Date())
     }
 }

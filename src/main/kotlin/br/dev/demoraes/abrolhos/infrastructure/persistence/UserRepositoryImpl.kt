@@ -13,7 +13,7 @@ import ulid.ULID
 @Repository
 class UserRepositoryImpl(
     private val userRepositoryPostgresql: UserRepositoryPostgresql
-): UserRepository {
+) : UserRepository {
     override fun save(user: User): User {
         return userRepositoryPostgresql.save<UserEntity>(user.toEntity()).toDomain()
     }

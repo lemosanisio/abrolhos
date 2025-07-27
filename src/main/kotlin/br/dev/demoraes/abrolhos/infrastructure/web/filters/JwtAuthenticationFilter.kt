@@ -29,7 +29,7 @@ class JwtAuthenticationFilter(
             return
         }
 
-        val jwt = authHeader.substring(7)
+        val jwt = authHeader.removePrefix("Bearer ")
 
         val username = jwtService.extractUsername(jwt)
 

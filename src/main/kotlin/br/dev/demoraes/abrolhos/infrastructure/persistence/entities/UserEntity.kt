@@ -22,4 +22,4 @@ data class UserEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     val role: Role
-    )
+)
