@@ -1,1 +1,13 @@
-spring.application.name=abrolhos
+application:
+  name: "abrolhos"
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET}
+      expiration: ${JWT_EXPIRATION} # Token expiration time in milliseconds
+      issuer: ${JWT_ISSUER}
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
