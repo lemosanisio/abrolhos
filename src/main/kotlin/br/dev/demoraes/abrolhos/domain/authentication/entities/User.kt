@@ -4,14 +4,13 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import ulid.ULID
 
-
 data class User(
     val id: ULID,
     val username: Username,
     val email: Email,
     val passwordHash: PasswordHash,
     val role: Role
-): UserDetails {
+) : UserDetails {
     override fun getAuthorities(): Collection<GrantedAuthority?>? {
         return listOf(role)
     }
@@ -25,7 +24,7 @@ data class User(
     }
 }
 
-enum class Role: GrantedAuthority {
+enum class Role : GrantedAuthority {
     ADMIN {
         override fun getAuthority(): String? {
             return "ROLE_ADMIN"
@@ -35,7 +34,7 @@ enum class Role: GrantedAuthority {
         override fun getAuthority(): String? {
             return "ROLE_USER"
         }
-    };
+    }
 }
 
 @JvmInline
@@ -45,7 +44,13 @@ value class Username(val value: String) {
         private const val MAX_LENGTH = 20
         private val USERNAME_REGEX = Regex("^[a-z0-9_]+$") // Only lowercase, numbers, and underscore
         private val RESERVED_WORDS = setOf(
-            "admin", "root", "administrator", "support", "contact", "user", "guest"
+            "admin",
+            "root",
+            "administrator",
+            "support",
+            "contact",
+            "user",
+            "guest"
         )
     }
     init {
@@ -70,16 +75,16 @@ value class PasswordHash(val value: String) {
 
 @JvmInline
 value class Email(val value: String) {
-        companion object {
-            private val EMAIL_REGEX = Regex(
-                "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
-            )
-        }
+    companion object {
+        private val EMAIL_REGEX = Regex(
+            "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
+        )
+    }
 
-        init {
-            require(value.isNotBlank()) { "Email address cannot be blank." }
+    init {
+        require(value.isNotBlank()) { "Email address cannot be blank." }
 
-            require(EMAIL_REGEX.matches(value)) { "Invalid email address format." }
+        require(EMAIL_REGEX.matches(value)) { "Invalid email address format." }
     }
 
     override fun toString(): String = value

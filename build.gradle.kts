@@ -1,9 +1,10 @@
 plugins {
-	kotlin("jvm") version "1.9.25"
-	kotlin("plugin.spring") version "1.9.25"
+	kotlin("jvm") version "1.9.23"
+	kotlin("plugin.spring") version "1.9.23"
 	id("org.springframework.boot") version "3.4.8"
 	id("io.spring.dependency-management") version "1.1.7"
-	kotlin("plugin.jpa") version "1.9.25"
+	kotlin("plugin.jpa") version "1.9.23"
+	id("io.gitlab.arturbosch.detekt") version "1.23.6"
 }
 
 group = "br.dev.demoraes"
@@ -32,6 +33,8 @@ dependencies {
 	implementation("org.flywaydb:flyway-database-postgresql")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
+	implementation("com.auth0:java-jwt:4.4.0")
+	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.6")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
@@ -53,4 +56,21 @@ allOpen {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+detekt {
+	toolVersion = "1.23.6"
+	buildUponDefaultConfig = true
+	allRules = false
+	config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+	baseline = file("$rootDir/config/detekt/baseline.xml")
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+	jvmTarget = "21"
+	reports {
+		html.required.set(true)
+		xml.required.set(false)
+		sarif.required.set(false)
+	}
 }

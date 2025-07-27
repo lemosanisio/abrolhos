@@ -1,0 +1,24 @@
+# This is the top-most.editorconfig file.
+root = true
+
+# Apply these settings to all files.
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+trim_trailing_whitespace = true
+
+# Settings specific to Kotlin files (*.kt and *.kts).
+[*.{kt,kts}]
+indent_size = 4
+indent_style = space
+max_line_length = 140
+
+# Use the official Kotlin code style from JetBrains as the baseline.
+ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
+
+# Disable wildcard imports entirely, which is a ktlint best practice.
+# This forces explicit imports, making dependencies clearer.
+ij_kotlin_name_count_to_use_star_import = 2147483647
+ij_kotlin_name_count_to_use_star_import_for_members = 2147483647
+ij_kotlin_packages_to_use_import_on_demand = unset
