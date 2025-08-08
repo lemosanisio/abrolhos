@@ -1,7 +1,7 @@
 package br.dev.demoraes.abrolhos.infrastructure.services
 
-import br.dev.demoraes.abrolhos.domain.authentication.entities.Username
-import br.dev.demoraes.abrolhos.domain.authentication.repository.UserRepository
+import br.dev.demoraes.abrolhos.domain.entities.Username
+import br.dev.demoraes.abrolhos.domain.repository.UserRepository
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException

@@ -1,13 +1,18 @@
-package br.dev.demoraes.abrolhos.domain.authentication.entities
+package br.dev.demoraes.abrolhos.domain.entities
 
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
+import ulid.ULID
+import java.time.OffsetDateTime
 
 data class User(
+    val id: ULID,
     val username: Username,
     val email: Email,
     val passwordHash: PasswordHash,
-    val role: Role
+    val role: Role,
+    val createdAt: OffsetDateTime,
+    val updatedAt: OffsetDateTime
 ) : UserDetails {
     override fun getAuthorities(): Collection<GrantedAuthority?>? {
         return listOf(role)

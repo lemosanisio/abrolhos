@@ -1,6 +1,6 @@
 package br.dev.demoraes.abrolhos.infrastructure.persistence.entities
 
-import br.dev.demoraes.abrolhos.domain.authentication.entities.Role
+import br.dev.demoraes.abrolhos.domain.entities.Role
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType

@@ -1,10 +1,10 @@
 package br.dev.demoraes.abrolhos.infrastructure.persistence
 
-import br.dev.demoraes.abrolhos.domain.authentication.entities.Email
-import br.dev.demoraes.abrolhos.domain.authentication.entities.PasswordHash
-import br.dev.demoraes.abrolhos.domain.authentication.entities.User
-import br.dev.demoraes.abrolhos.domain.authentication.entities.Username
-import br.dev.demoraes.abrolhos.domain.authentication.repository.UserRepository
+import br.dev.demoraes.abrolhos.domain.entities.Email
+import br.dev.demoraes.abrolhos.domain.entities.PasswordHash
+import br.dev.demoraes.abrolhos.domain.entities.User
+import br.dev.demoraes.abrolhos.domain.entities.Username
+import br.dev.demoraes.abrolhos.domain.repository.UserRepository
 import br.dev.demoraes.abrolhos.infrastructure.persistence.entities.UserEntity
 import br.dev.demoraes.abrolhos.infrastructure.persistence.postgresql.UserRepositoryPostgresql
 import org.springframework.stereotype.Repository
@@ -27,16 +27,33 @@ class UserRepositoryImpl(
     }
 }
 
-private fun User.toEntity() = UserEntity(
+fun User.toEntity() = UserEntity(
     username = this.username.value,
     email = this.email.value,
     passwordHash = this.passwordHash.value,
     role = this.role
 )
 
-private fun UserEntity.toDomain() = User(
-    username = Username(this.username),
-    email = Email(this.email),
-    passwordHash = PasswordHash(this.passwordHash),
-    role = this.role
-)
+fun UserEntity.toDomain(): User {
+    val createdAt = this.createdAt
+        ?: throw IllegalStateException(
+            "PostEntity with id ${this.id} is missing a createdAt timestamp. " +
+                "This should not happen for a persisted entity."
+        )
+
+    val updatedAt = this.updatedAt
+        ?: throw IllegalStateException(
+            "PostEntity with id ${this.id} is missing an updatedAt timestamp. " +
+                "This should not happen for a persisted entity."
+        )
+
+    return User(
+        id = ULID.parseULID(this.id),
+        username = Username(this.username),
+        email = Email(this.email),
+        passwordHash = PasswordHash(this.passwordHash),
+        role = this.role,
+        createdAt = createdAt,
+        updatedAt = updatedAt
+    )
+}
