@@ -63,6 +63,7 @@ detekt {
 	toolVersion = "1.23.6"
 	buildUponDefaultConfig = true
 	allRules = false
+	autoCorrect = true
 	config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
 	baseline = file("$rootDir/config/detekt/baseline.xml")
 }
@@ -74,10 +75,4 @@ tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
 		xml.required.set(false)
 		sarif.required.set(false)
 	}
-}
-
-allOpen {
-	annotation("jakarta.persistence.Entity")
-	annotation("jakarta.persistence.MappedSuperclass")
-	annotation("jakarta.persistence.Embeddable")
 }
