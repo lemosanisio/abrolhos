@@ -1,4 +1,4 @@
-package br.dev.demoraes.abrolhos.infrastructure.web.dto.response
+package br.dev.demoraes.abrolhos.application.web.dto.response
 
 import br.dev.demoraes.abrolhos.domain.entities.PostStatus
 import java.time.OffsetDateTime
@@ -13,5 +13,5 @@ data class PostResponse(
     val tagNames: Set<String>,
     val updatedAt: OffsetDateTime,
     val createdAt: OffsetDateTime,
-    val publishedAt: OffsetDateTime?
+    val publishedAt: OffsetDateTime?,
 )

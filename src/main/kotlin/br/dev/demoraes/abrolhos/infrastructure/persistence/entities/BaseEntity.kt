@@ -18,7 +18,6 @@ import java.time.OffsetDateTime
 @SQLDelete(sql = "UPDATE #{#entityName} SET deleted_at = CURRENT_TIMESTAMP WHERE id =?")
 @SQLRestriction("deleted_at IS NULL")
 abstract class BaseEntity : Serializable {
-
     @Id
     @Column(length = 26, updatable = false, nullable = false)
     lateinit var id: String

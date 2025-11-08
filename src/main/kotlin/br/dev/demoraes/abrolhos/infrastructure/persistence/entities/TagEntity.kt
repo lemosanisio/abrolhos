@@ -11,10 +11,8 @@ import jakarta.persistence.Table
 open class TagEntity(
     @Column(unique = true, nullable = false, length = 100)
     open var name: String,
-
     @Column(unique = true, nullable = false, length = 100)
     open var slug: String,
-
     @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
-    open var posts: MutableSet<PostEntity> = mutableSetOf()
+    open var posts: MutableSet<PostEntity> = mutableSetOf(),
 ) : BaseEntity()

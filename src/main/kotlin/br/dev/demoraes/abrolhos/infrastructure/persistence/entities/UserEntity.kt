@@ -18,5 +18,5 @@ open class UserEntity(
     open var passwordHash: String,
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
-    open var role: Role
+    open var role: Role,
 ) : BaseEntity()

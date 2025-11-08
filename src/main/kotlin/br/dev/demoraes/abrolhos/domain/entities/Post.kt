@@ -1,6 +1,6 @@
 package br.dev.demoraes.abrolhos.domain.entities
 
-import br.dev.demoraes.abrolhos.infrastructure.web.dto.response.PostResponse
+import br.dev.demoraes.abrolhos.application.web.dto.response.PostResponse
 import ulid.ULID
 import java.time.OffsetDateTime
 
@@ -15,7 +15,7 @@ data class Post(
     val category: Category,
     val tags: Set<Tag>,
     val createdAt: OffsetDateTime,
-    val updatedAt: OffsetDateTime
+    val updatedAt: OffsetDateTime,
 ) {
     companion object {
         /**
@@ -28,7 +28,7 @@ data class Post(
             slug: PostSlug,
             content: PostContent,
             category: Category,
-            tags: Set<Tag>
+            tags: Set<Tag>,
         ): Post {
             return Post(
                 id = ULID.nextULID(),
@@ -41,14 +41,17 @@ data class Post(
                 tags = tags,
                 createdAt = OffsetDateTime.now(), // Set initial timestamps
                 updatedAt = OffsetDateTime.now(),
-                publishedAt = null
+                publishedAt = null,
             )
         }
     }
 }
 
 enum class PostStatus {
-    DRAFT, PUBLISHED, SCHEDULED
+    DRAFT,
+    PUBLISHED,
+    SCHEDULED,
+    ARCHIVED,
 }
 
 // TODO(Should finish defining those value objects here; at least length)
@@ -73,15 +76,31 @@ value class PostContent(val value: String) {
     }
 }
 
-fun Post.toResponse(): PostResponse = PostResponse(
-    title = this.title.value,
-    slug = this.slug.value,
-    content = this.content.value,
-    status = this.status,
-    authorUsername = this.author.username.value,
-    categoryName = this.category.name.value,
-    tagNames = this.tags.map { it.name.value }.toSet(),
-    publishedAt = this.publishedAt,
-    createdAt = this.createdAt,
-    updatedAt = this.updatedAt
-)
+fun Post.toResponse(): PostResponse =
+    PostResponse(
+        title = this.title.value,
+        slug = this.slug.value,
+        content = this.content.value,
+        status = this.status,
+        authorUsername = this.author.username.value,
+        categoryName = this.category.name.value,
+        tagNames = this.tags.map { it.name.value }.toSet(),
+        publishedAt = this.publishedAt,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
+    )
+
+// Mapping to generated OpenAPI DTO
+fun Post.toGeneratedResponse(): br.dev.demoraes.abrolhos.Application.dto.PostResponse =
+    br.dev.demoraes.abrolhos.Application.dto.PostResponse(
+        title = this.title.value,
+        slug = this.slug.value,
+        content = this.content.value,
+        status = br.dev.demoraes.abrolhos.Application.dto.PostResponse.Status.valueOf(this.status.name),
+        authorUsername = this.author.username.value,
+        categoryName = this.category.name.value,
+        tagNames = this.tags.map { it.name.value },
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
+        publishedAt = this.publishedAt,
+    )

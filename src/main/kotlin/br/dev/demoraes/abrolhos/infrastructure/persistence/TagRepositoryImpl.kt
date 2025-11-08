@@ -11,42 +11,54 @@ import ulid.ULID
 
 @Repository
 class TagRepositoryImpl(
-    private val tagRepositoryPostgresql: TagRepositoryPostgresql
+    private val tagRepositoryPostgresql: TagRepositoryPostgresql,
 ) : TagRepository {
-    override fun findByName(name: TagName): Tag? {
-        return tagRepositoryPostgresql.findByNameIn(setOf(name.value)).firstOrNull()?.toDomain()
+    override fun findByName(name: TagName): Tag? = tagRepositoryPostgresql.findByName(name.value)?.toDomain()
+
+    override fun findByNameIn(names: Set<TagName>): Set<Tag?> =
+        tagRepositoryPostgresql.findByNameIn(names.map { it.value }.toSet())
+            .map { it.toDomain() }
+            .toSet()
+
+    override fun findBySlug(slug: TagSlug): Tag? = tagRepositoryPostgresql.findBySlug(slug.value)?.toDomain()
+
+    override fun findAll(): List<Tag> = tagRepositoryPostgresql.findAll().map { it.toDomain() }
+
+    override fun findById(id: ULID): Tag? =
+        tagRepositoryPostgresql.findById(id.toString())
+            .map { it.toDomain() }
+            .orElse(null)
+
+    override fun save(tag: Tag): Tag =
+        tagRepositoryPostgresql.save(
+            TagEntity(
+                name = tag.name.value,
+                slug = tag.slug.value,
+            ),
+        ).toDomain()
+
+    override fun delete(tag: Tag) {
+        tagRepositoryPostgresql.deleteById(tag.id.toString())
     }
 
-    override fun findByNameIn(names: Set<TagName>): Set<Tag> {
-        val nameValues = names.map { it.value }.toSet()
-        return tagRepositoryPostgresql.findByNameIn(nameValues).map { it.toDomain() }.toSet()
+    private fun TagEntity.toDomain(): Tag {
+        val created =
+            this.createdAt
+                ?: throw IllegalStateException(
+                    "TagEntity with id ${this.id} is missing a createdAt timestamp.",
+                )
+        val updated =
+            this.updatedAt
+                ?: throw IllegalStateException(
+                    "TagEntity with id ${this.id} is missing an updatedAt timestamp.",
+                )
+        return Tag(
+            id = ULID.parseULID(this.id),
+            name = TagName(this.name),
+            slug = TagSlug(this.slug),
+            posts = emptySet(),
+            createdAt = created,
+            updatedAt = updated,
+        )
     }
-}
-
-fun Tag.toEntity() = TagEntity(
-    name = this.name.value,
-    slug = this.slug.value
-)
-
-fun TagEntity.toDomain(): Tag {
-    val createdAt = this.createdAt
-        ?: throw IllegalStateException(
-            "TagEntity with id ${this.id} is missing a createdAt timestamp. " +
-                "This should not happen for a persisted entity."
-        )
-
-    val updatedAt = this.updatedAt
-        ?: throw IllegalStateException(
-            "TagEntity with id ${this.id} is missing an updatedAt timestamp. " +
-                "This should not happen for a persisted entity."
-        )
-
-    return Tag(
-        id = ULID.parseULID(this.id),
-        name = TagName(this.name),
-        slug = TagSlug(this.slug),
-        posts = emptySet(),
-        createdAt = createdAt,
-        updatedAt = updatedAt
-    )
 }

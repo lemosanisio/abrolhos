@@ -7,8 +7,12 @@ import org.springframework.data.repository.query.Param
 
 interface UserRepositoryPostgresql : JpaRepository<UserEntity, String> {
     @Query("SELECT u FROM UserEntity u WHERE u.id = :id")
-    fun findByIdOrNull(@Param("id") id: String): UserEntity?
+    fun findByIdOrNull(
+        @Param("id") id: String,
+    ): UserEntity?
 
     @Query("SELECT u FROM UserEntity u WHERE u.username = :username")
-    fun findByUsername(@Param("username") username: String): UserEntity?
+    fun findByUsername(
+        @Param("username") username: String,
+    ): UserEntity?
 }

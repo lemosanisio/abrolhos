@@ -6,6 +6,8 @@ import ulid.ULID
 
 interface UserRepository {
     fun save(user: User): User
+
     fun findById(id: ULID): User?
+
     fun findByUsername(username: Username): User?
 }

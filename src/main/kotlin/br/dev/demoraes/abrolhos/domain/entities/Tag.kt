@@ -9,7 +9,7 @@ data class Tag(
     val slug: TagSlug,
     val posts: Set<Post>,
     val createdAt: OffsetDateTime,
-    val updatedAt: OffsetDateTime
+    val updatedAt: OffsetDateTime,
 )
 
 // TODO(Should finish defining those value objects here; at least length)

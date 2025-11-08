@@ -1,10 +1,11 @@
 package br.dev.demoraes.abrolhos.domain.entities
 
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.userdetails.UserDetails
 import ulid.ULID
 import java.time.OffsetDateTime
 
+/**
+ * Pure domain model for User with no Spring dependencies.
+ */
 data class User(
     val id: ULID,
     val username: Username,
@@ -12,32 +13,15 @@ data class User(
     val passwordHash: PasswordHash,
     val role: Role,
     val createdAt: OffsetDateTime,
-    val updatedAt: OffsetDateTime
-) : UserDetails {
-    override fun getAuthorities(): Collection<GrantedAuthority?>? {
-        return listOf(role)
-    }
+    val updatedAt: OffsetDateTime,
+)
 
-    override fun getPassword(): String? {
-        return passwordHash.value
-    }
-
-    override fun getUsername(): String? {
-        return username.value
-    }
-}
-
-enum class Role : GrantedAuthority {
-    ADMIN {
-        override fun getAuthority(): String? {
-            return "ROLE_ADMIN"
-        }
-    },
-    USER {
-        override fun getAuthority(): String? {
-            return "ROLE_USER"
-        }
-    }
+/**
+ * Domain role enum, framework-agnostic.
+ */
+enum class Role {
+    ADMIN,
+    USER,
 }
 
 @JvmInline
@@ -46,24 +30,31 @@ value class Username(val value: String) {
         private const val MIN_LENGTH = 3
         private const val MAX_LENGTH = 20
         private val USERNAME_REGEX = Regex("^[a-z0-9_]+$") // Only lowercase, numbers, and underscore
-        private val RESERVED_WORDS = setOf(
-            "admin",
-            "root",
-            "administrator",
-            "support",
-            "contact",
-            "user",
-            "guest"
-        )
+        private val RESERVED_WORDS =
+            setOf(
+                "admin",
+                "root",
+                "administrator",
+                "support",
+                "contact",
+                "user",
+                "guest",
+            )
     }
+
     init {
         val normalizedValue = value.lowercase()
 
         require(normalizedValue.isNotBlank()) { "Username cannot be blank." }
-        require(normalizedValue.length in MIN_LENGTH..MAX_LENGTH) { "Username must be between $MIN_LENGTH and $MAX_LENGTH characters." }
-        require(USERNAME_REGEX.matches(normalizedValue)) { "Username can only contain lowercase letters, numbers, and underscores." }
+        require(normalizedValue.length in MIN_LENGTH..MAX_LENGTH) {
+            "Username must be between $MIN_LENGTH and $MAX_LENGTH characters."
+        }
+        require(USERNAME_REGEX.matches(normalizedValue)) {
+            "Username can only contain lowercase letters, numbers, and underscores."
+        }
         require(normalizedValue !in RESERVED_WORDS) { "Username '$value' is a reserved word and cannot be used." }
     }
+
     override fun toString(): String = value.lowercase()
 }
 
@@ -79,9 +70,10 @@ value class PasswordHash(val value: String) {
 @JvmInline
 value class Email(val value: String) {
     companion object {
-        private val EMAIL_REGEX = Regex(
-            "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
-        )
+        private val EMAIL_REGEX =
+            Regex(
+                "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$",
+            )
     }
 
     init {

@@ -12,7 +12,7 @@ import ulid.ULID
 
 @Repository
 class UserRepositoryImpl(
-    private val userRepositoryPostgresql: UserRepositoryPostgresql
+    private val userRepositoryPostgresql: UserRepositoryPostgresql,
 ) : UserRepository {
     override fun save(user: User): User {
         return userRepositoryPostgresql.save<UserEntity>(user.toEntity()).toDomain()
@@ -27,25 +27,28 @@ class UserRepositoryImpl(
     }
 }
 
-fun User.toEntity() = UserEntity(
-    username = this.username.value,
-    email = this.email.value,
-    passwordHash = this.passwordHash.value,
-    role = this.role
-)
+fun User.toEntity() =
+    UserEntity(
+        username = this.username.value,
+        email = this.email.value,
+        passwordHash = this.passwordHash.value,
+        role = this.role,
+    )
 
 fun UserEntity.toDomain(): User {
-    val createdAt = this.createdAt
-        ?: throw IllegalStateException(
-            "PostEntity with id ${this.id} is missing a createdAt timestamp. " +
-                "This should not happen for a persisted entity."
-        )
+    val createdAt =
+        this.createdAt
+            ?: throw IllegalStateException(
+                "PostEntity with id ${this.id} is missing a createdAt timestamp. " +
+                    "This should not happen for a persisted entity.",
+            )
 
-    val updatedAt = this.updatedAt
-        ?: throw IllegalStateException(
-            "PostEntity with id ${this.id} is missing an updatedAt timestamp. " +
-                "This should not happen for a persisted entity."
-        )
+    val updatedAt =
+        this.updatedAt
+            ?: throw IllegalStateException(
+                "PostEntity with id ${this.id} is missing an updatedAt timestamp. " +
+                    "This should not happen for a persisted entity.",
+            )
 
     return User(
         id = ULID.parseULID(this.id),
@@ -54,6 +57,6 @@ fun UserEntity.toDomain(): User {
         passwordHash = PasswordHash(this.passwordHash),
         role = this.role,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
     )
 }

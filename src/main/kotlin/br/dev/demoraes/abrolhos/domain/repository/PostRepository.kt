@@ -5,6 +5,12 @@ import ulid.ULID
 
 interface PostRepository {
     fun save(post: Post): Post
+
     fun findById(postId: ULID): Post?
-    fun findAll(): Set<Post?>
+
+    fun findAll(): Set<Post>
+
+    fun findPublished(): Set<Post>
+
+    fun findPublishedBySlug(slug: String): Post?
 }
