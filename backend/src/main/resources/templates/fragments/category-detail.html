@@ -1,9 +1,0 @@
-<div th:fragment="content">
-    <h1 th:text="${category.name}">Category Name</h1>
-    <p>
-        <a th:href="@{'/categories/' + ${category.slug} + '/posts'}">View all posts in this category</a>
-    </p>
-    <p>
-        <a href="/categories">Back to Categories</a>
-    </p>
-</div>

@@ -64,3 +64,8 @@ replay_pid*
 # Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
 .kotlin/
 variables.local.env
+
+# Frontend (now in resources)
+src/main/resources/frontend-react/node_modules/
+src/main/resources/frontend-react/dist/
+src/main/resources/frontend-htmx/node_modules/

@@ -1,9 +1,0 @@
-<div th:fragment="content">
-    <h1 th:text="${tag.name}">Tag Name</h1>
-    <p>
-        <a th:href="@{'/tags/' + ${tag.slug} + '/posts'}">View all posts with this tag</a>
-    </p>
-    <p>
-        <a href="/tags">Back to Tags</a>
-    </p>
-</div>
