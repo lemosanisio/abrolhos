@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" hx-boost="true">
+
+<head th:replace="~{fragments/layout :: head('Tags')}">
+</head>
+
+<body>
+    <h1>Tags</h1>
+    <ul id="tags-list">
+        <li th:each="tag : ${tags}">
+            <a th:href="@{'/tags/' + ${tag.slug}}" th:text="${tag.name}">Tag Name</a>
+        </li>
+    </ul>
+    <div th:if="${#lists.isEmpty(tags)}">
+        <p>No tags found.</p>
+    </div>
+</body>
+
+</html>

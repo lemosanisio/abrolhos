@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" hx-boost="true">
+
+<head th:replace="~{fragments/layout :: head(${tag.name})}">
+</head>
+
+<body>
+    <div th:replace="~{fragments/tag-detail :: content}"></div>
+</body>
+
+</html>

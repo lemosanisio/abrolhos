@@ -1,0 +1,25 @@
+<article th:fragment="content">
+    <header>
+        <h1 th:text="${post.title}">Post title</h1>
+        <p>
+            <small>
+                <span>By </span><span th:text="${post.authorUsername}">author</span>
+                <span> • </span>
+                <span th:if="${post.publishedAt != null}"
+                    th:text="${#temporals.format(post.publishedAt, 'yyyy-MM-dd HH:mm')}">Date</span>
+            </small>
+        </p>
+        <p>
+            <strong>Category:</strong> <a th:href="@{'/categories/' + ${post.categorySlug}}"
+                th:text="${post.categoryName}">Category</a>
+            <br />
+            <strong>Tags:</strong>
+            <span th:each="tag, iterStat : ${post.tagNames}">
+                <span th:text="${tag}">Tag</span><span th:if="${!iterStat.last}">, </span>
+            </span>
+        </p>
+    </header>
+    <section>
+        <div th:utext="${post.content}">Post content</div>
+    </section>
+</article>

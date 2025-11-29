@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" hx-boost="true">
+
+<head th:replace="~{fragments/layout :: head('Posts')}">
+</head>
+
+<body>
+    <h1>Published Posts</h1>
+    <div id="posts-list">
+        <div th:each="post : ${posts}" class="post-summary">
+            <h2>
+                <a th:href="@{'/posts/' + ${post.slug}}" th:text="${post.title}">Post Title</a>
+            </h2>
+            <p>
+                <small>
+                    By <span th:text="${post.authorUsername}">Author</span>
+                    on <span th:text="${#temporals.format(post.publishedAt, 'yyyy-MM-dd')}">Date</span>
+                </small>
+            </p>
+            <p th:text="${#strings.abbreviate(post.content, 150)}">Content preview...</p>
+            <hr />
+        </div>
+        <div th:if="${#lists.isEmpty(posts)}">
+            <p>No posts found.</p>
+        </div>
+    </div>
+</body>
+
+</html>

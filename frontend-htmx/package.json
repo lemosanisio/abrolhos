@@ -1,0 +1,24 @@
+{
+  "name": "frontend-htmx",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/css/input.css -o ../backend/src/main/resources/static/css/styles.css --minify",
+    "build:js": "cp ./src/js/app.js ../backend/src/main/resources/static/js/app.js",
+    "build": "bun run build:css && bun run build:js",
+    "watch": "tailwindcss -i ./src/css/input.css -o ../backend/src/main/resources/static/css/styles.css --watch"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "tailwindcss": "3.4.17"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "htmx.org": "^2.0.8"
+  }
+}
