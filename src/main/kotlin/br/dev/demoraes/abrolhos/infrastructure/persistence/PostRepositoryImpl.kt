@@ -7,6 +7,7 @@ import br.dev.demoraes.abrolhos.domain.entities.Post
 import br.dev.demoraes.abrolhos.domain.entities.PostContent
 import br.dev.demoraes.abrolhos.domain.entities.PostSlug
 import br.dev.demoraes.abrolhos.domain.entities.PostStatus
+import br.dev.demoraes.abrolhos.domain.entities.PostSummary
 import br.dev.demoraes.abrolhos.domain.entities.PostTitle
 import br.dev.demoraes.abrolhos.domain.entities.Tag
 import br.dev.demoraes.abrolhos.domain.entities.TagName
@@ -20,7 +21,9 @@ import br.dev.demoraes.abrolhos.infrastructure.persistence.postgresql.CategoryRe
 import br.dev.demoraes.abrolhos.infrastructure.persistence.postgresql.PostRepositoryPostgresql
 import br.dev.demoraes.abrolhos.infrastructure.persistence.postgresql.TagRepositoryPostgresql
 import br.dev.demoraes.abrolhos.infrastructure.persistence.postgresql.UserRepositoryPostgresql
-import org.springframework.data.repository.findByIdOrNull
+import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import ulid.ULID
 
@@ -31,23 +34,11 @@ class PostRepositoryImpl(
     private val tagJpa: TagRepositoryPostgresql,
     private val userJpa: UserRepositoryPostgresql,
 ) : PostRepository {
+    private val logger = LoggerFactory.getLogger(PostRepositoryImpl::class.java)
+
     override fun save(post: Post): Post {
+        logger.debug("Saving post: {}", post.id)
         return postRepositoryPostgresql.save(post.toEntity()).toDomain()
-    }
-
-    override fun findById(postId: ULID): Post? {
-        return postRepositoryPostgresql.findByIdOrNull(postId.toString())?.toDomain()
-    }
-
-    override fun findAll(): Set<Post> {
-        return postRepositoryPostgresql.findAll().map { it.toDomain() }.toSet()
-    }
-
-    override fun findPublished(): Set<Post> {
-        return postRepositoryPostgresql
-            .findByStatus(PostStatus.PUBLISHED)
-            .map { it.toDomain() }
-            .toSet()
     }
 
     override fun findPublishedBySlug(slug: String): Post? {
@@ -56,18 +47,13 @@ class PostRepositoryImpl(
             ?.toDomain()
     }
 
-    override fun findPublishedByCategory(categorySlug: String): Set<Post> {
-        return postRepositoryPostgresql
-            .findByCategorySlugAndStatus(categorySlug, PostStatus.PUBLISHED)
-            .map { it.toDomain() }
-            .toSet()
-    }
-
-    override fun findPublishedByTag(tagSlug: String): Set<Post> {
-        return postRepositoryPostgresql
-            .findByTagsSlugAndStatus(tagSlug, PostStatus.PUBLISHED)
-            .map { it.toDomain() }
-            .toSet()
+    override fun searchSummary(
+        pageable: Pageable,
+        categoryName: String?,
+        tagName: String?,
+        status: PostStatus,
+    ): Page<PostSummary> {
+        return postRepositoryPostgresql.searchSummary(status, categoryName, tagName, pageable).map { it }
     }
 
     private fun Post.toEntity(): PostEntity {
@@ -142,6 +128,24 @@ private fun TagEntity.toDomain(): Tag {
 }
 
 fun PostEntity.toDomain(): Post {
+    val (createdAt, updatedAt, category) = getRequiredFields()
+
+    return Post(
+        id = ULID.parseULID(this.id),
+        title = PostTitle(this.title),
+        slug = PostSlug(this.slug),
+        content = PostContent(this.content),
+        status = this.status,
+        publishedAt = this.publishedAt,
+        author = this.author.toDomain(),
+        category = category,
+        tags = this.tags.map { it.toDomain() }.toSet(),
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+    )
+}
+
+private fun PostEntity.getRequiredFields(): Triple<java.time.OffsetDateTime, java.time.OffsetDateTime, Category> {
     val createdAt =
         this.createdAt
             ?: error(
@@ -162,18 +166,5 @@ fun PostEntity.toDomain(): Post {
                 "PostEntity with id ${this.id} is missing category information. " +
                     "This should not happen for a persisted entity.",
             )
-
-    return Post(
-        id = ULID.parseULID(this.id),
-        title = PostTitle(this.title),
-        slug = PostSlug(this.slug),
-        content = PostContent(this.content),
-        status = this.status,
-        publishedAt = this.publishedAt,
-        author = this.author.toDomain(),
-        category = category,
-        tags = this.tags.map { it.toDomain() }.toSet(),
-        createdAt = createdAt,
-        updatedAt = updatedAt,
-    )
+    return Triple(createdAt, updatedAt, category)
 }

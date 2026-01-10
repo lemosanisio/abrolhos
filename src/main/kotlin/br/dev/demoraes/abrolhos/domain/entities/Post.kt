@@ -1,5 +1,6 @@
 package br.dev.demoraes.abrolhos.domain.entities
 
+import com.fasterxml.jackson.annotation.JsonValue
 import ulid.ULID
 import java.time.OffsetDateTime
 
@@ -17,10 +18,6 @@ data class Post(
     val updatedAt: OffsetDateTime,
 ) {
     companion object {
-        /**
-         * Factory method to create a new Post in a DRAFT state. It generates a new ID and sets the
-         * initial timestamps.
-         */
         fun create(
             author: User,
             title: PostTitle,
@@ -53,24 +50,50 @@ enum class PostStatus {
     ARCHIVED,
 }
 
-// TODO(Should finish defining those value objects here; at least length)
 @JvmInline
-value class PostTitle(val value: String) {
+value class PostTitle(@get:JsonValue val value: String) {
+    companion object {
+        const val MIN_LENGTH = 3
+        const val MAX_LENGTH = 255
+    }
+
     init {
         require(value.isNotBlank()) { "Post title cannot be blank" }
+        require(value.length in MIN_LENGTH..MAX_LENGTH) {
+            "Post title must be between $MIN_LENGTH and $MAX_LENGTH characters"
+        }
     }
 }
 
 @JvmInline
-value class PostSlug(val value: String) {
+value class PostSlug(@get:JsonValue val value: String) {
+    companion object {
+        const val MIN_LENGTH = 3
+        const val MAX_LENGTH = 255
+        val SLUG_REGEX = Regex("^[a-z0-9-]+$")
+    }
+
     init {
         require(value.isNotBlank()) { "Post slug cannot be blank" }
+        require(value.length in MIN_LENGTH..MAX_LENGTH) {
+            "Post slug must be between $MIN_LENGTH and $MAX_LENGTH characters"
+        }
+        require(SLUG_REGEX.matches(value)) {
+            "Post slug can only contain lowercase letters, numbers, and hyphens"
+        }
     }
 }
 
 @JvmInline
-value class PostContent(val value: String) {
+value class PostContent(@get:JsonValue val value: String) {
+    companion object {
+        const val MIN_LENGTH = 1
+    }
+
     init {
         require(value.isNotBlank()) { "Post content cannot be blank" }
+        require(value.length >= MIN_LENGTH) {
+            "Post content must be at least $MIN_LENGTH characters"
+        }
     }
 }

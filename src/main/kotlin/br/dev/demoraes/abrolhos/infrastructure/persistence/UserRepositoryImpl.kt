@@ -7,6 +7,7 @@ import br.dev.demoraes.abrolhos.domain.entities.Username
 import br.dev.demoraes.abrolhos.domain.repository.UserRepository
 import br.dev.demoraes.abrolhos.infrastructure.persistence.entities.UserEntity
 import br.dev.demoraes.abrolhos.infrastructure.persistence.postgresql.UserRepositoryPostgresql
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import ulid.ULID
 
@@ -14,15 +15,10 @@ import ulid.ULID
 class UserRepositoryImpl(
     private val userRepositoryPostgresql: UserRepositoryPostgresql,
 ) : UserRepository {
-    override fun save(user: User): User {
-        return userRepositoryPostgresql.save<UserEntity>(user.toEntity()).toDomain()
-    }
-
-    override fun findById(id: ULID): User? {
-        return userRepositoryPostgresql.findByIdOrNull(id.toString())?.toDomain()
-    }
+    private val logger = LoggerFactory.getLogger(UserRepositoryImpl::class.java)
 
     override fun findByUsername(username: Username): User? {
+        logger.info("Searching user name $username")
         return userRepositoryPostgresql.findByUsername(username.value)?.toDomain()
     }
 }

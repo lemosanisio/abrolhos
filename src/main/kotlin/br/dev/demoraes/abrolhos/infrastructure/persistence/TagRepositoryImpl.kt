@@ -15,19 +15,6 @@ class TagRepositoryImpl(
 ) : TagRepository {
     override fun findByName(name: TagName): Tag? = tagRepositoryPostgresql.findByName(name.value)?.toDomain()
 
-    override fun findByNameIn(names: Set<TagName>): Set<Tag?> =
-        tagRepositoryPostgresql
-            .findByNameIn(names.map { it.value }.toSet())
-            .map { it.toDomain() }
-            .toSet()
-
-    override fun findBySlug(slug: TagSlug): Tag? = tagRepositoryPostgresql.findBySlug(slug.value)?.toDomain()
-
-    override fun findAll(): List<Tag> = tagRepositoryPostgresql.findAll().map { it.toDomain() }
-
-    override fun findById(id: ULID): Tag? =
-        tagRepositoryPostgresql.findById(id.toString()).map { it.toDomain() }.orElse(null)
-
     override fun save(tag: Tag): Tag =
         tagRepositoryPostgresql
             .save(
@@ -42,10 +29,6 @@ class TagRepositoryImpl(
                     },
             )
             .toDomain()
-
-    override fun delete(tag: Tag) {
-        tagRepositoryPostgresql.deleteById(tag.id.toString())
-    }
 
     private fun TagEntity.toDomain(): Tag {
         val created =

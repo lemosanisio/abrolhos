@@ -1,20 +1,15 @@
 package br.dev.demoraes.abrolhos.domain.repository
 
 import br.dev.demoraes.abrolhos.domain.entities.Post
-import ulid.ULID
+import br.dev.demoraes.abrolhos.domain.entities.PostStatus
+import br.dev.demoraes.abrolhos.domain.entities.PostSummary
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
 interface PostRepository {
     fun save(post: Post): Post
 
-    fun findById(postId: ULID): Post?
-
-    fun findAll(): Set<Post>
-
-    fun findPublished(): Set<Post>
-
     fun findPublishedBySlug(slug: String): Post?
 
-    fun findPublishedByCategory(categorySlug: String): Set<Post>
-
-    fun findPublishedByTag(tagSlug: String): Set<Post>
+    fun searchSummary(pageable: Pageable, categoryName: String?, tagName: String?, status: PostStatus): Page<PostSummary>
 }

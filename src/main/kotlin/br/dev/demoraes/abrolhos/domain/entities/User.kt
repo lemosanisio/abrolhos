@@ -1,9 +1,9 @@
 package br.dev.demoraes.abrolhos.domain.entities
 
+import com.fasterxml.jackson.annotation.JsonValue
 import ulid.ULID
 import java.time.OffsetDateTime
 
-/** Pure domain model for User with no Spring dependencies. */
 data class User(
     val id: ULID,
     val username: Username,
@@ -14,14 +14,13 @@ data class User(
     val updatedAt: OffsetDateTime,
 )
 
-/** Domain role enum, framework-agnostic. */
 enum class Role {
     ADMIN,
     USER,
 }
 
 @JvmInline
-value class Username(val value: String) {
+value class Username(@get:JsonValue val value: String) {
     companion object {
         private const val MIN_LENGTH = 3
         private const val MAX_LENGTH = 20
@@ -58,16 +57,21 @@ value class Username(val value: String) {
 }
 
 @JvmInline
-value class PasswordHash(val value: String) {
+value class PasswordHash(@get:JsonValue val value: String) {
+    companion object {
+        const val MAX_LENGTH = 255
+    }
+
     init {
         require(value.isNotBlank()) { "Password hash cannot be blank." }
+        require(value.length <= MAX_LENGTH) { "Password hash is too long." }
     }
 
     override fun toString(): String = value
 }
 
 @JvmInline
-value class Email(val value: String) {
+value class Email(@get:JsonValue val value: String) {
     companion object {
         private val EMAIL_REGEX =
             Regex(

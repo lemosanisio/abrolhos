@@ -8,7 +8,6 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
-import jakarta.persistence.Lob
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
@@ -24,7 +23,6 @@ class PostEntity(
     var title: String,
     @Column(unique = true, nullable = false, length = 255)
     var slug: String,
-    @Lob
     @Column(nullable = false, columnDefinition = "TEXT")
     var content: String,
     @Enumerated(EnumType.STRING)

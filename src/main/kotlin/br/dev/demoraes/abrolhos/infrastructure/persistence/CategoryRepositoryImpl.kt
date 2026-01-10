@@ -16,23 +16,6 @@ class CategoryRepositoryImpl(
     override fun findByName(name: CategoryName): Category? =
         categoryRepositoryPostgresql.findByName(name.value)?.toDomain()
 
-    override fun findByNameIn(names: Set<CategoryName>): Set<Category?> =
-        categoryRepositoryPostgresql
-            .findByNameIn(names.map { it.value }.toSet())
-            .map { it.toDomain() }
-            .toSet()
-
-    override fun findBySlug(slug: CategorySlug): Category? =
-        categoryRepositoryPostgresql.findBySlug(slug.value)?.toDomain()
-
-    override fun findAll(): List<Category> = categoryRepositoryPostgresql.findAll().map { it.toDomain() }
-
-    override fun findById(id: ULID): Category? =
-        categoryRepositoryPostgresql
-            .findById(id.toString())
-            .map { it.toDomain() }
-            .orElse(null)
-
     override fun save(category: Category): Category =
         categoryRepositoryPostgresql
             .save(
@@ -47,10 +30,6 @@ class CategoryRepositoryImpl(
                     },
             )
             .toDomain()
-
-    override fun delete(category: Category) {
-        categoryRepositoryPostgresql.deleteById(category.id.toString())
-    }
 
     private fun CategoryEntity.toDomain(): Category {
         val created =
