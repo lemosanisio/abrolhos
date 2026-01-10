@@ -1,0 +1,72 @@
+-- Schema Definition (from V20250726213100__Create_users_categories_tags_posts_post_tags_tables.sql)
+CREATE TABLE IF NOT EXISTS users (
+    id CHAR(26) PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('ADMIN', 'USER')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS categories (
+    id CHAR(26) PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    slug VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tags (
+    id CHAR(26) PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    slug VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS posts (
+    id CHAR(26) PRIMARY KEY,
+    author_id CHAR(26) NOT NULL REFERENCES users(id),
+    category_id CHAR(26) REFERENCES categories(id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    content TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('DRAFT', 'PUBLISHED', 'SCHEDULED')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    published_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS post_tags (
+    post_id CHAR(26) NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    tag_id CHAR(26) NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (post_id, tag_id)
+);
+
+-- Data Seeding
+-- Admin User
+INSERT INTO users (id, username, email, password_hash, role, created_at, updated_at)
+VALUES ('01JFA000000000000000000001', 'adminuser', 'admin@abrolhos.dev', '$2a$10$1cG5x2Mm81/ECqHD8ooZIuPxWTjp2u7KM8aJA7S9EuXxrSs1jEb2q', 'ADMIN', NOW(), NOW())
+ON CONFLICT (username) DO NOTHING;
+
+-- Categories
+INSERT INTO categories (id, name, slug, created_at, updated_at)
+VALUES 
+('01JFA000000000000000000002', 'Technology', 'technology', NOW(), NOW()),
+('01JFA000000000000000000003', 'Travel', 'travel', NOW(), NOW()),
+('01JFA000000000000000000004', 'Lifestyle', 'lifestyle', NOW(), NOW())
+ON CONFLICT (slug) DO NOTHING;
+
+-- Tags
+INSERT INTO tags (id, name, slug, created_at, updated_at)
+VALUES
+('01JFA000000000000000000005', 'Kotlin', 'kotlin', NOW(), NOW()),
+('01JFA000000000000000000006', 'Spring Boot', 'spring-boot', NOW(), NOW()),
+('01JFA000000000000000000007', 'React', 'react', NOW(), NOW()),
+('01JFA000000000000000000008', 'HTMX', 'htmx', NOW(), NOW())
+ON CONFLICT (slug) DO NOTHING;
