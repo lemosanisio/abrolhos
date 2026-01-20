@@ -1,4 +1,4 @@
-package br.dev.demoraes.abrolhos.domain.services
+package br.dev.demoraes.abrolhos.application.services
 
 import br.dev.demoraes.abrolhos.domain.entities.Category
 import br.dev.demoraes.abrolhos.domain.entities.CategoryName

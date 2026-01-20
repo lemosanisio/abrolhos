@@ -1,4 +1,4 @@
-package br.dev.demoraes.abrolhos.application.web.dto.request
+package br.dev.demoraes.abrolhos.infrastructure.web.dto.request
 
 import br.dev.demoraes.abrolhos.domain.entities.CategoryName
 import br.dev.demoraes.abrolhos.domain.entities.PostContent

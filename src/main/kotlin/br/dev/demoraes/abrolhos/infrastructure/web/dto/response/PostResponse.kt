@@ -1,4 +1,4 @@
-package br.dev.demoraes.abrolhos.application.web.dto.response
+package br.dev.demoraes.abrolhos.infrastructure.web.dto.response
 
 import br.dev.demoraes.abrolhos.domain.entities.PostStatus
 import java.time.OffsetDateTime

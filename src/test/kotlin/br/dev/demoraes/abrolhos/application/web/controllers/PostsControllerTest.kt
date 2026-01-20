@@ -1,9 +1,9 @@
 package br.dev.demoraes.abrolhos.application.web.controllers
 
 import br.dev.demoraes.abrolhos.application.config.SecurityConfig
-import br.dev.demoraes.abrolhos.application.web.dto.request.CategoryRequest
-import br.dev.demoraes.abrolhos.application.web.dto.request.CreatePostRequest
-import br.dev.demoraes.abrolhos.application.web.dto.request.TagRequest
+import br.dev.demoraes.abrolhos.infrastructure.web.dto.request.CategoryRequest
+import br.dev.demoraes.abrolhos.infrastructure.web.dto.request.CreatePostRequest
+import br.dev.demoraes.abrolhos.infrastructure.web.dto.request.TagRequest
 import br.dev.demoraes.abrolhos.domain.entities.Category
 import br.dev.demoraes.abrolhos.domain.entities.CategoryName
 import br.dev.demoraes.abrolhos.domain.entities.CategorySlug
@@ -19,7 +19,8 @@ import br.dev.demoraes.abrolhos.domain.entities.Role
 import br.dev.demoraes.abrolhos.domain.entities.TagName
 import br.dev.demoraes.abrolhos.domain.entities.User
 import br.dev.demoraes.abrolhos.domain.entities.Username
-import br.dev.demoraes.abrolhos.domain.services.PostService
+import br.dev.demoraes.abrolhos.application.services.PostService
+import br.dev.demoraes.abrolhos.infrastructure.web.controllers.PostsController
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every

@@ -1,12 +1,12 @@
-package br.dev.demoraes.abrolhos.application.web.controllers
+package br.dev.demoraes.abrolhos.infrastructure.web.controllers
 
-import br.dev.demoraes.abrolhos.application.web.dto.request.CreatePostRequest
-import br.dev.demoraes.abrolhos.application.web.dto.response.PostResponse
-import br.dev.demoraes.abrolhos.application.web.dto.response.PostSummaryResponse
+import br.dev.demoraes.abrolhos.infrastructure.web.dto.request.CreatePostRequest
+import br.dev.demoraes.abrolhos.infrastructure.web.dto.response.PostResponse
+import br.dev.demoraes.abrolhos.infrastructure.web.dto.response.PostSummaryResponse
 import br.dev.demoraes.abrolhos.domain.entities.Post
 import br.dev.demoraes.abrolhos.domain.entities.PostStatus
 import br.dev.demoraes.abrolhos.domain.entities.PostSummary
-import br.dev.demoraes.abrolhos.domain.services.PostService
+import br.dev.demoraes.abrolhos.application.services.PostService
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel

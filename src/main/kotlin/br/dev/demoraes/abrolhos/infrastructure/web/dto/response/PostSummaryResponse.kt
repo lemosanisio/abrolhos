@@ -1,4 +1,4 @@
-package br.dev.demoraes.abrolhos.application.web.dto.response
+package br.dev.demoraes.abrolhos.infrastructure.web.dto.response
 
 import java.time.OffsetDateTime
 

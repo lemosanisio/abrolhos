@@ -1,5 +1,6 @@
 package br.dev.demoraes.abrolhos.domain.services
 
+import br.dev.demoraes.abrolhos.application.services.PostService
 import br.dev.demoraes.abrolhos.domain.entities.Category
 import br.dev.demoraes.abrolhos.domain.entities.CategoryName
 import br.dev.demoraes.abrolhos.domain.entities.CategorySlug
