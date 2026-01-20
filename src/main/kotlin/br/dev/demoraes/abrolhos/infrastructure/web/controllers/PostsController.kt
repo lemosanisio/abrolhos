@@ -36,7 +36,7 @@ class PostsController(
         @RequestParam(required = false, defaultValue = "PUBLISHED") status: PostStatus,
     ): PagedModel<PostSummaryResponse> {
         logger.info("Received request to get posts with pageable: {}, category: {}, tag: {}, status: {}", pageable, category, tag, status)
-        val posts = postService.searchPostsSummary(pageable, category, tag, status).map { it.toResponse() }
+        val posts = postService.searchPostSummaries(pageable, category, tag, status).map { it.toResponse() }
         return PagedModel(posts)
     }
 

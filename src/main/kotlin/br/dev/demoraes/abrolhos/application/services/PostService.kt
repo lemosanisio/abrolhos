@@ -82,7 +82,7 @@ class PostService(
             }
     }
 
-    fun searchPostsSummary(
+    fun searchPostSummaries(
         pageable: Pageable,
         categoryName: String?,
         tagName: String?,

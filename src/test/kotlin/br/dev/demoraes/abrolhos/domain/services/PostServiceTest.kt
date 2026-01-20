@@ -223,7 +223,7 @@ class PostServiceTest {
         every { postRepository.searchSummary(pageable, any(), any(), any()) } returns page
 
         // When
-        val result = postService.searchPostsSummary(pageable, "Category", "Tag", PostStatus.PUBLISHED)
+        val result = postService.searchPostSummaries(pageable, "Category", "Tag", PostStatus.PUBLISHED)
 
         // Then
         assertEquals(1, result.content.size)

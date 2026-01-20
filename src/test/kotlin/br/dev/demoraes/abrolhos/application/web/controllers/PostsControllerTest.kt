@@ -82,7 +82,7 @@ class PostsControllerTest {
         }
         val page: org.springframework.data.domain.Page<PostSummary> = PageImpl(listOf(summary))
 
-        every { postService.searchPostsSummary(any(), any(), any(), any()) } returns page
+        every { postService.searchPostSummaries(any(), any(), any(), any()) } returns page
 
         // When / Then
         mockMvc.perform(
