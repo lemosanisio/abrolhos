@@ -100,3 +100,17 @@ tasks.register<io.gitlab.arturbosch.detekt.Detekt>("detektFormat") {
         sarif.required.set(false)
     }
 }
+
+tasks.withType<org.springframework.boot.gradle.tasks.run.BootRun> {
+    val envFile = file("local.env")
+    if (envFile.exists()) {
+        envFile.readLines().forEach { line ->
+            if (line.isNotBlank() && !line.startsWith("#")) {
+                val parts = line.split("=", limit = 2)
+                if (parts.size == 2) {
+                    environment(parts[0], parts[1])
+                }
+            }
+        }
+    }
+}

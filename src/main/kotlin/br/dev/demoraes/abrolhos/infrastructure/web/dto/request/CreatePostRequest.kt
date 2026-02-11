@@ -12,16 +12,8 @@ data class CreatePostRequest(
     val title: PostTitle,
     val content: PostContent,
     val status: PostStatus,
-    val categoryName: CategoryRequest,
-    val tagNames: List<TagRequest>,
+    val categoryName: CategoryName,
+    val tagNames: List<TagName>,
     val createdAt: OffsetDateTime? = null,
     val authorUsername: Username
-)
-
-data class CategoryRequest(
-    val name: CategoryName
-)
-
-data class TagRequest(
-    val name: TagName
 )
