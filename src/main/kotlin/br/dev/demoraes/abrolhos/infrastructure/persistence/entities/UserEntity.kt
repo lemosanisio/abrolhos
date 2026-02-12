@@ -12,10 +12,10 @@ import jakarta.persistence.Table
 open class UserEntity(
     @Column(name = "username", nullable = false, unique = true, length = 50)
     open var username: String,
-    @Column(name = "email", nullable = false, unique = true, length = 255)
-    open var email: String,
-    @Column(name = "password_hash", nullable = false, length = 255)
-    open var passwordHash: String,
+    @Column(name = "totp_secret", nullable = true, length = 255)
+    open var totpSecret: String?,
+    @Column(name = "is_active", nullable = false)
+    open var isActive: Boolean,
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
     open var role: Role,

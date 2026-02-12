@@ -5,8 +5,6 @@ import br.dev.demoraes.abrolhos.application.services.PostService
 import br.dev.demoraes.abrolhos.domain.entities.Category
 import br.dev.demoraes.abrolhos.domain.entities.CategoryName
 import br.dev.demoraes.abrolhos.domain.entities.CategorySlug
-import br.dev.demoraes.abrolhos.domain.entities.Email
-import br.dev.demoraes.abrolhos.domain.entities.PasswordHash
 import br.dev.demoraes.abrolhos.domain.entities.Post
 import br.dev.demoraes.abrolhos.domain.entities.PostContent
 import br.dev.demoraes.abrolhos.domain.entities.PostSlug
@@ -15,8 +13,10 @@ import br.dev.demoraes.abrolhos.domain.entities.PostSummary
 import br.dev.demoraes.abrolhos.domain.entities.PostTitle
 import br.dev.demoraes.abrolhos.domain.entities.Role
 import br.dev.demoraes.abrolhos.domain.entities.TagName
+import br.dev.demoraes.abrolhos.domain.entities.TotpSecret
 import br.dev.demoraes.abrolhos.domain.entities.User
 import br.dev.demoraes.abrolhos.domain.entities.Username
+import br.dev.demoraes.abrolhos.domain.repository.UserRepository
 import br.dev.demoraes.abrolhos.infrastructure.web.controllers.PostsController
 import br.dev.demoraes.abrolhos.infrastructure.web.dto.request.CreatePostRequest
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -44,6 +44,8 @@ class PostsControllerTest {
 
     @MockkBean private lateinit var postService: PostService
 
+    @MockkBean private lateinit var userRepository: UserRepository
+
     @Autowired private lateinit var objectMapper: ObjectMapper
 
     @Test
@@ -53,8 +55,8 @@ class PostsControllerTest {
             User(
                 id = ULID.nextULID(),
                 username = Username("author"),
-                email = Email("author@example.com"),
-                passwordHash = PasswordHash("hash"),
+                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                isActive = true,
                 role = Role.USER,
                 createdAt = OffsetDateTime.now(),
                 updatedAt = OffsetDateTime.now()
@@ -102,8 +104,8 @@ class PostsControllerTest {
             User(
                 id = ULID.nextULID(),
                 username = Username("author"),
-                email = Email("author@example.com"),
-                passwordHash = PasswordHash("hash"),
+                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                isActive = true,
                 role = Role.USER,
                 createdAt = OffsetDateTime.now(),
                 updatedAt = OffsetDateTime.now()
@@ -159,8 +161,8 @@ class PostsControllerTest {
             User(
                 id = ULID.nextULID(),
                 username = Username("author"),
-                email = Email("author@example.com"),
-                passwordHash = PasswordHash("hash"),
+                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                isActive = true,
                 role = Role.USER,
                 createdAt = OffsetDateTime.now(),
                 updatedAt = OffsetDateTime.now()

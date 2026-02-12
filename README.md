@@ -88,6 +88,63 @@ To automatically format the code using the `detekt-formatting` ruleset:
 ./gradlew detektFormat
 ```
 
+## 👥 User Provisioning (TOTP Authentication)
+
+Abrolhos uses TOTP-only authentication with manual user provisioning. Users are created via SQL scripts and receive invitation tokens to activate their accounts.
+
+### Creating a New User
+
+1. Open `docs/user-provisioning.sql` in your database client
+2. Locate **Script 1: Create a new user and generate an invitation token**
+3. Replace the placeholder values:
+   - `'your_username'` → actual username (3-20 chars, lowercase)
+   - `'ADMIN'` → `'USER'` for regular users, keep `'ADMIN'` for administrators
+   - `7` → number of days until invite expires (optional, default is 7)
+4. Execute the script
+5. Copy the generated `invite_token` from the output
+6. Share the token securely with the user
+
+**Example:**
+```sql
+-- Replace 'your_username' with 'johndoe'
+-- Replace 'ADMIN' with 'USER'
+-- Keep 7 days expiry
+```
+
+### Retrieving an Existing Invite Token
+
+If you need to resend an invitation or check if one exists:
+
+1. Use **Script 2: Retrieve an existing invite token for a user**
+2. Replace `'username_here'` with the actual username
+3. Execute the script
+4. The invite token and expiry status will be displayed
+
+### Managing Invites
+
+The `docs/user-provisioning.sql` file contains additional helper scripts:
+
+- **Script 3**: List all pending invites (for auditing)
+- **Script 4**: Delete an expired invite manually
+- **Script 5**: Create a new invite for an existing inactive user
+- **Script 6**: Check user activation status
+
+### User Activation Flow
+
+1. User receives an invitation token from an administrator
+2. User scans the QR code or manually enters the TOTP secret in their authenticator app (Google Authenticator, Authy, etc.)
+3. User calls `POST /api/auth/activate` with the invite token and a TOTP code
+4. System validates the invite, activates the account, and returns a JWT token
+5. User can now log in using `POST /api/auth/login` with their username and TOTP code
+
+### Security Notes
+
+- Invitation tokens are cryptographically secure (64 hex characters, 256 bits of entropy)
+- Tokens expire after the configured period (default: 7 days)
+- Expired invites are automatically deleted during activation attempts
+- Users start as inactive and cannot log in until they complete activation
+- TOTP secrets are generated during activation with 160 bits of entropy
+
 ## 📂 Project Structure
 
 - `src/main/kotlin`: Application source code.

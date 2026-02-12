@@ -7,8 +7,8 @@ import java.time.OffsetDateTime
 data class User(
     val id: ULID,
     val username: Username,
-    val email: Email,
-    val passwordHash: PasswordHash,
+    val totpSecret: TotpSecret?,
+    val isActive: Boolean,
     val role: Role,
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,
@@ -57,32 +57,16 @@ value class Username(@get:JsonValue val value: String) {
 }
 
 @JvmInline
-value class PasswordHash(@get:JsonValue val value: String) {
+value class TotpSecret(@get:JsonValue val value: String) {
     companion object {
-        const val MAX_LENGTH = 255
+        private val BASE32_REGEX = Regex("^[A-Z2-7]+$")
     }
 
     init {
-        require(value.isNotBlank()) { "Password hash cannot be blank." }
-        require(value.length <= MAX_LENGTH) { "Password hash is too long." }
-    }
-
-    override fun toString(): String = value
-}
-
-@JvmInline
-value class Email(@get:JsonValue val value: String) {
-    companion object {
-        private val EMAIL_REGEX =
-            Regex(
-                "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$",
-            )
-    }
-
-    init {
-        require(value.isNotBlank()) { "Email address cannot be blank." }
-
-        require(EMAIL_REGEX.matches(value)) { "Invalid email address format." }
+        require(value.isNotBlank()) { "TOTP secret cannot be blank." }
+        require(BASE32_REGEX.matches(value)) {
+            "TOTP secret must be base32 encoded."
+        }
     }
 
     override fun toString(): String = value

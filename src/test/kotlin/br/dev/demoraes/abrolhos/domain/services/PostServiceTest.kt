@@ -4,8 +4,6 @@ import br.dev.demoraes.abrolhos.application.services.PostService
 import br.dev.demoraes.abrolhos.domain.entities.Category
 import br.dev.demoraes.abrolhos.domain.entities.CategoryName
 import br.dev.demoraes.abrolhos.domain.entities.CategorySlug
-import br.dev.demoraes.abrolhos.domain.entities.Email
-import br.dev.demoraes.abrolhos.domain.entities.PasswordHash
 import br.dev.demoraes.abrolhos.domain.entities.Post
 import br.dev.demoraes.abrolhos.domain.entities.PostStatus
 import br.dev.demoraes.abrolhos.domain.entities.PostSummary
@@ -13,6 +11,7 @@ import br.dev.demoraes.abrolhos.domain.entities.Role
 import br.dev.demoraes.abrolhos.domain.entities.Tag
 import br.dev.demoraes.abrolhos.domain.entities.TagName
 import br.dev.demoraes.abrolhos.domain.entities.TagSlug
+import br.dev.demoraes.abrolhos.domain.entities.TotpSecret
 import br.dev.demoraes.abrolhos.domain.entities.User
 import br.dev.demoraes.abrolhos.domain.entities.Username
 import br.dev.demoraes.abrolhos.domain.repository.CategoryRepository
@@ -52,8 +51,8 @@ class PostServiceTest {
         val author = User(
             id = ULID.nextULID(),
             username = Username("author"),
-            email = Email("author@example.com"),
-            passwordHash = PasswordHash("hash"),
+            totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+            isActive = true,
             role = Role.USER,
             createdAt = OffsetDateTime.now(),
             updatedAt = OffsetDateTime.now()
@@ -110,8 +109,8 @@ class PostServiceTest {
         val author = User(
             id = ULID.nextULID(),
             username = Username("author"),
-            email = Email("author@example.com"),
-            passwordHash = PasswordHash("hash"),
+            totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+            isActive = true,
             role = Role.USER,
             createdAt = OffsetDateTime.now(),
             updatedAt = OffsetDateTime.now()
@@ -159,8 +158,8 @@ class PostServiceTest {
         val author = User(
             id = ULID.nextULID(),
             username = Username("author"),
-            email = Email("author@example.com"),
-            passwordHash = PasswordHash("hash"),
+            totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+            isActive = true,
             role = Role.USER,
             createdAt = OffsetDateTime.now(),
             updatedAt = OffsetDateTime.now()

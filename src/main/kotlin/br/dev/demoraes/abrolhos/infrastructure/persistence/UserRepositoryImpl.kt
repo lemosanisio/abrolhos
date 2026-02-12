@@ -1,7 +1,6 @@
 package br.dev.demoraes.abrolhos.infrastructure.persistence
 
-import br.dev.demoraes.abrolhos.domain.entities.Email
-import br.dev.demoraes.abrolhos.domain.entities.PasswordHash
+import br.dev.demoraes.abrolhos.domain.entities.TotpSecret
 import br.dev.demoraes.abrolhos.domain.entities.User
 import br.dev.demoraes.abrolhos.domain.entities.Username
 import br.dev.demoraes.abrolhos.domain.repository.UserRepository
@@ -17,17 +16,35 @@ class UserRepositoryImpl(
 ) : UserRepository {
     private val logger = LoggerFactory.getLogger(UserRepositoryImpl::class.java)
 
+    override fun findById(id: ULID): User? {
+        logger.info("Searching user by id $id")
+        return userRepositoryPostgresql.findById(id.toString())
+            .map { it.toDomain() }
+            .orElse(null)
+    }
+
     override fun findByUsername(username: Username): User? {
         logger.info("Searching user name $username")
         return userRepositoryPostgresql.findByUsername(username.value)?.toDomain()
     }
+
+    override fun save(user: User): User {
+        logger.info("Saving user ${user.username}")
+        val entity = user.toEntity()
+        return userRepositoryPostgresql.save(entity).toDomain()
+    }
+
+    override fun existsByUsername(username: Username): Boolean {
+        logger.info("Checking if username exists: $username")
+        return userRepositoryPostgresql.existsByUsername(username.value)
+    }
 }
 
-fun User.toEntity() =
+internal fun User.toEntity() =
     UserEntity(
         username = this.username.value,
-        email = this.email.value,
-        passwordHash = this.passwordHash.value,
+        totpSecret = this.totpSecret?.value,
+        isActive = this.isActive,
         role = this.role,
     )
         .apply {
@@ -36,26 +53,26 @@ fun User.toEntity() =
             updatedAt = this@toEntity.updatedAt
         }
 
-fun UserEntity.toDomain(): User {
+internal fun UserEntity.toDomain(): User {
     val createdAt =
         this.createdAt
             ?: throw IllegalStateException(
-                "PostEntity with id ${this.id} is missing a createdAt timestamp. " +
+                "UserEntity with id ${this.id} is missing a createdAt timestamp. " +
                     "This should not happen for a persisted entity.",
             )
 
     val updatedAt =
         this.updatedAt
             ?: throw IllegalStateException(
-                "PostEntity with id ${this.id} is missing an updatedAt timestamp. " +
+                "UserEntity with id ${this.id} is missing an updatedAt timestamp. " +
                     "This should not happen for a persisted entity.",
             )
 
     return User(
         id = ULID.parseULID(this.id),
         username = Username(this.username),
-        email = Email(this.email),
-        passwordHash = PasswordHash(this.passwordHash),
+        totpSecret = this.totpSecret?.let { TotpSecret(it) },
+        isActive = this.isActive,
         role = this.role,
         createdAt = createdAt,
         updatedAt = updatedAt,

@@ -15,4 +15,6 @@ interface UserRepositoryPostgresql : JpaRepository<UserEntity, String> {
     fun findByUsername(
         @Param("username") username: String,
     ): UserEntity?
+
+    fun existsByUsername(username: String): Boolean
 }
