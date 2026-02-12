@@ -123,19 +123,25 @@ Expires At: 2025-01-22 14:30:00+00
 ### For Users
 
 1. Receive invitation token from administrator
-2. Open authenticator app (Google Authenticator, Authy, 1Password, etc.)
-3. Add new account using the TOTP secret or QR code
-4. Generate a 6-digit TOTP code from the app
-5. Call the activation endpoint:
+2. Navigate to the activation page with the token.
+3. The application will fetch the TOTP secret and QR code:
+   ```bash
+   GET /api/auth/invite/{token}
+   ```
+4. Open authenticator app (Google Authenticator, Authy, 1Password, etc.)
+5. Add new account using the displayed TOTP secret or QR code
+6. Generate a 6-digit TOTP code from the app
+7. Call the activation endpoint with the received secret:
    ```bash
    POST /api/auth/activate
    {
      "inviteToken": "a1b2c3d4e5f6...",
-     "totpCode": "123456"
+     "totpCode": "123456",
+     "secret": "JBSWY3DPEHPK3PXP"
    }
    ```
-6. Save the returned JWT token
-7. Use the token for subsequent API requests
+8. Save the returned JWT token
+9. Use the token for subsequent API requests
 
 ### Login After Activation
 
@@ -193,12 +199,12 @@ POST /api/auth/login
 
 ## Security Best Practices
 
-1. **Token Sharing**: Share invite tokens through secure channels (encrypted email, secure messaging apps)
-2. **Expiry Period**: Use shorter expiry periods (3-7 days) for sensitive environments
-3. **Token Storage**: Don't store invite tokens in plain text logs or unsecured locations
-4. **Cleanup**: Periodically review and clean up expired invites using Script 3 and Script 4
-5. **Monitoring**: Monitor failed activation attempts for potential security issues
-6. **Time Sync**: Ensure server and user devices have accurate time synchronization for TOTP
+1.  **Token Sharing**: Share invite tokens through secure channels (encrypted email, secure messaging apps)
+2.  **Expiry Period**: Use shorter expiry periods (3-7 days) for sensitive environments
+3.  **Token Storage**: Don't store invite tokens in plain text logs or unsecured locations
+4.  **Cleanup**: Periodically review and clean up expired invites using Script 3 and Script 4
+5.  **Monitoring**: Monitor failed activation attempts for potential security issues
+6.  **Time Sync**: Ensure server and user devices have accurate time synchronization for TOTP
 
 ## Database Queries
 
@@ -237,6 +243,24 @@ AND i.deleted_at IS NULL;
 
 ## API Endpoints
 
+### Validate Invite Endpoint
+
+```
+GET /api/auth/invite/{token}
+
+Response 200 OK:
+{
+  "username": "johndoe",
+  "secret": "JBSWY3DPEHPK3PXP",
+  "provisioningUri": "otpauth://totp/Abrolhos:johndoe?secret=..."
+}
+
+Response 404 Not Found:
+{
+  "error": "Invalid or expired invite token"
+}
+```
+
 ### Activation Endpoint
 
 ```
@@ -245,7 +269,8 @@ Content-Type: application/json
 
 {
   "inviteToken": "string (64 hex characters)",
-  "totpCode": "string (6 digits)"
+  "totpCode": "string (6 digits)",
+  "secret": "string (base32 secret)"
 }
 
 Response 200 OK:

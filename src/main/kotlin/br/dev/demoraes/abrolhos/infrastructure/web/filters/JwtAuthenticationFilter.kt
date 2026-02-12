@@ -7,6 +7,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -20,6 +21,12 @@ class JwtAuthenticationFilter(
     @Value("\${jwt.secret}") private val jwtSecret: String,
     private val userRepository: UserRepository,
 ) : OncePerRequestFilter() {
+
+    private val log = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
+
+    companion object {
+        private const val BEARER_PREFIX = "Bearer "
+    }
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -41,15 +48,16 @@ class JwtAuthenticationFilter(
 
                 if (user != null && user.isActive) {
                     val authorities = listOf(SimpleGrantedAuthority("ROLE_$role"))
-                    val authentication = UsernamePasswordAuthenticationToken(
-                        user.username.value,
-                        null,
-                        authorities
-                    )
+                    val authentication =
+                        UsernamePasswordAuthenticationToken(
+                            user.username.value,
+                            null,
+                            authorities
+                        )
                     SecurityContextHolder.getContext().authentication = authentication
                 }
             } catch (e: JWTVerificationException) {
-                // Invalid token, continue without authentication
+                log.debug("Invalid JWT token", e)
             }
         }
 
@@ -58,8 +66,8 @@ class JwtAuthenticationFilter(
 
     private fun extractToken(request: HttpServletRequest): String? {
         val bearerToken = request.getHeader("Authorization")
-        return if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            bearerToken.substring(7)
+        return if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
+            bearerToken.substring(BEARER_PREFIX.length)
         } else {
             null
         }

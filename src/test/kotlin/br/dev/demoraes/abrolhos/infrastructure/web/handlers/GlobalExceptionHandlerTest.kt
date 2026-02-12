@@ -4,6 +4,7 @@ import br.dev.demoraes.abrolhos.application.config.SecurityConfig
 import br.dev.demoraes.abrolhos.application.services.AuthService
 import br.dev.demoraes.abrolhos.domain.entities.InviteToken
 import br.dev.demoraes.abrolhos.domain.entities.TotpCode
+import br.dev.demoraes.abrolhos.domain.entities.TotpSecret
 import br.dev.demoraes.abrolhos.domain.entities.Username
 import br.dev.demoraes.abrolhos.domain.exceptions.AccountAlreadyActiveException
 import br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException
@@ -32,7 +33,9 @@ class GlobalExceptionHandlerTest {
 
     @MockkBean private lateinit var authService: AuthService
 
-    @MockkBean private lateinit var userRepository: UserRepository
+    @Suppress("UnusedPrivateProperty")
+    @MockkBean
+    private lateinit var userRepository: UserRepository
 
     @Autowired private lateinit var objectMapper: ObjectMapper
 
@@ -58,9 +61,14 @@ class GlobalExceptionHandlerTest {
     fun `should handle InvalidInviteException with 400 status`() {
         // Given
         val validToken = "a".repeat(32)
-        val request = mapOf("inviteToken" to validToken, "totpCode" to "123456")
+        val request =
+            mapOf("inviteToken" to validToken, "totpCode" to "123456", "secret" to "TESTSECRET")
         every {
-            authService.activateAccount(InviteToken(validToken), TotpCode("123456"))
+            authService.activateAccount(
+                InviteToken(validToken),
+                TotpCode("123456"),
+                TotpSecret("TESTSECRET")
+            )
         } throws InvalidInviteException("Invalid or expired invite token")
 
         // When / Then
@@ -78,9 +86,15 @@ class GlobalExceptionHandlerTest {
     fun `should handle AccountAlreadyActiveException with 409 status`() {
         // Given
         val token = "a".repeat(32)
-        val request = mapOf("inviteToken" to token, "totpCode" to "123456")
-        every { authService.activateAccount(InviteToken(token), TotpCode("123456")) } throws
-            AccountAlreadyActiveException("Account is already active")
+        val request =
+            mapOf("inviteToken" to token, "totpCode" to "123456", "secret" to "TESTSECRET")
+        every {
+            authService.activateAccount(
+                InviteToken(token),
+                TotpCode("123456"),
+                TotpSecret("TESTSECRET")
+            )
+        } throws AccountAlreadyActiveException("Account is already active")
 
         // When / Then
         mockMvc.perform(
@@ -97,9 +111,15 @@ class GlobalExceptionHandlerTest {
     fun `should handle InvalidTotpCodeException with 400 status`() {
         // Given
         val token = "a".repeat(32)
-        val request = mapOf("inviteToken" to token, "totpCode" to "123456")
-        every { authService.activateAccount(InviteToken(token), TotpCode("123456")) } throws
-            InvalidTotpCodeException("Invalid TOTP code")
+        val request =
+            mapOf("inviteToken" to token, "totpCode" to "123456", "secret" to "TESTSECRET")
+        every {
+            authService.activateAccount(
+                InviteToken(token),
+                TotpCode("123456"),
+                TotpSecret("TESTSECRET")
+            )
+        } throws InvalidTotpCodeException("Invalid TOTP code")
 
         // When / Then
         mockMvc.perform(
@@ -134,7 +154,8 @@ class GlobalExceptionHandlerTest {
     fun `should return generic error message for null exception message`() {
         // Given
         val request = mapOf("username" to "testuser", "totpCode" to "123456")
-        every { authService.login(Username("testuser"), TotpCode("123456")) } throws IllegalArgumentException()
+        every { authService.login(Username("testuser"), TotpCode("123456")) } throws
+            IllegalArgumentException()
 
         // When / Then
         mockMvc.perform(

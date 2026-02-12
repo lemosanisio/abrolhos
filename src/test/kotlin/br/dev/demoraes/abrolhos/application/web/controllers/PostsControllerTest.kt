@@ -44,7 +44,9 @@ class PostsControllerTest {
 
     @MockkBean private lateinit var postService: PostService
 
-    @MockkBean private lateinit var userRepository: UserRepository
+    @Suppress("UnusedPrivateProperty")
+    @MockkBean
+    private lateinit var userRepository: UserRepository
 
     @Autowired private lateinit var objectMapper: ObjectMapper
 
