@@ -2,6 +2,7 @@ package br.dev.demoraes.abrolhos.infrastructure.persistence
 
 import br.dev.demoraes.abrolhos.domain.entities.Invite
 import br.dev.demoraes.abrolhos.domain.entities.InviteToken
+import br.dev.demoraes.abrolhos.domain.entities.TotpSecret
 import br.dev.demoraes.abrolhos.domain.repository.InviteRepository
 import br.dev.demoraes.abrolhos.infrastructure.persistence.entities.InviteEntity
 import br.dev.demoraes.abrolhos.infrastructure.persistence.postgresql.InviteRepositoryPostgresql
@@ -45,10 +46,12 @@ internal fun Invite.toEntity() =
         token = this.token.value,
         userId = this.userId.toString(),
         expiryDate = this.expiryDate,
+        totpSecret = this.totpSecret?.value,
     )
         .apply {
             id = this@toEntity.id.toString()
             createdAt = this@toEntity.createdAt
+            updatedAt = OffsetDateTime.now()
         }
 
 internal fun InviteEntity.toDomain(): Invite {
@@ -65,5 +68,6 @@ internal fun InviteEntity.toDomain(): Invite {
         userId = ULID.parseULID(this.userId),
         expiryDate = this.expiryDate,
         createdAt = createdAt,
+        totpSecret = this.totpSecret?.let { TotpSecret(it) },
     )
 }

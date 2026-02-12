@@ -10,8 +10,7 @@ import java.time.OffsetDateTime
 open class InviteEntity(
     @Column(name = "token", nullable = false, unique = true, length = 64)
     open var token: String,
-    @Column(name = "user_id", nullable = false, length = 26)
-    open var userId: String,
-    @Column(name = "expiry_date", nullable = false)
-    open var expiryDate: OffsetDateTime,
+    @Column(name = "user_id", nullable = false, length = 26) open var userId: String,
+    @Column(name = "expiry_date", nullable = false) open var expiryDate: OffsetDateTime,
+    @Column(name = "totp_secret", nullable = true) open var totpSecret: String? = null,
 ) : BaseEntity()

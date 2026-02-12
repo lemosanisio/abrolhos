@@ -4,7 +4,6 @@ import br.dev.demoraes.abrolhos.application.config.SecurityConfig
 import br.dev.demoraes.abrolhos.application.services.AuthService
 import br.dev.demoraes.abrolhos.domain.entities.InviteToken
 import br.dev.demoraes.abrolhos.domain.entities.TotpCode
-import br.dev.demoraes.abrolhos.domain.entities.TotpSecret
 import br.dev.demoraes.abrolhos.domain.entities.Username
 import br.dev.demoraes.abrolhos.domain.exceptions.AccountAlreadyActiveException
 import br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException
@@ -62,12 +61,11 @@ class GlobalExceptionHandlerTest {
         // Given
         val validToken = "a".repeat(32)
         val request =
-            mapOf("inviteToken" to validToken, "totpCode" to "123456", "secret" to "TESTSECRET")
+            mapOf("inviteToken" to validToken, "totpCode" to "123456")
         every {
             authService.activateAccount(
                 InviteToken(validToken),
-                TotpCode("123456"),
-                TotpSecret("TESTSECRET")
+                TotpCode("123456")
             )
         } throws InvalidInviteException("Invalid or expired invite token")
 
@@ -87,12 +85,11 @@ class GlobalExceptionHandlerTest {
         // Given
         val token = "a".repeat(32)
         val request =
-            mapOf("inviteToken" to token, "totpCode" to "123456", "secret" to "TESTSECRET")
+            mapOf("inviteToken" to token, "totpCode" to "123456")
         every {
             authService.activateAccount(
                 InviteToken(token),
-                TotpCode("123456"),
-                TotpSecret("TESTSECRET")
+                TotpCode("123456")
             )
         } throws AccountAlreadyActiveException("Account is already active")
 
@@ -112,12 +109,11 @@ class GlobalExceptionHandlerTest {
         // Given
         val token = "a".repeat(32)
         val request =
-            mapOf("inviteToken" to token, "totpCode" to "123456", "secret" to "TESTSECRET")
+            mapOf("inviteToken" to token, "totpCode" to "123456")
         every {
             authService.activateAccount(
                 InviteToken(token),
-                TotpCode("123456"),
-                TotpSecret("TESTSECRET")
+                TotpCode("123456")
             )
         } throws InvalidTotpCodeException("Invalid TOTP code")
 

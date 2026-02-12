@@ -9,6 +9,7 @@ data class Invite(
     val userId: ULID,
     val expiryDate: OffsetDateTime,
     val createdAt: OffsetDateTime,
+    val totpSecret: TotpSecret? = null,
 ) {
     fun isExpired(): Boolean = OffsetDateTime.now().isAfter(expiryDate)
 }

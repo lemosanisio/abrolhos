@@ -21,20 +21,15 @@ class SecurityConfig(
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http {
             authorizeHttpRequests {
+                authorize("/api/auth/invite/*", permitAll)
                 authorize("/api/auth/activate", permitAll)
                 authorize("/api/auth/login", permitAll)
-                authorize("/api/posts/**", permitAll)
+                authorize("/api/posts/*", permitAll)
                 authorize(anyRequest, authenticated)
             }
-            sessionManagement {
-                sessionCreationPolicy = SessionCreationPolicy.STATELESS
-            }
-            csrf {
-                disable()
-            }
-            cors {
-                configurationSource = corsConfigurationSource()
-            }
+            sessionManagement { sessionCreationPolicy = SessionCreationPolicy.STATELESS }
+            csrf { disable() }
+            cors { configurationSource = corsConfigurationSource() }
             addFilterBefore<UsernamePasswordAuthenticationFilter>(jwtAuthenticationFilter)
         }
         return http.build()

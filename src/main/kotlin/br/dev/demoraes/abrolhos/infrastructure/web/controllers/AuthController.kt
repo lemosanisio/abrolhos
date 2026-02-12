@@ -3,7 +3,6 @@ package br.dev.demoraes.abrolhos.infrastructure.web.controllers
 import br.dev.demoraes.abrolhos.application.services.AuthService
 import br.dev.demoraes.abrolhos.domain.entities.InviteToken
 import br.dev.demoraes.abrolhos.domain.entities.TotpCode
-import br.dev.demoraes.abrolhos.domain.entities.TotpSecret
 import br.dev.demoraes.abrolhos.domain.entities.Username
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController
 data class ActivateAccountRequest(
     val inviteToken: String,
     val totpCode: String,
-    val secret: String,
 )
 
 data class LoginRequest(
@@ -32,7 +30,6 @@ data class AuthResponse(
 
 data class InviteValidationResponse(
     val username: String,
-    val secret: String,
     val provisioningUri: String,
 )
 
@@ -51,7 +48,6 @@ class AuthController(
         logger.info("Invite token validated successfully for username: {}", details.username)
         return InviteValidationResponse(
             username = details.username,
-            secret = details.secret,
             provisioningUri = details.provisioningUri
         )
     }
@@ -63,8 +59,7 @@ class AuthController(
         val token =
             authService.activateAccount(
                 inviteToken = InviteToken(request.inviteToken),
-                totpCode = TotpCode(request.totpCode),
-                secret = TotpSecret(request.secret)
+                totpCode = TotpCode(request.totpCode)
             )
         logger.info("Account activated successfully")
         return AuthResponse(token)

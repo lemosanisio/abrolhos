@@ -2,7 +2,6 @@ package br.dev.demoraes.abrolhos.application.services
 
 import br.dev.demoraes.abrolhos.domain.entities.InviteToken
 import br.dev.demoraes.abrolhos.domain.entities.TotpCode
-import br.dev.demoraes.abrolhos.domain.entities.TotpSecret
 import br.dev.demoraes.abrolhos.domain.entities.Username
 import br.dev.demoraes.abrolhos.domain.exceptions.AccountAlreadyActiveException
 import br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException
@@ -23,12 +22,11 @@ class AuthService(
 ) {
     data class InvitationDetails(
         val username: String,
-        val secret: String,
         val provisioningUri: String
     )
 
     @Suppress("ThrowsCount")
-    @Transactional(readOnly = true)
+    @Transactional
     fun validateInvite(inviteToken: InviteToken): InvitationDetails {
         // Find invite
         val invite =
@@ -50,20 +48,35 @@ class AuthService(
             throw AccountAlreadyActiveException("Account is already active")
         }
 
-        // Generate new TOTP secret for display
-        val newSecret = totpService.generateSecret()
-        val uri = totpService.generateProvisioningUri(user.username.value, newSecret)
+        // Reuse existing secret or generate a new one and persist it
+        val secret =
+            invite.totpSecret
+                ?: totpService.generateSecret().also { newSecret ->
+                    // Log secret generation (first 8 chars for security)
+                    println("Generated new TOTP secret for invite: ${newSecret.value.take(TotpService.SECRET_PREFIX_LENGTH)}...")
+
+                    // Validate secret before persisting
+                    val validation = totpService.validateSecret(newSecret)
+                    if (!validation.isValid) {
+                        error("Generated TOTP secret is invalid: ${validation.error}")
+                    }
+
+                    // Log validation success
+                    println("Secret validation passed: ${validation.byteCount} bytes (expected: ${validation.expectedByteCount})")
+
+                    inviteRepository.save(invite.copy(totpSecret = newSecret))
+                }
+        val uri = totpService.generateProvisioningUri(user.username.value, secret)
 
         return InvitationDetails(
             username = user.username.value,
-            secret = newSecret.value,
             provisioningUri = uri
         )
     }
 
     @Suppress("ThrowsCount")
     @Transactional
-    fun activateAccount(inviteToken: InviteToken, totpCode: TotpCode, secret: TotpSecret): String {
+    fun activateAccount(inviteToken: InviteToken, totpCode: TotpCode): String {
         // Find invite
         val invite =
             inviteRepository.findByToken(inviteToken)
@@ -85,7 +98,14 @@ class AuthService(
             throw AccountAlreadyActiveException("Account is already active")
         }
 
-        // Verify TOTP code against the provided secret
+        // Use persisted secret from invite
+        val secret = invite.totpSecret
+            ?: error("TOTP secret not found in invite. Invite must be validated first.")
+
+        // Log the secret being used for verification (first 8 chars for security)
+        println("Activating account with persisted secret: ${secret.value.take(TotpService.SECRET_PREFIX_LENGTH)}...")
+
+        // Verify TOTP code against the persisted secret
         if (!totpService.verifyCode(secret, totpCode)) {
             throw InvalidTotpCodeException("Invalid TOTP code")
         }
