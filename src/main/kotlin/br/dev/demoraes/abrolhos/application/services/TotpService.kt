@@ -2,11 +2,14 @@ package br.dev.demoraes.abrolhos.application.services
 
 import br.dev.demoraes.abrolhos.domain.entities.TotpCode
 import br.dev.demoraes.abrolhos.domain.entities.TotpSecret
-import dev.turingcomplete.kotlinonetimepassword.GoogleAuthenticator
+import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
+import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordConfig
+import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordGenerator
 import org.apache.commons.codec.binary.Base32
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
 
 /**
  * Data class representing TOTP codes for diagnostic purposes.
@@ -74,7 +77,13 @@ class TotpService {
             logger.debug("Decoded byte count: {}", secretBytes.size)
             logger.debug("System timestamp: {}", System.currentTimeMillis())
 
-            val generator = GoogleAuthenticator(secretBytes)
+            val config = TimeBasedOneTimePasswordConfig(
+                codeDigits = 6,
+                hmacAlgorithm = HmacAlgorithm.SHA1,
+                timeStep = 30,
+                timeStepUnit = TimeUnit.SECONDS
+            )
+            val generator = TimeBasedOneTimePasswordGenerator(secretBytes, config)
             val now = java.util.Date()
 
             // Generate codes for all windows for debugging - Requirement 1.4
@@ -120,7 +129,13 @@ class TotpService {
     fun generateCodesForWindows(secret: TotpSecret, timestamp: java.util.Date): WindowCodes {
         val base32 = Base32()
         val secretBytes = base32.decode(secret.value.uppercase())
-        val generator = GoogleAuthenticator(secretBytes)
+        val config = TimeBasedOneTimePasswordConfig(
+            codeDigits = 6,
+            hmacAlgorithm = HmacAlgorithm.SHA1,
+            timeStep = 30,
+            timeStepUnit = TimeUnit.SECONDS
+        )
+        val generator = TimeBasedOneTimePasswordGenerator(secretBytes, config)
 
         return WindowCodes(
             previous = generator.generate(java.util.Date(timestamp.time - WINDOW_MILLIS)),
