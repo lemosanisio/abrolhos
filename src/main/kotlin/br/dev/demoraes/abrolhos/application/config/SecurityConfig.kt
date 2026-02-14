@@ -24,6 +24,7 @@ class SecurityConfig(
                 authorize("/api/auth/invite/*", permitAll)
                 authorize("/api/auth/activate", permitAll)
                 authorize("/api/auth/login", permitAll)
+                authorize("/api/posts", permitAll)
                 authorize("/api/posts/*", permitAll)
                 authorize(anyRequest, authenticated)
             }

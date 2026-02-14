@@ -58,7 +58,7 @@ class TotpOathtoolCrossValidationTest {
 
         // When/Then: Generate codes and document oathtool commands
         println("\n=== Oathtool Cross-Validation Test ===")
-        println("Secret: $TEST_SECRET")
+        println("Secret: $testSecret")
         println("Library: kotlin-onetimepassword (GoogleAuthenticator)")
         println()
         println("To verify these codes with oathtool, run the following commands:")
@@ -69,7 +69,7 @@ class TotpOathtoolCrossValidationTest {
             val code = generator.generate(date)
 
             println("# Timestamp: $timestamp ($date)")
-            println("oathtool --totp -b $TEST_SECRET --now=$timestamp")
+            println("oathtool --totp -b $testSecret --now=$timestamp")
             println("kotlin-onetimepassword generated: $code")
             println()
 
@@ -97,7 +97,7 @@ class TotpOathtoolCrossValidationTest {
 
         // Then: Document the codes for manual verification
         println("\n=== TotpService Cross-Validation ===")
-        println("Secret: $TEST_SECRET")
+        println("Secret: $testSecret")
         println("Timestamp: 1234567890 ($timestamp)")
         println()
         println("Previous window (-30s): ${windowCodes.previous}")
@@ -105,9 +105,9 @@ class TotpOathtoolCrossValidationTest {
         println("Next window (+30s):     ${windowCodes.next}")
         println()
         println("To verify with oathtool:")
-        println("oathtool --totp -b $TEST_SECRET --now=1234567860  # Previous")
-        println("oathtool --totp -b $TEST_SECRET --now=1234567890  # Current")
-        println("oathtool --totp -b $TEST_SECRET --now=1234567920  # Next")
+        println("oathtool --totp -b $testSecret --now=1234567860  # Previous")
+        println("oathtool --totp -b $testSecret --now=1234567890  # Current")
+        println("oathtool --totp -b $testSecret --now=1234567920  # Next")
         println("=====================================\n")
 
         // Verify code format

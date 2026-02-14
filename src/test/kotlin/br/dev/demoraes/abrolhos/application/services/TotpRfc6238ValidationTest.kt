@@ -59,7 +59,7 @@ class TotpRfc6238ValidationTest {
 
         // When/Then: Generate and document codes for each test timestamp
         println("\n=== RFC 6238 Test Vector Results ===")
-        println("Secret: $RFC_TEST_SECRET")
+        println("Secret: $rfcTestSecret")
         println("Library: kotlin-onetimepassword (GoogleAuthenticator)")
         println("\nGenerated codes:")
 
@@ -79,7 +79,7 @@ class TotpRfc6238ValidationTest {
 
         println("\nTo verify with oathtool, run:")
         testTimestamps.forEach { timestamp ->
-            println("oathtool --totp --now=$timestamp $RFC_TEST_SECRET")
+            println("oathtool --totp --now=$timestamp $rfcTestSecret")
         }
 
         println("\nExpected codes from RFC 6238 (8-digit, last 6 digits):")
