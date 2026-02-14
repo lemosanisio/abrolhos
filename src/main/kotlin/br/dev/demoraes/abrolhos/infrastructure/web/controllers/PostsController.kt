@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -59,6 +60,7 @@ class PostsController(private val postService: PostService) {
     @ResponseStatus(HttpStatus.CREATED)
     fun createPost(
         @RequestBody request: CreatePostRequest,
+        authentication: Authentication,
     ): PostResponse {
         logger.info("Received request to create post with title: {}", request.title.value)
         val post =
@@ -68,7 +70,7 @@ class PostsController(private val postService: PostService) {
                 status = request.status,
                 categoryName = request.categoryName.value,
                 tagNames = request.tagNames.map { it.value },
-                authorUsername = request.authorUsername.value
+                authorUsername = authentication.name
             )
         logger.info("Post created successfully with ID: {}", post.id)
         return post.toResponse()
