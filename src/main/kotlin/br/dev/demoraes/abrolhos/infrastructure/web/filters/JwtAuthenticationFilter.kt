@@ -16,6 +16,17 @@ import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import ulid.ULID
 
+/**
+ * Security Filter for JWT Authentication.
+ *
+ * Intercepts every request to check for the presence of a valid "Authorization: Bearer <token>"
+ * header.
+ * - Validates the token signature using HMAC256.
+ * - Extracts user identity (ID, role).
+ * - Verifies user exists and is active.
+ * - Sets the Authentication object in the SecurityContext if valid.
+ */
+// TODO(I will need some time to think about improvements here)
 @Component
 class JwtAuthenticationFilter(
     @Value("\${jwt.secret}") private val jwtSecret: String,

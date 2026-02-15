@@ -4,16 +4,20 @@ import br.dev.demoraes.abrolhos.domain.exceptions.AccountAlreadyActiveException
 import br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException
 import br.dev.demoraes.abrolhos.domain.exceptions.InvalidInviteException
 import br.dev.demoraes.abrolhos.domain.exceptions.InvalidTotpCodeException
+import br.dev.demoraes.abrolhos.infrastructure.web.dto.response.ErrorResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
-data class ErrorResponse(
-    val message: String,
-    val status: Int,
-)
+/**
+ * Centralized exception handling for the web layer.
+ *
+ * Translates domain exceptions (like InvalidInviteException, AuthenticationException) into
+ * appropriate HTTP status codes and standard JSON error responses.
+ */
 
+// TODO(This one looks good, but im not used to using exception handlers, will need some thought too)
 @RestControllerAdvice
 class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException::class)

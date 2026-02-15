@@ -94,8 +94,8 @@ class RateLimitService(
                 val extendedResetTime = resetTime + (securityProperties.rateLimit.windowMinutes * 60 * 1000 * backoffMultiplier)
 
                 logger.debug(
-                    "Rate limit exceeded for client {} on endpoint {}. Count: {}, Limit: {}, Backoff: {}x",
-                    clientId, endpoint, count, maxRequests, backoffMultiplier
+                    "Rate limit exceeded for client $clientId on endpoint $endpoint. " +
+                        "Count: $count, Limit: $maxRequests, Backoff: ${backoffMultiplier}x"
                 )
 
                 RateLimitResult(
@@ -109,7 +109,7 @@ class RateLimitService(
         } catch (e: Exception) {
             // Requirement 2.12: Graceful degradation - fail open if Redis unavailable
             logger.warn("Rate limiting unavailable due to Redis error, allowing request: ${e.message}")
-            
+
             // Return a permissive result when Redis fails
             RateLimitResult(
                 isAllowed = true,
@@ -139,7 +139,7 @@ class RateLimitService(
     private fun calculateBackoffMultiplier(attemptCount: Int, maxRequests: Int): Int {
         val violations = attemptCount - maxRequests
         if (violations <= 0) return 0
-        
+
         // Exponential backoff: 2^violations, capped at 8x
         return minOf(1 shl violations, MAX_BACKOFF_MULTIPLIER)
     }

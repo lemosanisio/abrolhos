@@ -4,6 +4,18 @@ import com.fasterxml.jackson.annotation.JsonValue
 import ulid.ULID
 import java.time.OffsetDateTime
 
+/**
+ * Represents a user in the system.
+ *
+ * Users are the central entity for authentication and authorization. They hold the credentials
+ * (like TOTP secret) and role information.
+ *
+ * @property id Unique identifier (ULID)
+ * @property username Unique username
+ * @property totpSecret Encrypted TOTP secret for 2FA
+ * @property isActive Whether the account is activated
+ * @property role User role (ADMIN, USER)
+ */
 data class User(
     val id: ULID,
     val username: Username,
@@ -20,6 +32,14 @@ enum class Role {
 }
 
 @JvmInline
+/**
+ * Value class for Username.
+ *
+ * Enforces validation rules:
+ * - Length: 3-20 characters
+ * - Characters: lowercase letters, numbers, underscores
+ * - No reserved words
+ */
 value class Username(@get:JsonValue val value: String) {
     companion object {
         private const val MIN_LENGTH = 3
@@ -64,9 +84,7 @@ value class TotpSecret(@get:JsonValue val value: String) {
 
     init {
         require(value.isNotBlank()) { "TOTP secret cannot be blank." }
-        require(BASE32_REGEX.matches(value)) {
-            "TOTP secret must be base32 encoded."
-        }
+        require(BASE32_REGEX.matches(value)) { "TOTP secret must be base32 encoded." }
     }
 
     override fun toString(): String = value

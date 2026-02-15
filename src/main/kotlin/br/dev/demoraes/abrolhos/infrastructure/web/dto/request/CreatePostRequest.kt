@@ -8,6 +8,12 @@ import br.dev.demoraes.abrolhos.domain.entities.TagName
 import br.dev.demoraes.abrolhos.domain.entities.Username
 import java.time.OffsetDateTime
 
+/**
+ * DTO for creating a new blog post.
+ *
+ * Encapsulates all necessary data for post creation, including validated value objects (using
+ * Jackson deserialization via @JsonValue in domain entities).
+ */
 data class CreatePostRequest(
     val title: PostTitle,
     val content: PostContent,

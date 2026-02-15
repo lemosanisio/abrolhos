@@ -27,6 +27,12 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import ulid.ULID
 
+/**
+ * Persistence implementation for Post repository.
+ *
+ * Bridges the Domain layer (PostRepository interface) and the Infrastructure layer (JPA/Hibernate).
+ * Handles the mapping between Domain entities (Post) and Persistence entities (PostEntity).
+ */
 @Repository
 class PostRepositoryImpl(
     private val postRepositoryPostgresql: PostRepositoryPostgresql,
@@ -42,9 +48,7 @@ class PostRepositoryImpl(
     }
 
     override fun findPublishedBySlug(slug: String): Post? {
-        return postRepositoryPostgresql
-            .findBySlugAndStatus(slug, PostStatus.PUBLISHED)
-            ?.toDomain()
+        return postRepositoryPostgresql.findBySlugAndStatus(slug, PostStatus.PUBLISHED)?.toDomain()
     }
 
     override fun searchSummary(
@@ -53,7 +57,9 @@ class PostRepositoryImpl(
         tagName: String?,
         status: PostStatus,
     ): Page<PostSummary> {
-        return postRepositoryPostgresql.searchSummary(status, categoryName, tagName, pageable).map { it }
+        return postRepositoryPostgresql.searchSummary(status, categoryName, tagName, pageable).map {
+            it
+        }
     }
 
     private fun Post.toEntity(): PostEntity {
@@ -63,8 +69,7 @@ class PostRepositoryImpl(
                     "Author with id ${this.author.id} not found",
                 )
 
-        val categoryEntity: CategoryEntity? =
-            categoryJpa.findBySlug(this.category.slug.value)
+        val categoryEntity: CategoryEntity? = categoryJpa.findBySlug(this.category.slug.value)
 
         val tagEntities: MutableSet<TagEntity> =
             tagJpa.findByNameIn(this.tags.map { it.name.value }.toSet()).toMutableSet()

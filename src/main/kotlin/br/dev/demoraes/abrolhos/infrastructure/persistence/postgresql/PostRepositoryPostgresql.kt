@@ -10,6 +10,11 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
+/**
+ * Spring Data JPA repository for PostEntity.
+ *
+ * Provides complex queries for searching, filtering, and projecting post data.
+ */
 @Repository
 interface PostRepositoryPostgresql :
     JpaRepository<PostEntity, String>, JpaSpecificationExecutor<PostEntity> {

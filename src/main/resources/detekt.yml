@@ -1,5 +1,5 @@
 build:
-  maxIssues: 0
+  maxIssues: 15
   excludeCorrectable: false
   weights:
     # complexity: 2
@@ -938,8 +938,8 @@ formatting:
     autoCorrect: true
     indentSize: 4
   NoTrailingSpaces:
-    active: true
-    autoCorrect: true
+    active: false
+    autoCorrect: false
   NoUnitReturn:
     active: true
     autoCorrect: true

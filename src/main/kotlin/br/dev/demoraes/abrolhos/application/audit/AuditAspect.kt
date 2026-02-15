@@ -1,7 +1,5 @@
 package br.dev.demoraes.abrolhos.application.audit
 
-import br.dev.demoraes.abrolhos.domain.entities.InviteToken
-import br.dev.demoraes.abrolhos.domain.entities.TotpCode
 import br.dev.demoraes.abrolhos.domain.entities.Username
 import jakarta.servlet.http.HttpServletRequest
 import org.aspectj.lang.ProceedingJoinPoint
@@ -14,23 +12,24 @@ import org.springframework.web.context.request.ServletRequestAttributes
 
 /**
  * AOP Aspect for auditing authentication-related operations.
- * 
+ *
  * This aspect intercepts calls to AuthService methods and logs audit events
  * for login attempts, successes, failures, and account activations.
- * 
+ *
  * Requirements:
  * - 5.1: Log login attempts with username, timestamp, IP, and outcome
  * - 5.2: Log account activations
  * - 5.3: Log authentication failures with reason
  */
+// TODO(I dont know how that audit works, it seemed nice to have when kiro suggested)
 @Aspect
 @Component
 class AuditAspect(
     private val auditLogger: AuditLogger
 ) {
-    
+
     private val logger = LoggerFactory.getLogger(AuditAspect::class.java)
-    
+
     /**
      * Audit login attempts, successes, and failures.
      * Requirement 5.1
@@ -42,10 +41,10 @@ class AuditAspect(
         val request = getHttpRequest()
         val clientIp = extractClientIp(request)
         val userAgent = request?.getHeader("User-Agent") ?: ""
-        
+
         // Log the attempt
         auditLogger.logLoginAttempt(username, clientIp, userAgent)
-        
+
         return try {
             val result = joinPoint.proceed()
             // Log success
@@ -57,7 +56,7 @@ class AuditAspect(
             throw e
         }
     }
-    
+
     /**
      * Audit account activation attempts.
      * Requirement 5.2
@@ -67,22 +66,22 @@ class AuditAspect(
         val request = getHttpRequest()
         val clientIp = extractClientIp(request)
         val userAgent = request?.getHeader("User-Agent") ?: ""
-        
+
         return try {
             val result = joinPoint.proceed()
-            
+
             // Extract username from the invite token (first argument)
             // We need to get the username after successful activation
             // For now, we'll log with a generic identifier
             auditLogger.logAccountActivation("user", clientIp, userAgent)
-            
+
             result
         } catch (e: Exception) {
             // Activation failed - could log this as well if needed
             throw e
         }
     }
-    
+
     /**
      * Extract the HTTP request from the current request context.
      */
@@ -95,7 +94,7 @@ class AuditAspect(
             null
         }
     }
-    
+
     /**
      * Extract client IP address from request, considering X-Forwarded-For header.
      */
@@ -103,7 +102,7 @@ class AuditAspect(
         if (request == null) {
             return "unknown"
         }
-        
+
         return request.getHeader("X-Forwarded-For")?.split(",")?.first()?.trim()
             ?: request.remoteAddr
             ?: "unknown"

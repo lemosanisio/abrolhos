@@ -180,7 +180,7 @@ class RateLimitWindowResetPropertyTest {
                     0.0,
                     match { timestamp ->
                         timestamp >= expectedWindowStart.toDouble() &&
-                        timestamp <= expectedWindowEnd.toDouble()
+                            timestamp <= expectedWindowEnd.toDouble()
                     }
                 )
             }

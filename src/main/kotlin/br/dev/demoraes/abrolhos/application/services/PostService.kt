@@ -25,6 +25,17 @@ import org.springframework.transaction.annotation.Transactional
 import ulid.ULID
 import java.time.OffsetDateTime
 
+/**
+ * Service for managing blog posts.
+ *
+ * This service handles the lifecycle of posts:
+ * - Creation of new posts with proper slug generation.
+ * - Retrieval of posts by slug (for public view).
+ * - Searching and filtering posts (for lists/admin).
+ *
+ * It ensures referential integrity by finding or creating Categories and Tags as needed during post
+ * creation.
+ */
 @Service
 @Transactional
 class PostService(
@@ -44,29 +55,32 @@ class PostService(
         authorUsername: String
     ): Post {
         logger.debug("Creating post: title={}, author={}", title, authorUsername)
-        val author = userRepository.findByUsername(Username(authorUsername))
-            ?: throw NoSuchElementException("Author not found").also {
-                logger.error("Author not found: {}", authorUsername)
-            }
+        val author =
+            userRepository.findByUsername(Username(authorUsername))
+                ?: throw NoSuchElementException("Author not found").also {
+                    logger.error("Author not found: {}", authorUsername)
+                }
 
         val slug = generateSlug(title)
 
         val category = findOrCreateCategory(categoryName)
         val tags = tagNames.map { findOrCreateTag(it) }.toSet()
 
-        val post = Post(
-            id = ULID.nextULID(),
-            author = author,
-            title = PostTitle(title),
-            slug = PostSlug(slug),
-            content = PostContent(content),
-            status = status,
-            category = category,
-            tags = tags,
-            publishedAt = if (status == PostStatus.PUBLISHED) OffsetDateTime.now() else null,
-            createdAt = OffsetDateTime.now(),
-            updatedAt = OffsetDateTime.now()
-        )
+        val post =
+            Post(
+                id = ULID.nextULID(),
+                author = author,
+                title = PostTitle(title),
+                slug = PostSlug(slug),
+                content = PostContent(content),
+                status = status,
+                category = category,
+                tags = tags,
+                publishedAt =
+                if (status == PostStatus.PUBLISHED) OffsetDateTime.now() else null,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         return postRepository.save(post).also {
             logger.debug("Post saved with slug: {}", it.slug.value)
@@ -100,38 +114,40 @@ class PostService(
 
     private fun findOrCreateCategory(name: String): Category {
         val categoryName = CategoryName(name)
-        return categoryRepository.findByName(categoryName) ?: run {
-            logger.info("Category '{}' not found, creating new one", name)
-            val slug = generateSlug(name)
-            categoryRepository.save(
-                Category(
-                    id = ULID.nextULID(),
-                    name = categoryName,
-                    slug = CategorySlug(slug),
-                    posts = emptySet(),
-                    createdAt = OffsetDateTime.now(),
-                    updatedAt = OffsetDateTime.now()
+        return categoryRepository.findByName(categoryName)
+            ?: run {
+                logger.info("Category '{}' not found, creating new one", name)
+                val slug = generateSlug(name)
+                categoryRepository.save(
+                    Category(
+                        id = ULID.nextULID(),
+                        name = categoryName,
+                        slug = CategorySlug(slug),
+                        posts = emptySet(),
+                        createdAt = OffsetDateTime.now(),
+                        updatedAt = OffsetDateTime.now()
+                    )
                 )
-            )
-        }
+            }
     }
 
     private fun findOrCreateTag(name: String): Tag {
         val tagName = TagName(name)
-        return tagRepository.findByName(tagName) ?: run {
-            logger.info("Tag '{}' not found, creating new one", name)
-            val slug = generateSlug(name)
-            tagRepository.save(
-                Tag(
-                    id = ULID.nextULID(),
-                    name = tagName,
-                    slug = TagSlug(slug),
-                    posts = emptySet(),
-                    createdAt = OffsetDateTime.now(),
-                    updatedAt = OffsetDateTime.now()
+        return tagRepository.findByName(tagName)
+            ?: run {
+                logger.info("Tag '{}' not found, creating new one", name)
+                val slug = generateSlug(name)
+                tagRepository.save(
+                    Tag(
+                        id = ULID.nextULID(),
+                        name = tagName,
+                        slug = TagSlug(slug),
+                        posts = emptySet(),
+                        createdAt = OffsetDateTime.now(),
+                        updatedAt = OffsetDateTime.now()
+                    )
                 )
-            )
-        }
+            }
     }
 
     private fun generateSlug(text: String): String {

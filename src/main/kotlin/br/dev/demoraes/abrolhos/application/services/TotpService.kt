@@ -12,8 +12,8 @@ import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 
 /**
- * Data class representing TOTP codes for diagnostic purposes.
- * Contains codes for previous, current, and next time windows.
+ * Data class representing TOTP codes for diagnostic purposes. Contains codes for previous, current,
+ * and next time windows.
  *
  * @property previous Code for the previous 30-second window
  * @property current Code for the current window
@@ -28,8 +28,8 @@ data class WindowCodes(
 )
 
 /**
- * Data class representing the validation result of a TOTP secret.
- * Used to verify that a secret can be properly decoded before use.
+ * Data class representing the validation result of a TOTP secret. Used to verify that a secret can
+ * be properly decoded before use.
  *
  * @property isValid Whether the secret is valid and can be decoded
  * @property byteCount The number of bytes in the decoded secret (null if invalid)
@@ -43,6 +43,17 @@ data class SecretValidation(
     val error: String? = null
 )
 
+/**
+ * Service for Time-Based One-Time Password (TOTP) operations.
+ *
+ * This service handles the cryptographic aspects of 2FA:
+ * - Generating secure random secrets for new users.
+ * - Verifying provided codes against stored secrets.
+ * - Generating provisioning URIs for QR codes.
+ *
+ * It is a core component of the security architecture, ensuring that authentication requires
+ * possession of the registered device.
+ */
 @Service
 class TotpService {
     private val logger = LoggerFactory.getLogger(TotpService::class.java)
@@ -61,7 +72,11 @@ class TotpService {
         val secret = base32.encodeToString(bytes).replace("=", "")
 
         // Diagnostic logging - Requirement 1.1
-        logger.debug("Generated TOTP secret (first {} chars): {}", SECRET_PREFIX_LENGTH, secret.take(SECRET_PREFIX_LENGTH))
+        logger.debug(
+            "Generated TOTP secret (first {} chars): {}",
+            SECRET_PREFIX_LENGTH,
+            secret.take(SECRET_PREFIX_LENGTH)
+        )
 
         return TotpSecret(secret)
     }
@@ -73,16 +88,21 @@ class TotpService {
 
             // Diagnostic logging - Requirements 1.1, 1.2, 1.3
             logger.debug("Verifying TOTP code")
-            logger.debug("Secret (first {} chars): {}", SECRET_PREFIX_LENGTH, secret.value.take(SECRET_PREFIX_LENGTH))
+            logger.debug(
+                "Secret (first {} chars): {}",
+                SECRET_PREFIX_LENGTH,
+                secret.value.take(SECRET_PREFIX_LENGTH)
+            )
             logger.debug("Decoded byte count: {}", secretBytes.size)
             logger.debug("System timestamp: {}", System.currentTimeMillis())
 
-            val config = TimeBasedOneTimePasswordConfig(
-                codeDigits = 6,
-                hmacAlgorithm = HmacAlgorithm.SHA1,
-                timeStep = 30,
-                timeStepUnit = TimeUnit.SECONDS
-            )
+            val config =
+                TimeBasedOneTimePasswordConfig(
+                    codeDigits = 6,
+                    hmacAlgorithm = HmacAlgorithm.SHA1,
+                    timeStep = 30,
+                    timeStepUnit = TimeUnit.SECONDS
+                )
             val generator = TimeBasedOneTimePasswordGenerator(secretBytes, config)
             val now = java.util.Date()
 
@@ -113,14 +133,18 @@ class TotpService {
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             // Enhanced error logging - Requirement 1.6
             logger.error("TOTP verification exception: {}", e.message, e)
-            logger.error("Failed to decode secret (first {} chars): {}", SECRET_PREFIX_LENGTH, secret.value.take(SECRET_PREFIX_LENGTH))
+            logger.error(
+                "Failed to decode secret (first {} chars): {}",
+                SECRET_PREFIX_LENGTH,
+                secret.value.take(SECRET_PREFIX_LENGTH)
+            )
             false
         }
     }
 
     /**
-     * Generates TOTP codes for previous, current, and next time windows.
-     * Used for diagnostic logging to help debug TOTP verification issues.
+     * Generates TOTP codes for previous, current, and next time windows. Used for diagnostic
+     * logging to help debug TOTP verification issues.
      *
      * @param secret The TOTP secret to generate codes for
      * @param timestamp The timestamp to use as the current time window
@@ -129,12 +153,13 @@ class TotpService {
     fun generateCodesForWindows(secret: TotpSecret, timestamp: java.util.Date): WindowCodes {
         val base32 = Base32()
         val secretBytes = base32.decode(secret.value.uppercase())
-        val config = TimeBasedOneTimePasswordConfig(
-            codeDigits = 6,
-            hmacAlgorithm = HmacAlgorithm.SHA1,
-            timeStep = 30,
-            timeStepUnit = TimeUnit.SECONDS
-        )
+        val config =
+            TimeBasedOneTimePasswordConfig(
+                codeDigits = 6,
+                hmacAlgorithm = HmacAlgorithm.SHA1,
+                timeStep = 30,
+                timeStepUnit = TimeUnit.SECONDS
+            )
         val generator = TimeBasedOneTimePasswordGenerator(secretBytes, config)
 
         return WindowCodes(
@@ -146,8 +171,8 @@ class TotpService {
     }
 
     /**
-     * Validates that a TOTP secret can be properly decoded.
-     * Used to verify secrets before persisting them to the database.
+     * Validates that a TOTP secret can be properly decoded. Used to verify secrets before
+     * persisting them to the database.
      *
      * @param secret The TOTP secret to validate
      * @return SecretValidation containing validation results
@@ -163,10 +188,7 @@ class TotpService {
             )
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             logger.error("Failed to validate TOTP secret: {}", e.message)
-            SecretValidation(
-                isValid = false,
-                error = e.message
-            )
+            SecretValidation(isValid = false, error = e.message)
         }
     }
 

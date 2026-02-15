@@ -4,13 +4,24 @@ import com.fasterxml.jackson.annotation.JsonValue
 import ulid.ULID
 import java.time.OffsetDateTime
 
+/**
+ * Represents a keyword or label for posts.
+ *
+ * Tags provide a flexible way to classify content across different categories. A post can have
+ * multiple tags.
+ *
+ * @property id Unique identifier (ULID)
+ * @property name Display name of the tag
+ * @property slug URL-friendly identifier
+ * @property posts Collection of posts associated with this tag
+ */
 data class Tag(
     val id: ULID,
     val name: TagName,
     val slug: TagSlug,
     val posts: Set<Post>,
     val createdAt: OffsetDateTime,
-    val updatedAt: OffsetDateTime,
+    val updatedAt: OffsetDateTime
 )
 
 @JvmInline

@@ -16,11 +16,10 @@ import org.slf4j.LoggerFactory
  * - 3.2: Decrypt TOTP secrets when loading from database
  */
 @Converter(autoApply = false)
-class TotpSecretConverter(private val encryptionService: EncryptionService) :
-        AttributeConverter<String?, String?> {
-
-    private val logger = LoggerFactory.getLogger(TotpSecretConverter::class.java)
-
+class TotpSecretConverter(
+    private val encryptionService: EncryptionService
+) :
+    AttributeConverter<String?, String?> {
     /**
      * Converts the TOTP secret to its encrypted database representation.
      *
@@ -54,5 +53,9 @@ class TotpSecretConverter(private val encryptionService: EncryptionService) :
         // Strict mode: Fail if decryption fails (no fallback to plaintext)
         logger.debug("Decrypting TOTP secret from database")
         return encryptionService.decrypt(dbData)
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(TotpSecretConverter::class.java)
     }
 }

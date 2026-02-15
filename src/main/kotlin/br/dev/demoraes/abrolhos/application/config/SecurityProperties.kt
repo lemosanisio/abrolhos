@@ -24,8 +24,6 @@ import org.springframework.validation.annotation.Validated
 @Validated
 class SecurityProperties {
 
-    private val logger = LoggerFactory.getLogger(SecurityProperties::class.java)
-
     val cors = CorsProperties()
     val rateLimit = RateLimitProperties()
     val encryption = EncryptionProperties()
@@ -94,5 +92,9 @@ class SecurityProperties {
          * Requirement 3.9: Key rotation support
          */
         var oldKeys: String = ""
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(SecurityProperties::class.java)
     }
 }

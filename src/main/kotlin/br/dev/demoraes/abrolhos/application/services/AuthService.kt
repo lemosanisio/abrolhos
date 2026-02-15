@@ -13,6 +13,17 @@ import br.dev.demoraes.abrolhos.domain.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+/**
+ * Service responsible for the authentication flow.
+ *
+ * This service orchestrates the user onboarding and login processes:
+ * 1. `validateInvite`: Checks if an invite token is valid and generates/retrieves a TOTP secret.
+ * 2. `activateAccount`: Verifies the TOTP code provided by the user and activates the account.
+ * 3. `login`: Authenticates an active user using their username and TOTP code.
+ *
+ * It bridges the gap between the storage (Repositories) and the security mechanisms (TotpService,
+ * TokenService).
+ */
 @Service
 class AuthService(
     private val userRepository: UserRepository,
@@ -20,10 +31,7 @@ class AuthService(
     private val totpService: TotpService,
     private val tokenService: TokenService,
 ) {
-    data class InvitationDetails(
-        val username: String,
-        val provisioningUri: String
-    )
+    data class InvitationDetails(val username: String, val provisioningUri: String)
 
     @Suppress("ThrowsCount")
     @Transactional
@@ -53,7 +61,9 @@ class AuthService(
             invite.totpSecret
                 ?: totpService.generateSecret().also { newSecret ->
                     // Log secret generation (first 8 chars for security)
-                    println("Generated new TOTP secret for invite: ${newSecret.value.take(TotpService.SECRET_PREFIX_LENGTH)}...")
+                    println(
+                        "Generated new TOTP secret for invite: ${newSecret.value.take(TotpService.SECRET_PREFIX_LENGTH)}..."
+                    )
 
                     // Validate secret before persisting
                     val validation = totpService.validateSecret(newSecret)
@@ -62,16 +72,15 @@ class AuthService(
                     }
 
                     // Log validation success
-                    println("Secret validation passed: ${validation.byteCount} bytes (expected: ${validation.expectedByteCount})")
+                    println(
+                        "Secret validation passed: ${validation.byteCount} bytes (expected: ${validation.expectedByteCount})"
+                    )
 
                     inviteRepository.save(invite.copy(totpSecret = newSecret))
                 }
         val uri = totpService.generateProvisioningUri(user.username.value, secret)
 
-        return InvitationDetails(
-            username = user.username.value,
-            provisioningUri = uri
-        )
+        return InvitationDetails(username = user.username.value, provisioningUri = uri)
     }
 
     @Suppress("ThrowsCount")
@@ -99,11 +108,14 @@ class AuthService(
         }
 
         // Use persisted secret from invite
-        val secret = invite.totpSecret
-            ?: error("TOTP secret not found in invite. Invite must be validated first.")
+        val secret =
+            invite.totpSecret
+                ?: error("TOTP secret not found in invite. Invite must be validated first.")
 
         // Log the secret being used for verification (first 8 chars for security)
-        println("Activating account with persisted secret: ${secret.value.take(TotpService.SECRET_PREFIX_LENGTH)}...")
+        println(
+            "Activating account with persisted secret: ${secret.value.take(TotpService.SECRET_PREFIX_LENGTH)}..."
+        )
 
         // Verify TOTP code against the persisted secret
         if (!totpService.verifyCode(secret, totpCode)) {

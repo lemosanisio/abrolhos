@@ -1,10 +1,8 @@
 package br.dev.demoraes.abrolhos.application.audit
 
-import java.time.OffsetDateTime
-
 /**
  * Represents a security audit event with all required fields for compliance and investigation.
- * 
+ *
  * @property timestamp ISO 8601 timestamp with timezone
  * @property action The type of action being audited (e.g., LOGIN_ATTEMPT, RATE_LIMIT_EXCEEDED)
  * @property result The outcome of the action (SUCCESS, FAILURE, BLOCKED, PENDING)

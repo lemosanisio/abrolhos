@@ -10,6 +10,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import ulid.ULID
 
+/**
+ * Persistence implementation for User repository.
+ *
+ * Bridges the Domain layer (UserRepository interface) and the Infrastructure layer (JPA/Hibernate).
+ * Handles the mapping between Domain entities (User) and Persistence entities (UserEntity).
+ */
 @Repository
 class UserRepositoryImpl(
     private val userRepositoryPostgresql: UserRepositoryPostgresql,
@@ -18,9 +24,7 @@ class UserRepositoryImpl(
 
     override fun findById(id: ULID): User? {
         logger.info("Searching user by id $id")
-        return userRepositoryPostgresql.findById(id.toString())
-            .map { it.toDomain() }
-            .orElse(null)
+        return userRepositoryPostgresql.findById(id.toString()).map { it.toDomain() }.orElse(null)
     }
 
     override fun findByUsername(username: Username): User? {

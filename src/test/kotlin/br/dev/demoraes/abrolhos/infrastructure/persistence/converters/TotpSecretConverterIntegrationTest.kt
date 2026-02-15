@@ -33,15 +33,15 @@ class TotpSecretConverterIntegrationTest {
     fun setup() {
         // Create security properties with a test encryption key
         val securityProperties =
-                SecurityProperties().apply {
-                    encryption.key =
-                            "t7rCVzHlcS8FLq2CE4M6YAmv7HIVjh/dWhZLr+JWJ+o=" // Base64 encoded 32-byte
-                    // key
-                    encryption.oldKeys = ""
-                    cors.allowedOrigins = "http://localhost:3000"
-                    rateLimit.maxRequests = 5
-                    rateLimit.windowMinutes = 15
-                }
+            SecurityProperties().apply {
+                encryption.key =
+                    "t7rCVzHlcS8FLq2CE4M6YAmv7HIVjh/dWhZLr+JWJ+o=" // Base64 encoded 32-byte
+                // key
+                encryption.oldKeys = ""
+                cors.allowedOrigins = "http://localhost:3000"
+                rateLimit.maxRequests = 5
+                rateLimit.windowMinutes = 15
+            }
 
         // Create encryption service
         val meterRegistry = SimpleMeterRegistry()

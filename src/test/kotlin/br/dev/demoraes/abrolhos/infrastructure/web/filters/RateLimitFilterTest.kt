@@ -402,4 +402,3 @@ class RateLimitFilterTest {
         verify { auditLogger.logRateLimitExceeded(forwardedIp, path) }
     }
 }
-

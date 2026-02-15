@@ -9,6 +9,20 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
+/**
+ * Central security configuration for the application.
+ *
+ * This class defines the security filter chain that processes every incoming HTTP request.
+ *
+ * Application Flow:
+ * 1. Request arrives.
+ * 2. `JwtAuthenticationFilter` (registered via `addFilterBefore`) checks for a valid JWT token.
+ * 3. `CorsConfig` is applied to handle Cross-Origin Resource Sharing.
+ * 4. `authorizeHttpRequests` rules are checked:
+ *    - Public endpoints (login, invite, etc.) are allowed.
+ *    - All other endpoints require authentication.
+ * 5. If authorized, the request proceeds to the specific Controller.
+ */
 @Configuration
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,

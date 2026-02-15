@@ -4,6 +4,20 @@ import com.fasterxml.jackson.annotation.JsonValue
 import ulid.ULID
 import java.time.OffsetDateTime
 
+/**
+ * Represents a blog post.
+ *
+ * This is the core content entity. It aggregates the author, content, status, category, and tags.
+ *
+ * @property id Unique identifier (ULID)
+ * @property author The user who created the post
+ * @property title The title of the post
+ * @property slug URL-friendly identifier
+ * @property content The main body of the post
+ * @property status Current state (DRAFT, PUBLISHED, etc.)
+ * @property category The category this post belongs to
+ * @property tags Set of tags associated with the post
+ */
 data class Post(
     val id: ULID,
     val author: User,

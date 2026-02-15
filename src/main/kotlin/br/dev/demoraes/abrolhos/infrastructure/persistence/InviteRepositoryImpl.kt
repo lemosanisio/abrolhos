@@ -12,6 +12,13 @@ import org.springframework.transaction.annotation.Transactional
 import ulid.ULID
 import java.time.OffsetDateTime
 
+/**
+ * Persistence implementation for Invite repository.
+ *
+ * Bridges the Domain layer (InviteRepository interface) and the Infrastructure layer
+ * (JPA/Hibernate). Handles the mapping between Domain entities (Invite) and Persistence entities
+ * (InviteEntity).
+ */
 @Repository
 class InviteRepositoryImpl(
     private val inviteRepositoryPostgresql: InviteRepositoryPostgresql,

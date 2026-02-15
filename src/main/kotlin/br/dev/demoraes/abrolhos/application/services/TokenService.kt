@@ -8,6 +8,13 @@ import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
+/**
+ * Service for generating JSON Web Tokens (JWT).
+ *
+ * This service is the final step in the authentication flow. Once a user is verified (by
+ * AuthService), this service creates a signed JWT containing the user's identity (claims). This
+ * token is then returned to the client to be used for subsequent authenticated requests.
+ */
 @Service
 class TokenService(
     @Value("\${jwt.secret}") private val jwtSecret: String,

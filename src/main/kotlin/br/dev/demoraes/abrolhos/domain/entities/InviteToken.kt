@@ -3,6 +3,11 @@ package br.dev.demoraes.abrolhos.domain.entities
 import com.fasterxml.jackson.annotation.JsonValue
 
 @JvmInline
+/**
+ * Value class for invitation tokens.
+ *
+ * Wraps the token string to ensure type safety and proper validation (length check).
+ */
 value class InviteToken(@get:JsonValue val value: String) {
     companion object {
         private const val TOKEN_LENGTH = 32

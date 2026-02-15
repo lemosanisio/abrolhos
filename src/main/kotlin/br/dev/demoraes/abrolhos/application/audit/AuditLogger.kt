@@ -1,6 +1,5 @@
 package br.dev.demoraes.abrolhos.application.audit
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -8,10 +7,10 @@ import java.time.OffsetDateTime
 
 /**
  * Component responsible for logging security audit events in structured JSON format.
- * 
+ *
  * All audit events are written to a separate audit log file for compliance and investigation purposes.
  * The logger uses async appenders to ensure minimal performance impact on the application.
- * 
+ *
  * Requirements:
  * - 5.1: Log login attempts with username, timestamp, IP, and outcome
  * - 5.2: Log account activations
@@ -24,10 +23,10 @@ import java.time.OffsetDateTime
  */
 @Component
 class AuditLogger {
-    
+
     private val auditLog = LoggerFactory.getLogger("AUDIT")
     private val objectMapper = jacksonObjectMapper()
-    
+
     /**
      * Log a login attempt (before authentication is verified).
      * Requirement 5.1
@@ -41,7 +40,7 @@ class AuditLogger {
             userAgent = userAgent
         )
     }
-    
+
     /**
      * Log a successful login.
      * Requirement 5.1
@@ -55,7 +54,7 @@ class AuditLogger {
             userAgent = userAgent
         )
     }
-    
+
     /**
      * Log a failed login with the reason for failure.
      * Requirements 5.1, 5.5
@@ -75,7 +74,7 @@ class AuditLogger {
             details = mapOf("reason" to reason)
         )
     }
-    
+
     /**
      * Log an account activation event.
      * Requirement 5.2
@@ -89,7 +88,7 @@ class AuditLogger {
             userAgent = userAgent
         )
     }
-    
+
     /**
      * Log when a rate limit is exceeded.
      * Requirement 5.4
@@ -104,7 +103,7 @@ class AuditLogger {
             details = mapOf("endpoint" to endpoint)
         )
     }
-    
+
     /**
      * Log when a CORS request is rejected.
      * Requirement 5.4
@@ -119,7 +118,7 @@ class AuditLogger {
             details = mapOf("origin" to origin)
         )
     }
-    
+
     /**
      * Log token validation events (success or failure).
      * Requirements 5.1, 5.5
@@ -133,7 +132,7 @@ class AuditLogger {
             userAgent = ""
         )
     }
-    
+
     /**
      * Internal method to log an audit event in structured JSON format.
      * Requirements 5.6, 5.7, 5.8
@@ -155,7 +154,7 @@ class AuditLogger {
             userAgent = userAgent,
             details = details
         )
-        
+
         // Serialize to JSON and log
         val json = objectMapper.writeValueAsString(event)
         auditLog.info(json)
