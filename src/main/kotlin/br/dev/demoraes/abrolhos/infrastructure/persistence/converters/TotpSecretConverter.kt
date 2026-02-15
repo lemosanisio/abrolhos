@@ -51,16 +51,8 @@ class TotpSecretConverter(private val encryptionService: EncryptionService) :
             return null
         }
 
-        try {
-            logger.debug("Decrypting TOTP secret from database")
-            return encryptionService.decrypt(dbData)
-        } catch (e: Exception) {
-            // Requirement: Graceful handling of legacy plaintext data
-            // If decryption fails, assume it's a legacy plaintext secret
-            logger.warn(
-                    "Failed to decrypt TOTP secret, assuming plaintext legacy data. Error: ${e.message}"
-            )
-            return dbData
-        }
+        // Strict mode: Fail if decryption fails (no fallback to plaintext)
+        logger.debug("Decrypting TOTP secret from database")
+        return encryptionService.decrypt(dbData)
     }
 }
