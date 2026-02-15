@@ -14,6 +14,7 @@ import br.dev.demoraes.abrolhos.infrastructure.web.controllers.AuthController
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -25,7 +26,12 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(AuthController::class)
-@Import(SecurityConfig::class, GlobalExceptionHandler::class)
+@Import(
+        SecurityConfig::class,
+        GlobalExceptionHandler::class,
+        br.dev.demoraes.abrolhos.application.config.TestConfig::class,
+        GlobalExceptionHandlerTest.TestSecurityConfig::class
+)
 class GlobalExceptionHandlerTest {
 
     @Autowired private lateinit var mockMvc: MockMvc
@@ -36,96 +42,106 @@ class GlobalExceptionHandlerTest {
     @MockkBean
     private lateinit var userRepository: UserRepository
 
+    @Suppress("UnusedPrivateProperty")
+    @MockkBean
+    private lateinit var encryptionService:
+            br.dev.demoraes.abrolhos.application.services.EncryptionService
+
+    @Suppress("UnusedPrivateProperty")
+    @MockkBean
+    private lateinit var rateLimitService:
+            br.dev.demoraes.abrolhos.application.services.RateLimitService
+
+    @Suppress("UnusedPrivateProperty")
+    @MockkBean
+    private lateinit var auditLogger: br.dev.demoraes.abrolhos.application.audit.AuditLogger
+
     @Autowired private lateinit var objectMapper: ObjectMapper
+
+    @org.springframework.boot.test.context.TestConfiguration
+    class TestSecurityConfig {
+        @org.springframework.context.annotation.Bean
+        @org.springframework.context.annotation.Primary
+        fun corsConfig(): br.dev.demoraes.abrolhos.application.config.CorsConfig {
+            val mock = mockk<br.dev.demoraes.abrolhos.application.config.CorsConfig>(relaxed = true)
+            every { mock.corsConfigurationSource() } returns mockk(relaxed = true)
+            return mock
+        }
+    }
 
     @Test
     fun `should handle AuthenticationException with 401 status`() {
         // Given
         val request = mapOf("username" to "testuser", "totpCode" to "123456")
         every { authService.login(Username("testuser"), TotpCode("123456")) } throws
-            AuthenticationException("Invalid credentials")
+                AuthenticationException("Invalid credentials")
 
         // When / Then
         mockMvc.perform(
-            post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.message").value("Invalid credentials"))
-            .andExpect(jsonPath("$.status").value(401))
+                        post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isUnauthorized)
+                .andExpect(jsonPath("$.message").value("Invalid credentials"))
+                .andExpect(jsonPath("$.status").value(401))
     }
 
     @Test
     fun `should handle InvalidInviteException with 400 status`() {
         // Given
         val validToken = "a".repeat(32)
-        val request =
-            mapOf("inviteToken" to validToken, "totpCode" to "123456")
-        every {
-            authService.activateAccount(
-                InviteToken(validToken),
-                TotpCode("123456")
-            )
-        } throws InvalidInviteException("Invalid or expired invite token")
+        val request = mapOf("inviteToken" to validToken, "totpCode" to "123456")
+        every { authService.activateAccount(InviteToken(validToken), TotpCode("123456")) } throws
+                InvalidInviteException("Invalid or expired invite token")
 
         // When / Then
         mockMvc.perform(
-            post("/api/auth/activate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.message").value("Invalid or expired invite token"))
-            .andExpect(jsonPath("$.status").value(400))
+                        post("/api/auth/activate")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isBadRequest)
+                .andExpect(jsonPath("$.message").value("Invalid or expired invite token"))
+                .andExpect(jsonPath("$.status").value(400))
     }
 
     @Test
     fun `should handle AccountAlreadyActiveException with 409 status`() {
         // Given
         val token = "a".repeat(32)
-        val request =
-            mapOf("inviteToken" to token, "totpCode" to "123456")
-        every {
-            authService.activateAccount(
-                InviteToken(token),
-                TotpCode("123456")
-            )
-        } throws AccountAlreadyActiveException("Account is already active")
+        val request = mapOf("inviteToken" to token, "totpCode" to "123456")
+        every { authService.activateAccount(InviteToken(token), TotpCode("123456")) } throws
+                AccountAlreadyActiveException("Account is already active")
 
         // When / Then
         mockMvc.perform(
-            post("/api/auth/activate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isConflict)
-            .andExpect(jsonPath("$.message").value("Account is already active"))
-            .andExpect(jsonPath("$.status").value(409))
+                        post("/api/auth/activate")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isConflict)
+                .andExpect(jsonPath("$.message").value("Account is already active"))
+                .andExpect(jsonPath("$.status").value(409))
     }
 
     @Test
     fun `should handle InvalidTotpCodeException with 400 status`() {
         // Given
         val token = "a".repeat(32)
-        val request =
-            mapOf("inviteToken" to token, "totpCode" to "123456")
-        every {
-            authService.activateAccount(
-                InviteToken(token),
-                TotpCode("123456")
-            )
-        } throws InvalidTotpCodeException("Invalid TOTP code")
+        val request = mapOf("inviteToken" to token, "totpCode" to "123456")
+        every { authService.activateAccount(InviteToken(token), TotpCode("123456")) } throws
+                InvalidTotpCodeException("Invalid TOTP code")
 
         // When / Then
         mockMvc.perform(
-            post("/api/auth/activate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.message").value("Invalid TOTP code"))
-            .andExpect(jsonPath("$.status").value(400))
+                        post("/api/auth/activate")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isBadRequest)
+                .andExpect(jsonPath("$.message").value("Invalid TOTP code"))
+                .andExpect(jsonPath("$.status").value(400))
     }
 
     @Test
@@ -133,17 +149,17 @@ class GlobalExceptionHandlerTest {
         // Given
         val request = mapOf("username" to "testuser", "totpCode" to "123456")
         every { authService.login(Username("testuser"), TotpCode("123456")) } throws
-            IllegalArgumentException("TOTP code must be exactly 6 digits.")
+                IllegalArgumentException("TOTP code must be exactly 6 digits.")
 
         // When / Then
         mockMvc.perform(
-            post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.message").value("TOTP code must be exactly 6 digits."))
-            .andExpect(jsonPath("$.status").value(400))
+                        post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isBadRequest)
+                .andExpect(jsonPath("$.message").value("TOTP code must be exactly 6 digits."))
+                .andExpect(jsonPath("$.status").value(400))
     }
 
     @Test
@@ -151,16 +167,16 @@ class GlobalExceptionHandlerTest {
         // Given
         val request = mapOf("username" to "testuser", "totpCode" to "123456")
         every { authService.login(Username("testuser"), TotpCode("123456")) } throws
-            IllegalArgumentException()
+                IllegalArgumentException()
 
         // When / Then
         mockMvc.perform(
-            post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.message").value("Invalid input"))
-            .andExpect(jsonPath("$.status").value(400))
+                        post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isBadRequest)
+                .andExpect(jsonPath("$.message").value("Invalid input"))
+                .andExpect(jsonPath("$.status").value(400))
     }
 }
