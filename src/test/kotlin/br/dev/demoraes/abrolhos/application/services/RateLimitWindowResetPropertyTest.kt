@@ -13,13 +13,11 @@ import org.springframework.data.redis.core.ZSetOperations
 /**
  * Property-based test for rate limit window reset behavior.
  *
- * **Property 5: Rate limit window reset**
- * **Validates: Requirements 2.4**
+ * **Property 5: Rate limit window reset** **Validates: Requirements 2.4**
  *
- * This test verifies that the rate limiter correctly resets the request count
- * after the time window expires:
- * For any client that exceeds the rate limit, after the time window expires,
- * the client should be able to make requests again.
+ * This test verifies that the rate limiter correctly resets the request count after the time window
+ * expires: For any client that exceeds the rate limit, after the time window expires, the client
+ * should be able to make requests again.
  *
  * Property: ∀ client. (exceeded_limit ∧ window_expired) → can_make_requests
  */
@@ -39,8 +37,8 @@ class RateLimitWindowResetPropertyTest {
     /**
      * Property: For any client, old requests outside the sliding window should be removed.
      *
-     * This property verifies that the rate limiter correctly removes old entries
-     * that fall outside the current sliding window, effectively resetting the count.
+     * This property verifies that the rate limiter correctly removes old entries that fall outside
+     * the current sliding window, effectively resetting the count.
      */
     @Test
     fun `property - old requests outside window are removed`() {
@@ -71,8 +69,8 @@ class RateLimitWindowResetPropertyTest {
     /**
      * Property: For any client with requests only outside the window, the count should be zero.
      *
-     * This property verifies that when all previous requests are outside the sliding window,
-     * the effective count is zero and new requests are allowed.
+     * This property verifies that when all previous requests are outside the sliding window, the
+     * effective count is zero and new requests are allowed.
      */
     @Test
     fun `property - requests outside window do not count toward limit`() {
@@ -102,11 +100,11 @@ class RateLimitWindowResetPropertyTest {
     }
 
     /**
-     * Property: For any client that previously exceeded the limit, if the window resets,
-     * they should be able to make maxRequests new requests.
+     * Property: For any client that previously exceeded the limit, if the window resets, they
+     * should be able to make maxRequests new requests.
      *
-     * This property verifies the complete reset behavior: after a window reset,
-     * a client can make the full quota of requests again.
+     * This property verifies the complete reset behavior: after a window reset, a client can make
+     * the full quota of requests again.
      */
     @Test
     fun `property - client can make full quota after window reset`() {
@@ -146,8 +144,8 @@ class RateLimitWindowResetPropertyTest {
     /**
      * Property: For any window configuration, the sliding window calculation should be consistent.
      *
-     * This property verifies that the window start time is calculated correctly
-     * based on the configured window duration.
+     * This property verifies that the window start time is calculated correctly based on the
+     * configured window duration.
      */
     @Test
     fun `property - sliding window calculation is consistent`() {
@@ -176,12 +174,12 @@ class RateLimitWindowResetPropertyTest {
 
             verify {
                 zSetOperations.removeRangeByScore(
-                    key,
-                    0.0,
-                    match { timestamp ->
-                        timestamp >= expectedWindowStart.toDouble() &&
-                            timestamp <= expectedWindowEnd.toDouble()
-                    }
+                        key,
+                        0.0,
+                        match { timestamp ->
+                            timestamp >= expectedWindowStart.toDouble() &&
+                                    timestamp <= expectedWindowEnd.toDouble()
+                        }
                 )
             }
         }
@@ -190,8 +188,8 @@ class RateLimitWindowResetPropertyTest {
     /**
      * Property: For any client, the reset time should be consistent with the window duration.
      *
-     * This property verifies that the resetTime returned in the result is calculated
-     * correctly based on the current time and window duration.
+     * This property verifies that the resetTime returned in the result is calculated correctly
+     * based on the current time and window duration.
      */
     @Test
     fun `property - reset time is calculated correctly`() {
@@ -227,11 +225,11 @@ class RateLimitWindowResetPropertyTest {
     }
 
     /**
-     * Property: For any client that exceeds the limit, the retry-after time should reflect
-     * when the window will reset (including backoff).
+     * Property: For any client that exceeds the limit, the retry-after time should reflect when the
+     * window will reset (including backoff).
      *
-     * This property verifies that the retryAfterSeconds value correctly indicates
-     * when the client can retry, accounting for the window reset and exponential backoff.
+     * This property verifies that the retryAfterSeconds value correctly indicates when the client
+     * can retry, accounting for the window reset and exponential backoff.
      */
     @Test
     fun `property - retry-after reflects window reset time with backoff`() {
@@ -251,9 +249,7 @@ class RateLimitWindowResetPropertyTest {
             // Simulate exceeding the limit
             every { zSetOperations.count(key, any(), any()) } returns maxRequests.toLong()
 
-            val beforeTime = System.currentTimeMillis()
             val result = rateLimitService.tryConsume(clientId, endpoint)
-            val afterTime = System.currentTimeMillis()
 
             // The retry-after should be at least the window duration
             val minRetrySeconds = (windowMinutes * 60).toLong()
@@ -272,8 +268,8 @@ class RateLimitWindowResetPropertyTest {
     /**
      * Property: For any configuration, partial window overlap should be handled correctly.
      *
-     * This property verifies that when some requests are inside the window and some
-     * are outside, only the requests inside the window count toward the limit.
+     * This property verifies that when some requests are inside the window and some are outside,
+     * only the requests inside the window count toward the limit.
      */
     @Test
     fun `property - partial window overlap is handled correctly`() {
