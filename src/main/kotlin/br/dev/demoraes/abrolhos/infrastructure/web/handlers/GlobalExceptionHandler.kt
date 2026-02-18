@@ -24,42 +24,42 @@ class GlobalExceptionHandler {
     @Suppress("UnusedParameter")
     fun handleAuthenticationException(e: AuthenticationException): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ErrorResponse("Invalid credentials", HttpStatus.UNAUTHORIZED.value()))
+            .body(ErrorResponse("Invalid credentials", HttpStatus.UNAUTHORIZED.value()))
     }
 
     @ExceptionHandler(InvalidInviteException::class)
     fun handleInvalidInviteException(e: InvalidInviteException): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse(e.message ?: "Invalid invite", HttpStatus.BAD_REQUEST.value()))
+            .body(ErrorResponse(e.message ?: "Invalid invite", HttpStatus.BAD_REQUEST.value()))
     }
 
     @ExceptionHandler(AccountAlreadyActiveException::class)
     fun handleAccountAlreadyActiveException(
-            e: AccountAlreadyActiveException
+        e: AccountAlreadyActiveException
     ): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(
-                        ErrorResponse(
-                                e.message ?: "Account already active",
-                                HttpStatus.CONFLICT.value()
-                        )
+            .body(
+                ErrorResponse(
+                    e.message ?: "Account already active",
+                    HttpStatus.CONFLICT.value()
                 )
+            )
     }
 
     @ExceptionHandler(InvalidTotpCodeException::class)
     fun handleInvalidTotpCodeException(e: InvalidTotpCodeException): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                        ErrorResponse(
-                                e.message ?: "Invalid TOTP code",
-                                HttpStatus.BAD_REQUEST.value()
-                        )
+            .body(
+                ErrorResponse(
+                    e.message ?: "Invalid TOTP code",
+                    HttpStatus.BAD_REQUEST.value()
                 )
+            )
     }
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse(e.message ?: "Invalid input", HttpStatus.BAD_REQUEST.value()))
+            .body(ErrorResponse(e.message ?: "Invalid input", HttpStatus.BAD_REQUEST.value()))
     }
 }

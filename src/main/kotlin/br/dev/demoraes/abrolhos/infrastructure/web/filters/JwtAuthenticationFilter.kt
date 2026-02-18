@@ -29,8 +29,8 @@ import ulid.ULID
 // TODO-USER(I will need some time to think about improvements here)
 @Component
 class JwtAuthenticationFilter(
-        @Value("\${jwt.secret}") private val jwtSecret: String,
-        private val userRepository: UserRepository,
+    @Value("\${jwt.secret}") private val jwtSecret: String,
+    private val userRepository: UserRepository,
 ) : OncePerRequestFilter() {
 
     private val log = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
@@ -40,9 +40,9 @@ class JwtAuthenticationFilter(
     }
 
     override fun doFilterInternal(
-            request: HttpServletRequest,
-            response: HttpServletResponse,
-            filterChain: FilterChain
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        filterChain: FilterChain
     ) {
         val token = extractToken(request)
 
@@ -60,11 +60,11 @@ class JwtAuthenticationFilter(
                 if (user != null && user.isActive) {
                     val authorities = listOf(SimpleGrantedAuthority("ROLE_$role"))
                     val authentication =
-                            UsernamePasswordAuthenticationToken(
-                                    user.username.value,
-                                    null,
-                                    authorities
-                            )
+                        UsernamePasswordAuthenticationToken(
+                            user.username.value,
+                            null,
+                            authorities
+                        )
                     SecurityContextHolder.getContext().authentication = authentication
                 }
             } catch (e: JWTVerificationException) {
