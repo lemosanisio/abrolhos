@@ -8,5 +8,5 @@ package br.dev.demoraes.abrolhos.domain.exceptions
  *
  * Requirement 3.6: Error handling for encryption operations
  */
-// TODO(Could this one be moved to infrastructure?)
+// TODO-USER(Could this one be moved to infrastructure?)
 class EncryptionException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)

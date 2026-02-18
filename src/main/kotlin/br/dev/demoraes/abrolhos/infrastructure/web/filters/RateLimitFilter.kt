@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
+
 /**
  * Request filter for rate limiting authentication endpoints.
  *
@@ -15,21 +16,20 @@ import org.springframework.web.servlet.HandlerInterceptor
  * Returns 429 Too Many Requests if the limit is exceeded.
  * Adds standard rate limit headers (X-RateLimit-*) to responses.
  */
-*/
-// TODO(Will need to learn more about that too)
+// TODO-USER(Will need to learn more about that too)
 
 @Component
 class RateLimitFilter(
-    private val rateLimitService: RateLimitService,
-    private val auditLogger: AuditLogger
+        private val rateLimitService: RateLimitService,
+        private val auditLogger: AuditLogger
 ) : HandlerInterceptor {
 
     private val logger = LoggerFactory.getLogger(RateLimitFilter::class.java)
 
     override fun preHandle(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        handler: Any
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            handler: Any
     ): Boolean {
         val path = request.requestURI
 
@@ -48,7 +48,7 @@ class RateLimitFilter(
                 response.addHeader("X-RateLimit-Reset", result.resetTime.toString())
 
                 logger.debug(
-                    "Rate limit check passed for client $clientId on endpoint $path. Remaining: ${result.remaining}/${result.limit}"
+                        "Rate limit check passed for client $clientId on endpoint $path. Remaining: ${result.remaining}/${result.limit}"
                 )
 
                 true
@@ -61,7 +61,7 @@ class RateLimitFilter(
 
                 response.contentType = "application/json"
                 response.writer.write(
-                    """{"error":"Too many requests","message":"Rate limit exceeded. Please try again later.","retryAfter":${result.retryAfterSeconds}}"""
+                        """{"error":"Too many requests","message":"Rate limit exceeded. Please try again later.","retryAfter":${result.retryAfterSeconds}}"""
                 )
 
                 logger.warn("Rate limit exceeded for client $clientId on endpoint path. Retry after: ${result.retryAfterSeconds}s")
@@ -86,7 +86,7 @@ class RateLimitFilter(
 
     private fun isAuthEndpoint(path: String): Boolean {
         return path == "/api/auth/login" ||
-            path == "/api/auth/activate" ||
-            path.startsWith("/api/auth/invite/")
+                path == "/api/auth/activate" ||
+                path.startsWith("/api/auth/invite/")
     }
 }

@@ -21,7 +21,7 @@ import org.springframework.web.context.request.ServletRequestAttributes
  * - 5.2: Log account activations
  * - 5.3: Log authentication failures with reason
  */
-// TODO(I dont know how that audit works, it seemed nice to have when kiro suggested)
+// TODO-USER(I dont know how that audit works, it seemed nice to have when kiro suggested)
 @Aspect
 @Component
 class AuditAspect(
