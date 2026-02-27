@@ -6,6 +6,7 @@ plugins {
     kotlin("plugin.jpa") version "1.9.23"
     id("io.gitlab.arturbosch.detekt") version "1.23.6"
     id("org.openapi.generator") version "7.8.0"
+    id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
 }
 
 group = "br.dev.demoraes"
@@ -27,7 +28,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-cache")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
@@ -154,4 +155,11 @@ tasks.withType<org.springframework.boot.gradle.tasks.run.BootRun> {
             }
         }
     }
+}
+
+openApi {
+    apiDocsUrl.set("http://localhost:8080/v3/api-docs")
+    outputFileName.set("openapi.json")
+    outputDir.set(file("$buildDir/docs"))
+    waitTimeInSeconds.set(60)
 }
