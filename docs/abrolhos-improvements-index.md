@@ -24,7 +24,6 @@ This document serves as the master index for all improvement recommendations for
 ## Improvement Areas
 
 ### 1. Security Hardening
-**Document**: `security-hardening-improvements.md`
 
 **Priority**: CRITICAL
 
@@ -69,7 +68,6 @@ This document serves as the master index for all improvement recommendations for
 ---
 
 ### 2. Performance Optimization
-**Document**: `performance-optimization-improvements.md`
 
 **Priority**: HIGH
 
@@ -126,7 +124,6 @@ This document serves as the master index for all improvement recommendations for
 ---
 
 ### 3. Frontend Improvements
-**Document**: `frontend-improvements.md`
 
 **Priority**: HIGH
 
@@ -190,7 +187,6 @@ This document serves as the master index for all improvement recommendations for
 ---
 
 ### 4. Testing & Monitoring
-**Document**: `testing-monitoring-improvements.md`
 
 **Priority**: HIGH
 
@@ -430,16 +426,6 @@ These improvements provide high value with minimal effort:
 5. **Start** with Phase 1 or quick wins
 6. **Monitor** progress and adjust as needed
 
----
-
-## Document References
-
-- [Security Hardening Improvements](./security-hardening-improvements.md)
-- [Performance Optimization Improvements](./performance-optimization-improvements.md)
-- [Frontend Improvements](./frontend-improvements.md)
-- [Testing & Monitoring Improvements](./testing-monitoring-improvements.md)
-
----
 
 ## Questions to Consider
 
