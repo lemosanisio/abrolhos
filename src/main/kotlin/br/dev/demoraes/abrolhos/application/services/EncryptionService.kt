@@ -1,17 +1,17 @@
 package br.dev.demoraes.abrolhos.application.services
 
-import br.dev.demoraes.abrolhos.application.config.SecurityProperties
 import br.dev.demoraes.abrolhos.domain.exceptions.EncryptionException
+import br.dev.demoraes.abrolhos.infrastructure.web.config.SecurityProperties
 import io.micrometer.core.instrument.MeterRegistry
 import jakarta.annotation.PostConstruct
-import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
 import java.security.SecureRandom
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 
 /**
  * Service for encrypting and decrypting sensitive data using AES-256-GCM.
@@ -26,8 +26,8 @@ import javax.crypto.spec.SecretKeySpec
  */
 @Service
 class EncryptionService(
-    private val securityProperties: SecurityProperties,
-    private val meterRegistry: MeterRegistry
+        private val securityProperties: SecurityProperties,
+        private val meterRegistry: MeterRegistry
 ) {
     private val logger = LoggerFactory.getLogger(EncryptionService::class.java)
     private val secureRandom = SecureRandom()
@@ -60,21 +60,26 @@ class EncryptionService(
                 "Encryption key must be at least 256 bits (32 bytes). Current size: ${keyBytes.size} bytes"
             }
             currentKey = SecretKeySpec(keyBytes, ALGORITHM)
-            logger.info("Encryption key validated successfully (${keyBytes.size * BITS_PER_BYTE} bits)")
+            logger.info(
+                    "Encryption key validated successfully (${keyBytes.size * BITS_PER_BYTE} bits)"
+            )
 
             // Load old keys for rotation support
             if (securityProperties.encryption.oldKeys.isNotBlank()) {
-                oldKeys = securityProperties.encryption.oldKeys
-                    .split(",")
-                    .map { it.trim() }
-                    .filter { it.isNotBlank() }
-                    .map { oldKey ->
-                        val oldKeyBytes = Base64.getDecoder().decode(oldKey)
-                        require(oldKeyBytes.size >= KEY_SIZE) {
-                            "Old encryption key must be at least 256 bits (32 bytes)"
-                        }
-                        SecretKeySpec(oldKeyBytes, ALGORITHM)
-                    }
+                oldKeys =
+                        securityProperties
+                                .encryption
+                                .oldKeys
+                                .split(",")
+                                .map { it.trim() }
+                                .filter { it.isNotBlank() }
+                                .map { oldKey ->
+                                    val oldKeyBytes = Base64.getDecoder().decode(oldKey)
+                                    require(oldKeyBytes.size >= KEY_SIZE) {
+                                        "Old encryption key must be at least 256 bits (32 bytes)"
+                                    }
+                                    SecretKeySpec(oldKeyBytes, ALGORITHM)
+                                }
                 logger.info("Loaded ${oldKeys.size} old encryption key(s) for rotation support")
             }
         } catch (e: IllegalArgumentException) {
@@ -87,8 +92,8 @@ class EncryptionService(
     /**
      * Encrypts plaintext using AES-256-GCM with a unique IV.
      *
-     * The encrypted output format is: IV (12 bytes) + ciphertext + authentication tag
-     * The result is Base64-encoded for storage.
+     * The encrypted output format is: IV (12 bytes) + ciphertext + authentication tag The result is
+     * Base64-encoded for storage.
      *
      * Requirements:
      * - 3.1: AES-256-GCM encryption
@@ -132,8 +137,8 @@ class EncryptionService(
     /**
      * Decrypts ciphertext using AES-256-GCM with key rotation support.
      *
-     * Attempts decryption with the current key first, then tries old keys
-     * if decryption fails (supporting key rotation scenarios).
+     * Attempts decryption with the current key first, then tries old keys if decryption fails
+     * (supporting key rotation scenarios).
      *
      * Requirements:
      * - 3.1: AES-256-GCM decryption
@@ -191,9 +196,7 @@ class EncryptionService(
         }
     }
 
-    /**
-     * Decrypts data with a specific key.
-     */
+    /** Decrypts data with a specific key. */
     private fun decryptWithKey(iv: ByteArray, encryptedData: ByteArray, key: SecretKey): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         val gcmSpec = GCMParameterSpec(GCM_TAG_LENGTH, iv)
@@ -210,13 +213,14 @@ class EncryptionService(
     private fun recordPerformance(operation: String, startTime: Long) {
         val duration = System.currentTimeMillis() - startTime
 
-        meterRegistry.timer("encryption.duration", "operation", operation)
-            .record(duration, java.util.concurrent.TimeUnit.MILLISECONDS)
+        meterRegistry
+                .timer("encryption.duration", "operation", operation)
+                .record(duration, java.util.concurrent.TimeUnit.MILLISECONDS)
 
         if (duration > PERFORMANCE_THRESHOLD_MS) {
             logger.warn(
-                "Encryption operation '$operation' took ${duration}ms " +
-                    "(threshold: ${PERFORMANCE_THRESHOLD_MS}ms)"
+                    "Encryption operation '$operation' took ${duration}ms " +
+                            "(threshold: ${PERFORMANCE_THRESHOLD_MS}ms)"
             )
             meterRegistry.counter("encryption.slow_operations", "operation", operation).increment()
         }

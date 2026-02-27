@@ -1,6 +1,7 @@
-package br.dev.demoraes.abrolhos.application.config
+package br.dev.demoraes.abrolhos.infrastructure.web.config
 
 import jakarta.annotation.PostConstruct
+import java.net.URI
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -8,7 +9,6 @@ import org.springframework.core.env.Environment
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import java.net.URI
 
 /**
  * CORS configuration with environment-based origin validation.
@@ -23,8 +23,8 @@ import java.net.URI
  */
 @Configuration
 class CorsConfig(
-    private val securityProperties: SecurityProperties,
-    private val environment: Environment
+        private val securityProperties: SecurityProperties,
+        private val environment: Environment
 ) {
 
     private val logger = LoggerFactory.getLogger(CorsConfig::class.java)
@@ -37,19 +37,19 @@ class CorsConfig(
         logger.info("Validating CORS configuration (production: $isProduction)")
 
         // Requirement 1.2: Validate all origins are well-formed URLs
-        origins.forEach { origin ->
-            validateOriginUrl(origin)
-        }
+        origins.forEach { origin -> validateOriginUrl(origin) }
 
         // Requirement 1.3: Reject wildcards in production
         if (isProduction && origins.any { it == "*" }) {
             throw IllegalStateException(
-                "Wildcard (*) CORS origins are not allowed in production profile. " +
-                    "Please configure specific origins in SECURITY_CORS_ALLOWED_ORIGINS"
+                    "Wildcard (*) CORS origins are not allowed in production profile. " +
+                            "Please configure specific origins in SECURITY_CORS_ALLOWED_ORIGINS"
             )
         }
 
-        logger.info("CORS configuration validated successfully: ${origins.size} origin(s) configured")
+        logger.info(
+                "CORS configuration validated successfully: ${origins.size} origin(s) configured"
+        )
     }
 
     @Bean
@@ -61,32 +61,17 @@ class CorsConfig(
         configuration.allowedOrigins = origins
 
         // Requirement 1.4: Configure allowed methods
-        configuration.allowedMethods = listOf(
-            "GET",
-            "POST",
-            "PUT",
-            "DELETE",
-            "OPTIONS",
-            "PATCH"
-        )
+        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
 
         // Requirement 1.5: Configure allowed headers
-        configuration.allowedHeaders = listOf(
-            "Authorization",
-            "Content-Type",
-            "Accept",
-            "Origin",
-            "X-Requested-With"
-        )
+        configuration.allowedHeaders =
+                listOf("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With")
 
         // Requirement 1.6: Allow credentials for authenticated requests
         configuration.allowCredentials = true
 
         // Requirement 1.7: Configure exposed headers
-        configuration.exposedHeaders = listOf(
-            "Authorization",
-            "Content-Type"
-        )
+        configuration.exposedHeaders = listOf("Authorization", "Content-Type")
 
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
@@ -97,20 +82,17 @@ class CorsConfig(
     }
 
     /**
-     * Parse comma-separated origins from configuration.
-     * Requirement 1.1: Comma-separated origin parsing
+     * Parse comma-separated origins from configuration. Requirement 1.1: Comma-separated origin
+     * parsing
      */
     private fun parseOrigins(): List<String> {
         val originsString = securityProperties.cors.allowedOrigins
-        return originsString
-            .split(",")
-            .map { it.trim() }
-            .filter { it.isNotBlank() }
+        return originsString.split(",").map { it.trim() }.filter { it.isNotBlank() }
     }
 
     /**
-     * Validate that an origin is a well-formed URL or wildcard.
-     * Requirement 1.2: Validate all origin URLs are well-formed
+     * Validate that an origin is a well-formed URL or wildcard. Requirement 1.2: Validate all
+     * origin URLs are well-formed
      */
     private fun validateOriginUrl(origin: String) {
         // Allow wildcard for non-production environments
@@ -132,21 +114,19 @@ class CorsConfig(
 
             // Validate host is present and not empty
             // Note: URI.create("https://") results in host being null
-            require(!uri.host.isNullOrBlank()) {
-                "Origin must include a valid host: $origin"
-            }
+            require(!uri.host.isNullOrBlank()) { "Origin must include a valid host: $origin" }
         } catch (e: IllegalArgumentException) {
             throw IllegalStateException(
-                "Invalid CORS origin URL '$origin': ${e.message}. " +
-                    "Origins must be well-formed URLs (e.g., https://example.com)",
-                e
+                    "Invalid CORS origin URL '$origin': ${e.message}. " +
+                            "Origins must be well-formed URLs (e.g., https://example.com)",
+                    e
             )
         }
     }
 
     /**
-     * Check if the application is running in production profile.
-     * Requirement 1.3: Production profile detection
+     * Check if the application is running in production profile. Requirement 1.3: Production
+     * profile detection
      */
     private fun isProductionProfile(): Boolean {
         val activeProfiles = environment.activeProfiles

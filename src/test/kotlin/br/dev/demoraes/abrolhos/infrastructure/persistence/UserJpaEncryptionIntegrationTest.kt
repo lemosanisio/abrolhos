@@ -1,6 +1,6 @@
 package br.dev.demoraes.abrolhos.infrastructure.persistence
 
-import br.dev.demoraes.abrolhos.application.config.SecurityProperties
+import br.dev.demoraes.abrolhos.infrastructure.web.config.SecurityProperties
 import br.dev.demoraes.abrolhos.application.services.EncryptionService
 import br.dev.demoraes.abrolhos.domain.entities.Role
 import br.dev.demoraes.abrolhos.infrastructure.persistence.converters.TotpSecretConverter

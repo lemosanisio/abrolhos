@@ -1,24 +1,23 @@
 package br.dev.demoraes.abrolhos.application.services
 
-import br.dev.demoraes.abrolhos.application.config.SecurityProperties
+import br.dev.demoraes.abrolhos.infrastructure.web.config.SecurityProperties
+import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
-import java.util.concurrent.TimeUnit
 
 /**
  * Service for enforcing rate limits on authentication endpoints.
  *
- * Uses Redis ZSET (sorted set) with sliding window algorithm to track requests.
- * Implements exponential backoff for repeated violations and graceful degradation
- * when Redis is unavailable.
+ * Uses Redis ZSET (sorted set) with sliding window algorithm to track requests. Implements
+ * exponential backoff for repeated violations and graceful degradation when Redis is unavailable.
  *
  * Requirements: 2.1, 2.2, 2.4, 2.8, 2.9, 2.12
  */
 @Service
 class RateLimitService(
-    private val redisTemplate: RedisTemplate<String, String>,
-    private val securityProperties: SecurityProperties
+        private val redisTemplate: RedisTemplate<String, String>,
+        private val securityProperties: SecurityProperties
 ) {
 
     private val logger = LoggerFactory.getLogger(RateLimitService::class.java)
@@ -33,11 +32,11 @@ class RateLimitService(
      * @property retryAfterSeconds Seconds to wait before retrying (0 if allowed)
      */
     data class RateLimitResult(
-        val isAllowed: Boolean,
-        val limit: Int,
-        val remaining: Int,
-        val resetTime: Long,
-        val retryAfterSeconds: Long
+            val isAllowed: Boolean,
+            val limit: Int,
+            val remaining: Int,
+            val resetTime: Long,
+            val retryAfterSeconds: Long
     )
 
     /**
@@ -47,11 +46,9 @@ class RateLimitService(
      * - Score: Request timestamp in milliseconds
      * - Member: Unique request identifier (timestamp as string)
      *
-     * Requirement 2.1: Track request count per client identifier
-     * Requirement 2.2: Reject requests exceeding maximum attempts
-     * Requirement 2.4: Reset count when time window expires
-     * Requirement 2.8: Use Redis for distributed rate limiting
-     * Requirement 2.9: Apply exponential backoff
+     * Requirement 2.1: Track request count per client identifier Requirement 2.2: Reject requests
+     * exceeding maximum attempts Requirement 2.4: Reset count when time window expires Requirement
+     * 2.8: Use Redis for distributed rate limiting Requirement 2.9: Apply exponential backoff
      * Requirement 2.12: Graceful degradation for Redis failures
      *
      * @param clientId Client identifier (typically IP address)
@@ -78,45 +75,58 @@ class RateLimitService(
             if (count < maxRequests) {
                 // Requirement 2.1: Track the request
                 operations.add(key, now.toString(), now.toDouble())
-                redisTemplate.expire(key, securityProperties.rateLimit.windowMinutes.toLong(), TimeUnit.MINUTES)
+                redisTemplate.expire(
+                        key,
+                        securityProperties.rateLimit.windowMinutes.toLong(),
+                        TimeUnit.MINUTES
+                )
 
                 RateLimitResult(
-                    isAllowed = true,
-                    limit = maxRequests,
-                    remaining = (maxRequests - count - 1).toInt(),
-                    resetTime = resetTime,
-                    retryAfterSeconds = 0
+                        isAllowed = true,
+                        limit = maxRequests,
+                        remaining = (maxRequests - count - 1).toInt(),
+                        resetTime = resetTime,
+                        retryAfterSeconds = 0
                 )
             } else {
                 // Requirement 2.2: Reject request when limit exceeded
                 // Requirement 2.9: Apply exponential backoff
                 val backoffMultiplier = calculateBackoffMultiplier(count.toInt(), maxRequests)
-                val extendedResetTime = resetTime + (securityProperties.rateLimit.windowMinutes * 60 * 1000 * backoffMultiplier)
+                val extendedResetTime =
+                        resetTime +
+                                (securityProperties.rateLimit.windowMinutes *
+                                        60 *
+                                        1000 *
+                                        backoffMultiplier)
 
                 logger.debug(
-                    "Rate limit exceeded for client $clientId on endpoint $endpoint. " +
-                        "Count: $count, Limit: $maxRequests, Backoff: ${backoffMultiplier}x"
+                        "Rate limit exceeded for client $clientId on endpoint $endpoint. " +
+                                "Count: $count, Limit: $maxRequests, Backoff: ${backoffMultiplier}x"
                 )
 
                 RateLimitResult(
-                    isAllowed = false,
-                    limit = maxRequests,
-                    remaining = 0,
-                    resetTime = extendedResetTime,
-                    retryAfterSeconds = ((extendedResetTime - now) / 1000)
+                        isAllowed = false,
+                        limit = maxRequests,
+                        remaining = 0,
+                        resetTime = extendedResetTime,
+                        retryAfterSeconds = ((extendedResetTime - now) / 1000)
                 )
             }
         } catch (e: Exception) {
             // Requirement 2.12: Graceful degradation - fail open if Redis unavailable
-            logger.warn("Rate limiting unavailable due to Redis error, allowing request: ${e.message}")
+            logger.warn(
+                    "Rate limiting unavailable due to Redis error, allowing request: ${e.message}"
+            )
 
             // Return a permissive result when Redis fails
             RateLimitResult(
-                isAllowed = true,
-                limit = securityProperties.rateLimit.maxRequests,
-                remaining = securityProperties.rateLimit.maxRequests,
-                resetTime = System.currentTimeMillis() + (securityProperties.rateLimit.windowMinutes * 60 * 1000),
-                retryAfterSeconds = 0
+                    isAllowed = true,
+                    limit = securityProperties.rateLimit.maxRequests,
+                    remaining = securityProperties.rateLimit.maxRequests,
+                    resetTime =
+                            System.currentTimeMillis() +
+                                    (securityProperties.rateLimit.windowMinutes * 60 * 1000),
+                    retryAfterSeconds = 0
             )
         }
     }

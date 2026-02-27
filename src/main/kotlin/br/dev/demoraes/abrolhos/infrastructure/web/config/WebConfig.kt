@@ -1,4 +1,5 @@
-package br.dev.demoraes.abrolhos.application.config
+
+package br.dev.demoraes.abrolhos.infrastructure.web.config
 
 import br.dev.demoraes.abrolhos.infrastructure.web.filters.RateLimitFilter
 import org.springframework.context.annotation.Configuration
@@ -28,7 +29,7 @@ class WebConfig(
         // Register rate limit filter for authentication endpoints
         registry.addInterceptor(rateLimitFilter)
             .addPathPatterns("/api/auth/**")
-        
+
         super.addInterceptors(registry)
     }
 }

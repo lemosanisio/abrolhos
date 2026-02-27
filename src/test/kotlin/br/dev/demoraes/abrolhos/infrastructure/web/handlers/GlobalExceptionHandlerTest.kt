@@ -1,6 +1,6 @@
 package br.dev.demoraes.abrolhos.infrastructure.web.handlers
 
-import br.dev.demoraes.abrolhos.application.config.SecurityConfig
+import br.dev.demoraes.abrolhos.infrastructure.web.config.SecurityConfig
 import br.dev.demoraes.abrolhos.application.services.AuthService
 import br.dev.demoraes.abrolhos.domain.entities.InviteToken
 import br.dev.demoraes.abrolhos.domain.entities.TotpCode
@@ -29,7 +29,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @Import(
     SecurityConfig::class,
     GlobalExceptionHandler::class,
-    br.dev.demoraes.abrolhos.application.config.TestConfig::class,
+    br.dev.demoraes.abrolhos.infrastructure.web.config.TestConfig::class,
     GlobalExceptionHandlerTest.TestSecurityConfig::class
 )
 class GlobalExceptionHandlerTest {
@@ -62,8 +62,8 @@ class GlobalExceptionHandlerTest {
     class TestSecurityConfig {
         @org.springframework.context.annotation.Bean
         @org.springframework.context.annotation.Primary
-        fun corsConfig(): br.dev.demoraes.abrolhos.application.config.CorsConfig {
-            val mock = mockk<br.dev.demoraes.abrolhos.application.config.CorsConfig>(relaxed = true)
+        fun corsConfig(): br.dev.demoraes.abrolhos.infrastructure.web.config.CorsConfig {
+            val mock = mockk<br.dev.demoraes.abrolhos.infrastructure.web.config.CorsConfig>(relaxed = true)
             every { mock.corsConfigurationSource() } returns mockk(relaxed = true)
             return mock
         }

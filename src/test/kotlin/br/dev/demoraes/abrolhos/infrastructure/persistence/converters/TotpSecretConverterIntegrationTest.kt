@@ -1,6 +1,6 @@
 package br.dev.demoraes.abrolhos.infrastructure.persistence.converters
 
-import br.dev.demoraes.abrolhos.application.config.SecurityProperties
+import br.dev.demoraes.abrolhos.infrastructure.web.config.SecurityProperties
 import br.dev.demoraes.abrolhos.application.services.EncryptionService
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

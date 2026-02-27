@@ -1,4 +1,4 @@
-package br.dev.demoraes.abrolhos.application.config
+package br.dev.demoraes.abrolhos.infrastructure.web.config
 
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals

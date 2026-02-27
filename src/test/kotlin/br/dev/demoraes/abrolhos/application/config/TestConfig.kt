@@ -1,4 +1,4 @@
-package br.dev.demoraes.abrolhos.application.config
+package br.dev.demoraes.abrolhos.infrastructure.web.config
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry

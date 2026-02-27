@@ -1,4 +1,4 @@
-package br.dev.demoraes.abrolhos.application.config
+package br.dev.demoraes.abrolhos.infrastructure.cache.config
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -12,22 +12,19 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
 /**
  * Redis configuration for rate limiting.
  *
- * Configures Redis connection and RedisTemplate for distributed rate limiting.
- * Uses Lettuce as the Redis client for better performance and connection pooling.
+ * Configures Redis connection and RedisTemplate for distributed rate limiting. Uses Lettuce as the
+ * Redis client for better performance and connection pooling.
  *
  * Requirement 2.8: Redis-based distributed rate limiting
  */
 @Configuration
 class RedisConfig {
 
-    @Value("\${spring.data.redis.host:localhost}")
-    private lateinit var redisHost: String
+    @Value("\${spring.data.redis.host:localhost}") private lateinit var redisHost: String
 
-    @Value("\${spring.data.redis.port:6379}")
-    private var redisPort: Int = DEFAULT_REDIS_PORT
+    @Value("\${spring.data.redis.port:6379}") private var redisPort: Int = DEFAULT_REDIS_PORT
 
-    @Value("\${spring.data.redis.password:}")
-    private var redisPassword: String = ""
+    @Value("\${spring.data.redis.password:}") private var redisPassword: String = ""
 
     @Bean
     fun redisConnectionFactory(): RedisConnectionFactory {

@@ -1,6 +1,6 @@
 package br.dev.demoraes.abrolhos.application.services
 
-import br.dev.demoraes.abrolhos.application.config.SecurityProperties
+import br.dev.demoraes.abrolhos.infrastructure.web.config.SecurityProperties
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify

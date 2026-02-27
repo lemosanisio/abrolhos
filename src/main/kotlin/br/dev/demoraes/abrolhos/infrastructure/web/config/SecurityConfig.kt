@@ -1,4 +1,4 @@
-package br.dev.demoraes.abrolhos.application.config
+package br.dev.demoraes.abrolhos.infrastructure.web.config
 
 import br.dev.demoraes.abrolhos.infrastructure.web.filters.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
@@ -19,14 +19,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * 2. `JwtAuthenticationFilter` (registered via `addFilterBefore`) checks for a valid JWT token.
  * 3. `CorsConfig` is applied to handle Cross-Origin Resource Sharing.
  * 4. `authorizeHttpRequests` rules are checked:
+ * ```
  *    - Public endpoints (login, invite, etc.) are allowed.
  *    - All other endpoints require authentication.
+ * ```
  * 5. If authorized, the request proceeds to the specific Controller.
  */
 @Configuration
 class SecurityConfig(
-    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
-    private val corsConfig: CorsConfig,
+        private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+        private val corsConfig: CorsConfig,
 ) {
 
     @Bean

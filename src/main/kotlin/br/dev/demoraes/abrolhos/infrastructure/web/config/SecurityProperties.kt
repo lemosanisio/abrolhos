@@ -1,4 +1,4 @@
-package br.dev.demoraes.abrolhos.application.config
+package br.dev.demoraes.abrolhos.infrastructure.web.config
 
 import jakarta.annotation.PostConstruct
 import jakarta.validation.constraints.Min
@@ -39,8 +39,8 @@ class SecurityProperties {
 
     class CorsProperties {
         /**
-         * Comma-separated list of allowed CORS origins.
-         * Example: https://app.example.com,https://admin.example.com
+         * Comma-separated list of allowed CORS origins. Example:
+         * https://app.example.com,https://admin.example.com
          *
          * Requirement 6.1: Configuration via environment variables
          */
@@ -50,8 +50,7 @@ class SecurityProperties {
 
     class RateLimitProperties {
         /**
-         * Maximum number of requests allowed within the time window.
-         * Default: 5 requests
+         * Maximum number of requests allowed within the time window. Default: 5 requests
          *
          * Requirement 6.2: Rate limit configuration
          */
@@ -59,8 +58,7 @@ class SecurityProperties {
         var maxRequests: Int = DEFAULT_MAX_REQUESTS
 
         /**
-         * Time window in minutes for rate limiting.
-         * Default: 15 minutes
+         * Time window in minutes for rate limiting. Default: 15 minutes
          *
          * Requirement 6.2: Rate limit configuration
          */
@@ -77,17 +75,16 @@ class SecurityProperties {
 
     class EncryptionProperties {
         /**
-         * Base64-encoded AES-256 encryption key for TOTP secrets.
-         * Must be at least 256 bits (32 bytes).
+         * Base64-encoded AES-256 encryption key for TOTP secrets. Must be at least 256 bits (32
+         * bytes).
          *
          * Requirement 6.3: Encryption key configuration
          */
-        @NotBlank(message = "Encryption key must be configured")
-        var key: String = ""
+        @NotBlank(message = "Encryption key must be configured") var key: String = ""
 
         /**
-         * Comma-separated list of old encryption keys for key rotation.
-         * Optional - used when rotating encryption keys.
+         * Comma-separated list of old encryption keys for key rotation. Optional - used when
+         * rotating encryption keys.
          *
          * Requirement 3.9: Key rotation support
          */
