@@ -1,5 +1,6 @@
 package br.dev.demoraes.abrolhos.domain.repository
 
+import br.dev.demoraes.abrolhos.domain.entities.CursorPage
 import br.dev.demoraes.abrolhos.domain.entities.Post
 import br.dev.demoraes.abrolhos.domain.entities.PostStatus
 import br.dev.demoraes.abrolhos.domain.entities.PostSummary
@@ -18,9 +19,15 @@ interface PostRepository {
     fun findPublishedBySlug(slug: String): Post?
 
     fun searchSummary(
-        pageable: Pageable,
-        categoryName: String?,
-        tagName: String?,
-        status: PostStatus
+            pageable: Pageable,
+            categoryName: String?,
+            tagName: String?,
+            status: PostStatus
     ): Page<PostSummary>
+
+    fun searchSummaryByCursor(
+            cursor: String?,
+            size: Int,
+            status: PostStatus
+    ): CursorPage<PostSummary>
 }

@@ -28,24 +28,39 @@ import org.springframework.web.bind.annotation.RestController
  * - Retrieving full post details by slug (public)
  * - Creating new posts (secured, requires authentication)
  */
-
 @RestController
 @RequestMapping("/api/posts")
-class PostsController(
-    private val postService: PostService
-) {
+class PostsController(private val postService: PostService) {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     fun getPostsSummary(
-        pageable: Pageable,
-        @RequestParam(required = false) category: String?,
-        @RequestParam(required = false) tag: String?,
-        @RequestParam(required = false, defaultValue = "PUBLISHED") status: PostStatus,
+            pageable: Pageable,
+            @RequestParam(required = false) category: String?,
+            @RequestParam(required = false) tag: String?,
+            @RequestParam(required = false, defaultValue = "PUBLISHED") status: PostStatus,
     ): PagedModel<PostSummaryResponse> {
-        logger.info("Received request to get posts with pageable: $pageable, category: $category, tag: $tag, status: $status")
+        logger.info(
+                "Received request to get posts with pageable: $pageable, category: $category, tag: $tag, status: $status"
+        )
         val posts = postService.searchPostSummaries(pageable, category, tag, status)
         return PagedModel(posts.map { it.toResponse() })
+    }
+
+    @GetMapping("/cursor")
+    @ResponseStatus(HttpStatus.OK)
+    fun getPostsSummaryByCursor(
+            @RequestParam(required = false) cursor: String?,
+            @RequestParam(required = false, defaultValue = "20") size: Int,
+    ): br.dev.demoraes.abrolhos.infrastructure.web.dto.response.CursorPageResponse<
+            PostSummaryResponse> {
+        logger.info("Received cursor pagination request: cursor=$cursor, size=$size")
+        val page = postService.searchPostSummariesByCursor(cursor, size, PostStatus.PUBLISHED)
+        return br.dev.demoraes.abrolhos.infrastructure.web.dto.response.CursorPageResponse(
+                items = page.items.map { it.toResponse() },
+                nextCursor = page.nextCursor,
+                hasNext = page.hasNext,
+        )
     }
 
     @GetMapping("/{slug}")
@@ -59,18 +74,19 @@ class PostsController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createPost(
-        @RequestBody request: CreatePostRequest,
-        authentication: Authentication,
+            @RequestBody request: CreatePostRequest,
+            authentication: Authentication,
     ): PostResponse {
         logger.info("Received request to create post with title: ${request.title.value}")
-        val post = postService.createPost(
-            title = request.title.value,
-            content = request.content.value,
-            status = request.status,
-            categoryName = request.categoryName.value,
-            tagNames = request.tagNames.map { it.value },
-            authorUsername = authentication.name
-        )
+        val post =
+                postService.createPost(
+                        title = request.title.value,
+                        content = request.content.value,
+                        status = request.status,
+                        categoryName = request.categoryName.value,
+                        tagNames = request.tagNames.map { it.value },
+                        authorUsername = authentication.name
+                )
         logger.info("Post created successfully with ID: ${post.id}")
         return post.toResponse()
     }

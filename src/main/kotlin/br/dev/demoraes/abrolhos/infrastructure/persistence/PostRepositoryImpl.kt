@@ -36,163 +36,236 @@ import ulid.ULID
  */
 @Repository
 class PostRepositoryImpl(
-    private val postRepositoryPostgresql: PostRepositoryPostgresql,
-    private val categoryJpa: CategoryRepositoryPostgresql,
-    private val tagJpa: TagRepositoryPostgresql,
-    private val userJpa: UserRepositoryPostgresql,
+        private val postRepositoryPostgresql: PostRepositoryPostgresql,
+        private val categoryJpa: CategoryRepositoryPostgresql,
+        private val tagJpa: TagRepositoryPostgresql,
+        private val userJpa: UserRepositoryPostgresql,
 ) : PostRepository {
-    private val logger = LoggerFactory.getLogger(PostRepositoryImpl::class.java)
+        private val logger = LoggerFactory.getLogger(PostRepositoryImpl::class.java)
 
-    override fun save(post: Post): Post {
-        logger.debug("Saving post: {}", post.id)
-        return postRepositoryPostgresql.save(post.toEntity()).toDomain()
-    }
+        override fun save(post: Post): Post {
+                logger.debug("Saving post: {}", post.id)
+                return postRepositoryPostgresql.save(post.toEntity()).toDomain()
+        }
 
-    override fun findPublishedBySlug(slug: String): Post? {
-        return postRepositoryPostgresql
-            .findBySlugAndStatus(slug, PostStatus.PUBLISHED)
-            ?.toDomain()
-    }
+        override fun findPublishedBySlug(slug: String): Post? {
+                return postRepositoryPostgresql
+                        .findBySlugAndStatus(slug, PostStatus.PUBLISHED)
+                        ?.toDomain()
+        }
 
-    override fun searchSummary(
-        pageable: Pageable,
-        categoryName: String?,
-        tagName: String?,
-        status: PostStatus,
-    ): Page<PostSummary> {
-        val page: Page<PostSummary> =
-            postRepositoryPostgresql.searchSummary(
-                status,
-                categoryName,
-                tagName,
-                pageable
-            )
-                .map { projection ->
-                    PostSummaryDto(
-                        id = projection.id,
-                        authorUsername = projection.authorUsername,
-                        title = projection.title,
-                        slug = projection.slug,
-                        categoryName = projection.categoryName,
-                        shortContent = projection.shortContent,
-                        publishedAt = projection.publishedAt,
-                    )
-                } as
-                Page<PostSummary>
-        return br.dev.demoraes.abrolhos.infrastructure.cache.dto.SerializablePage<
-            PostSummary
-            >(page)
-    }
+        override fun searchSummary(
+                pageable: Pageable,
+                categoryName: String?,
+                tagName: String?,
+                status: PostStatus,
+        ): Page<PostSummary> {
+                val page: Page<PostSummary> =
+                        postRepositoryPostgresql.searchSummary(
+                                        status,
+                                        categoryName,
+                                        tagName,
+                                        pageable
+                                )
+                                .map { projection ->
+                                        PostSummaryDto(
+                                                id = projection.id,
+                                                authorUsername = projection.authorUsername,
+                                                title = projection.title,
+                                                slug = projection.slug,
+                                                categoryName = projection.categoryName,
+                                                shortContent = projection.shortContent,
+                                                publishedAt = projection.publishedAt,
+                                        )
+                                } as
+                                Page<PostSummary>
+                return br.dev.demoraes.abrolhos.infrastructure.cache.dto.SerializablePage<
+                        PostSummary>(page)
+        }
 
-    private fun Post.toEntity(): PostEntity {
-        val authorEntity: UserEntity =
-            userJpa.findByIdOrNull(this.author.id.toString())
-                ?: throw NoSuchElementException(
-                    "Author with id ${this.author.id} not found",
+        override fun searchSummaryByCursor(
+                cursor: String?,
+                size: Int,
+                status: PostStatus,
+        ): br.dev.demoraes.abrolhos.domain.entities.CursorPage<PostSummary> {
+                val (cursorDate, cursorId) = decodeCursor(cursor)
+
+                // Fetch size + 1 to detect hasNext
+                val pageRequest = org.springframework.data.domain.PageRequest.of(0, size + 1)
+                val results =
+                        if (cursorDate != null && cursorId != null) {
+                                postRepositoryPostgresql.searchSummaryAfterCursor(
+                                        status = status,
+                                        cursorDate = cursorDate,
+                                        cursorId = cursorId,
+                                        pageable = pageRequest,
+                                )
+                        } else {
+                                postRepositoryPostgresql.searchSummaryFirstPage(
+                                        status = status,
+                                        pageable = pageRequest,
+                                )
+                        }
+
+                val hasNext = results.size > size
+                val items =
+                        results.take(size).map { projection ->
+                                PostSummaryDto(
+                                        id = projection.id,
+                                        authorUsername = projection.authorUsername,
+                                        title = projection.title,
+                                        slug = projection.slug,
+                                        categoryName = projection.categoryName,
+                                        shortContent = projection.shortContent,
+                                        publishedAt = projection.publishedAt,
+                                )
+                        }
+
+                val nextCursor =
+                        if (hasNext && items.isNotEmpty()) {
+                                val last = items.last()
+                                encodeCursor(last.publishedAt, last.id)
+                        } else {
+                                null
+                        }
+
+                return br.dev.demoraes.abrolhos.domain.entities.CursorPage(
+                        items = items,
+                        nextCursor = nextCursor,
+                        hasNext = hasNext,
                 )
+        }
 
-        val categoryEntity: CategoryEntity? =
-            categoryJpa.findBySlug(this.category.slug.value)
+        private fun encodeCursor(publishedAt: java.time.OffsetDateTime, id: String): String {
+                val raw = "${publishedAt}|${id}"
+                return java.util.Base64.getUrlEncoder()
+                        .withoutPadding()
+                        .encodeToString(raw.toByteArray())
+        }
 
-        val tagEntities: MutableSet<TagEntity> =
-            tagJpa.findByNameIn(this.tags.map { it.name.value }.toSet()).toMutableSet()
+        private fun decodeCursor(cursor: String?): Pair<java.time.OffsetDateTime?, String?> {
+                if (cursor.isNullOrBlank()) return Pair(null, null)
+                return try {
+                        val decoded = String(java.util.Base64.getUrlDecoder().decode(cursor))
+                        val parts = decoded.split("|", limit = 2)
+                        if (parts.size != 2) throw IllegalArgumentException("Invalid cursor format")
+                        val date = java.time.OffsetDateTime.parse(parts[0])
+                        Pair(date, parts[1])
+                } catch (e: Exception) {
+                        throw IllegalArgumentException("Invalid cursor: ${e.message}", e)
+                }
+        }
 
-        return PostEntity(
-            title = this.title.value,
-            slug = this.slug.value,
-            content = this.content.value,
-            status = this.status,
-            publishedAt = this.publishedAt,
-            author = authorEntity,
-            category = categoryEntity,
-            tags = tagEntities,
-        )
-            .apply {
-                id = this@toEntity.id.toString()
-                createdAt = this@toEntity.createdAt
-                updatedAt = this@toEntity.updatedAt
-            }
-    }
+        private fun Post.toEntity(): PostEntity {
+                val authorEntity: UserEntity =
+                        userJpa.findByIdOrNull(this.author.id.toString())
+                                ?: throw NoSuchElementException(
+                                        "Author with id ${this.author.id} not found",
+                                )
+
+                val categoryEntity: CategoryEntity? =
+                        categoryJpa.findBySlug(this.category.slug.value)
+
+                val tagEntities: MutableSet<TagEntity> =
+                        tagJpa.findByNameIn(this.tags.map { it.name.value }.toSet()).toMutableSet()
+
+                return PostEntity(
+                                title = this.title.value,
+                                slug = this.slug.value,
+                                content = this.content.value,
+                                status = this.status,
+                                publishedAt = this.publishedAt,
+                                author = authorEntity,
+                                category = categoryEntity,
+                                tags = tagEntities,
+                        )
+                        .apply {
+                                id = this@toEntity.id.toString()
+                                createdAt = this@toEntity.createdAt
+                                updatedAt = this@toEntity.updatedAt
+                        }
+        }
 }
 
 private fun CategoryEntity.toDomain(): Category {
-    val created =
-        this.createdAt
-            ?: error(
-                "CategoryEntity with id ${this.id} is missing a createdAt timestamp.",
-            )
-    val updated =
-        this.updatedAt
-            ?: error(
-                "CategoryEntity with id ${this.id} is missing an updatedAt timestamp.",
-            )
+        val created =
+                this.createdAt
+                        ?: error(
+                                "CategoryEntity with id ${this.id} is missing a createdAt timestamp.",
+                        )
+        val updated =
+                this.updatedAt
+                        ?: error(
+                                "CategoryEntity with id ${this.id} is missing an updatedAt timestamp.",
+                        )
 
-    return Category(
-        id = ULID.parseULID(this.id),
-        name = CategoryName(this.name),
-        slug = CategorySlug(this.slug),
-        posts = emptySet(),
-        createdAt = created,
-        updatedAt = updated,
-    )
+        return Category(
+                id = ULID.parseULID(this.id),
+                name = CategoryName(this.name),
+                slug = CategorySlug(this.slug),
+                posts = emptySet(),
+                createdAt = created,
+                updatedAt = updated,
+        )
 }
 
 private fun TagEntity.toDomain(): Tag {
-    val created =
-        this.createdAt
-            ?: error("TagEntity with id ${this.id} is missing a createdAt timestamp.")
-    val updated =
-        this.updatedAt
-            ?: error("TagEntity with id ${this.id} is missing an updatedAt timestamp.")
+        val created =
+                this.createdAt
+                        ?: error("TagEntity with id ${this.id} is missing a createdAt timestamp.")
+        val updated =
+                this.updatedAt
+                        ?: error("TagEntity with id ${this.id} is missing an updatedAt timestamp.")
 
-    return Tag(
-        id = ULID.parseULID(this.id),
-        name = TagName(this.name),
-        slug = TagSlug(this.slug),
-        posts = emptySet(),
-        createdAt = created,
-        updatedAt = updated,
-    )
+        return Tag(
+                id = ULID.parseULID(this.id),
+                name = TagName(this.name),
+                slug = TagSlug(this.slug),
+                posts = emptySet(),
+                createdAt = created,
+                updatedAt = updated,
+        )
 }
 
 fun PostEntity.toDomain(): Post {
-    val (createdAt, updatedAt, category) = getRequiredFields()
+        val (createdAt, updatedAt, category) = getRequiredFields()
 
-    return Post(
-        id = ULID.parseULID(this.id),
-        title = PostTitle(this.title),
-        slug = PostSlug(this.slug),
-        content = PostContent(this.content),
-        status = this.status,
-        publishedAt = this.publishedAt,
-        author = this.author.toDomain(),
-        category = category,
-        tags = this.tags.map { it.toDomain() }.toSet(),
-        createdAt = createdAt,
-        updatedAt = updatedAt,
-    )
+        return Post(
+                id = ULID.parseULID(this.id),
+                title = PostTitle(this.title),
+                slug = PostSlug(this.slug),
+                content = PostContent(this.content),
+                status = this.status,
+                publishedAt = this.publishedAt,
+                author = this.author.toDomain(),
+                category = category,
+                tags = this.tags.map { it.toDomain() }.toSet(),
+                createdAt = createdAt,
+                updatedAt = updatedAt,
+        )
 }
 
-private fun PostEntity.getRequiredFields(): Triple<java.time.OffsetDateTime, java.time.OffsetDateTime, Category> {
-    val createdAt =
-        this.createdAt
-            ?: error(
-                "PostEntity with id ${this.id} is missing a createdAt timestamp. " +
-                    "This should not happen for a persisted entity.",
-            )
+private fun PostEntity.getRequiredFields():
+        Triple<java.time.OffsetDateTime, java.time.OffsetDateTime, Category> {
+        val createdAt =
+                this.createdAt
+                        ?: error(
+                                "PostEntity with id ${this.id} is missing a createdAt timestamp. " +
+                                        "This should not happen for a persisted entity.",
+                        )
 
-    val updatedAt =
-        this.updatedAt
-            ?: error(
-                "PostEntity with id ${this.id} is missing an updatedAt timestamp. " +
-                    "This should not happen for a persisted entity.",
-            )
+        val updatedAt =
+                this.updatedAt
+                        ?: error(
+                                "PostEntity with id ${this.id} is missing an updatedAt timestamp. " +
+                                        "This should not happen for a persisted entity.",
+                        )
 
-    val category =
-        this.category?.toDomain()
-            ?: error(
-                "PostEntity with id ${this.id} is missing category information. " +
-                    "This should not happen for a persisted entity.",
-            )
-    return Triple(createdAt, updatedAt, category)
+        val category =
+                this.category?.toDomain()
+                        ?: error(
+                                "PostEntity with id ${this.id} is missing category information. " +
+                                        "This should not happen for a persisted entity.",
+                        )
+        return Triple(createdAt, updatedAt, category)
 }
