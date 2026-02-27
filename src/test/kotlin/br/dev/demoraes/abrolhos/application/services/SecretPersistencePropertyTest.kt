@@ -14,9 +14,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import java.time.OffsetDateTime
 import org.junit.jupiter.api.Test
 import ulid.ULID
-import java.time.OffsetDateTime
 
 /**
  * Property-based test for secret persistence during invite validation.
@@ -64,60 +64,64 @@ class SecretPersistencePropertyTest {
             val totpService: TotpService = mockk()
             val tokenService: TokenService = mockk()
             val authService =
-                AuthService(
-                    userRepository,
-                    inviteRepository,
-                    totpService,
-                    tokenService,
-                    mockk(relaxed = true)
-                )
+                    AuthService(
+                            userRepository,
+                            inviteRepository,
+                            totpService,
+                            mockk(relaxed = true),
+                            tokenService,
+                            mockk(relaxed = true),
+                            mockk(relaxed = true),
+                            mockk(relaxed = true)
+                    )
 
             // Given: Create an invite without a persisted secret
             val token = InviteToken("a".repeat(64))
             val userId = ULID.nextULID()
             val invite =
-                Invite(
-                    id = ULID.nextULID(),
-                    token = token,
-                    userId = userId,
-                    expiryDate = OffsetDateTime.now().plusDays(1),
-                    createdAt = OffsetDateTime.now(),
-                    totpSecret = null // No secret initially
-                )
+                    Invite(
+                            id = ULID.nextULID(),
+                            token = token,
+                            userId = userId,
+                            expiryDate = OffsetDateTime.now().plusDays(1),
+                            createdAt = OffsetDateTime.now(),
+                            totpSecret = null // No secret initially
+                    )
 
             // Given: Create an inactive user
             val username = "testuser$it"
             val user =
-                User(
-                    id = userId,
-                    username = Username(username),
-                    totpSecret = null,
-                    isActive = false,
-                    role = Role.USER,
-                    createdAt = OffsetDateTime.now(),
-                    updatedAt = OffsetDateTime.now()
-                )
+                    User(
+                            id = userId,
+                            username = Username(username),
+                            totpSecret = null,
+                            passwordHash = null,
+                            isActive = false,
+                            role = Role.USER,
+                            createdAt = OffsetDateTime.now(),
+                            updatedAt = OffsetDateTime.now()
+                    )
 
             // Given: Mock a generated secret (must be valid Base32: A-Z, 2-7)
             val generatedSecret = TotpSecret("GEN${generateBase32Suffix(it)}")
             val provisioningUri =
-                "otpauth://totp/Abrolhos:$username?secret=${generatedSecret.value}&issuer=Abrolhos"
+                    "otpauth://totp/Abrolhos:$username?secret=${generatedSecret.value}&issuer=Abrolhos"
 
             // Given: Setup mocks
             every { inviteRepository.findByToken(token) } returns invite
             every { userRepository.findById(userId) } returns user
             every { totpService.generateSecret() } returns generatedSecret
             every { totpService.validateSecret(generatedSecret) } returns
-                SecretValidation(isValid = true, byteCount = 20, expectedByteCount = 20)
+                    SecretValidation(isValid = true, byteCount = 20, expectedByteCount = 20)
             every { totpService.generateProvisioningUri(username, generatedSecret) } returns
-                provisioningUri
+                    provisioningUri
 
             // Capture the invite that is saved
             val savedInviteSlot = slot<Invite>()
             every { inviteRepository.save(capture(savedInviteSlot)) } answers
-                {
-                    savedInviteSlot.captured
-                }
+                    {
+                        savedInviteSlot.captured
+                    }
 
             // When: Validate the invite
             val result = authService.validateInvite(token)
@@ -159,48 +163,52 @@ class SecretPersistencePropertyTest {
             val totpService: TotpService = mockk()
             val tokenService: TokenService = mockk()
             val authService =
-                AuthService(
-                    userRepository,
-                    inviteRepository,
-                    totpService,
-                    tokenService,
-                    mockk(relaxed = true)
-                )
+                    AuthService(
+                            userRepository,
+                            inviteRepository,
+                            totpService,
+                            mockk(relaxed = true),
+                            tokenService,
+                            mockk(relaxed = true),
+                            mockk(relaxed = true),
+                            mockk(relaxed = true)
+                    )
 
             // Given: Create an invite with an existing persisted secret (must be valid Base32)
             val token = InviteToken("b".repeat(64))
             val userId = ULID.nextULID()
             val existingSecret = TotpSecret("EXT${generateBase32Suffix(it)}")
             val invite =
-                Invite(
-                    id = ULID.nextULID(),
-                    token = token,
-                    userId = userId,
-                    expiryDate = OffsetDateTime.now().plusDays(1),
-                    createdAt = OffsetDateTime.now(),
-                    totpSecret = existingSecret // Secret already exists
-                )
+                    Invite(
+                            id = ULID.nextULID(),
+                            token = token,
+                            userId = userId,
+                            expiryDate = OffsetDateTime.now().plusDays(1),
+                            createdAt = OffsetDateTime.now(),
+                            totpSecret = existingSecret // Secret already exists
+                    )
 
             // Given: Create an inactive user
             val username = "testuser$it"
             val user =
-                User(
-                    id = userId,
-                    username = Username(username),
-                    totpSecret = null,
-                    isActive = false,
-                    role = Role.USER,
-                    createdAt = OffsetDateTime.now(),
-                    updatedAt = OffsetDateTime.now()
-                )
+                    User(
+                            id = userId,
+                            username = Username(username),
+                            totpSecret = null,
+                            passwordHash = null,
+                            isActive = false,
+                            role = Role.USER,
+                            createdAt = OffsetDateTime.now(),
+                            updatedAt = OffsetDateTime.now()
+                    )
 
             // Given: Setup mocks
             val provisioningUri =
-                "otpauth://totp/Abrolhos:$username?secret=${existingSecret.value}&issuer=Abrolhos"
+                    "otpauth://totp/Abrolhos:$username?secret=${existingSecret.value}&issuer=Abrolhos"
             every { inviteRepository.findByToken(token) } returns invite
             every { userRepository.findById(userId) } returns user
             every { totpService.generateProvisioningUri(username, existingSecret) } returns
-                provisioningUri
+                    provisioningUri
 
             // When: Validate the invite
             val result = authService.validateInvite(token)
@@ -230,39 +238,43 @@ class SecretPersistencePropertyTest {
             val totpService: TotpService = mockk()
             val tokenService: TokenService = mockk()
             val authService =
-                AuthService(
-                    userRepository,
-                    inviteRepository,
-                    totpService,
-                    tokenService,
-                    mockk(relaxed = true)
-                )
+                    AuthService(
+                            userRepository,
+                            inviteRepository,
+                            totpService,
+                            mockk(relaxed = true),
+                            tokenService,
+                            mockk(relaxed = true),
+                            mockk(relaxed = true),
+                            mockk(relaxed = true)
+                    )
 
             // Given: Create an invite without a persisted secret
             val token = InviteToken("c".repeat(64))
             val userId = ULID.nextULID()
             val invite =
-                Invite(
-                    id = ULID.nextULID(),
-                    token = token,
-                    userId = userId,
-                    expiryDate = OffsetDateTime.now().plusDays(1),
-                    createdAt = OffsetDateTime.now(),
-                    totpSecret = null
-                )
+                    Invite(
+                            id = ULID.nextULID(),
+                            token = token,
+                            userId = userId,
+                            expiryDate = OffsetDateTime.now().plusDays(1),
+                            createdAt = OffsetDateTime.now(),
+                            totpSecret = null
+                    )
 
             // Given: Create an inactive user
             val username = "testuser$it"
             val user =
-                User(
-                    id = userId,
-                    username = Username(username),
-                    totpSecret = null,
-                    isActive = false,
-                    role = Role.USER,
-                    createdAt = OffsetDateTime.now(),
-                    updatedAt = OffsetDateTime.now()
-                )
+                    User(
+                            id = userId,
+                            username = Username(username),
+                            totpSecret = null,
+                            passwordHash = null,
+                            isActive = false,
+                            role = Role.USER,
+                            createdAt = OffsetDateTime.now(),
+                            updatedAt = OffsetDateTime.now()
+                    )
 
             // Given: Mock a generated secret that fails validation (must be valid Base32 for
             // construction)
@@ -273,18 +285,18 @@ class SecretPersistencePropertyTest {
             every { userRepository.findById(userId) } returns user
             every { totpService.generateSecret() } returns invalidSecret
             every { totpService.validateSecret(invalidSecret) } returns
-                SecretValidation(
-                    isValid = false,
-                    byteCount = 5,
-                    expectedByteCount = 20,
-                    error = "Secret too short"
-                )
+                    SecretValidation(
+                            isValid = false,
+                            byteCount = 5,
+                            expectedByteCount = 20,
+                            error = "Secret too short"
+                    )
 
             // When/Then: Validating the invite should throw an exception
             val exception =
-                org.junit.jupiter.api.assertThrows<IllegalStateException> {
-                    authService.validateInvite(token)
-                }
+                    org.junit.jupiter.api.assertThrows<IllegalStateException> {
+                        authService.validateInvite(token)
+                    }
 
             // Then: The exception message should indicate the validation failure
             exception.message shouldBe "Generated TOTP secret is invalid: Secret too short"

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.mockk
+import java.time.OffsetDateTime
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -36,13 +37,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import ulid.ULID
-import java.time.OffsetDateTime
 
 @WebMvcTest(PostsController::class)
 @Import(
-    SecurityConfig::class,
-    br.dev.demoraes.abrolhos.infrastructure.web.config.TestConfig::class,
-    PostsControllerTest.TestSecurityConfig::class
+        SecurityConfig::class,
+        br.dev.demoraes.abrolhos.infrastructure.web.config.TestConfig::class,
+        PostsControllerTest.TestSecurityConfig::class
 )
 class PostsControllerTest {
 
@@ -57,12 +57,12 @@ class PostsControllerTest {
     @Suppress("UnusedPrivateProperty")
     @MockkBean
     private lateinit var encryptionService:
-        br.dev.demoraes.abrolhos.application.services.EncryptionService
+            br.dev.demoraes.abrolhos.application.services.EncryptionService
 
     @Suppress("UnusedPrivateProperty")
     @MockkBean
     private lateinit var rateLimitService:
-        br.dev.demoraes.abrolhos.application.services.RateLimitService
+            br.dev.demoraes.abrolhos.application.services.RateLimitService
 
     @Suppress("UnusedPrivateProperty")
     @MockkBean
@@ -75,7 +75,10 @@ class PostsControllerTest {
         @org.springframework.context.annotation.Bean
         @org.springframework.context.annotation.Primary
         fun corsConfig(): br.dev.demoraes.abrolhos.infrastructure.web.config.CorsConfig {
-            val mock = mockk<br.dev.demoraes.abrolhos.infrastructure.web.config.CorsConfig>(relaxed = true)
+            val mock =
+                    mockk<br.dev.demoraes.abrolhos.infrastructure.web.config.CorsConfig>(
+                            relaxed = true
+                    )
             every { mock.corsConfigurationSource() } returns mockk(relaxed = true)
             return mock
         }
@@ -86,29 +89,29 @@ class PostsControllerTest {
         // Given
 
         val summary =
-            object : PostSummary {
-                override val id = ULID.nextULID().toString()
-                override val authorUsername = "author"
-                override val title = "Post Title"
-                override val slug = "post-slug"
-                override val categoryName = "Category"
-                override val shortContent = "Short content"
-                override val publishedAt = OffsetDateTime.now()
-            }
+                object : PostSummary {
+                    override val id = ULID.nextULID().toString()
+                    override val authorUsername = "author"
+                    override val title = "Post Title"
+                    override val slug = "post-slug"
+                    override val categoryName = "Category"
+                    override val shortContent = "Short content"
+                    override val publishedAt = OffsetDateTime.now()
+                }
         val page: org.springframework.data.domain.Page<PostSummary> = PageImpl(listOf(summary))
 
         every { postService.searchPostSummaries(any(), any(), any(), any()) } returns page
 
         // When / Then
         mockMvc.perform(
-            get("/api/posts")
-                .param("page", "0")
-                .param("size", "10")
-                .param("status", "PUBLISHED")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content[0].title").value("Post Title"))
-            .andExpect(jsonPath("$.content[0].slug").value("post-slug"))
+                        get("/api/posts")
+                                .param("page", "0")
+                                .param("size", "10")
+                                .param("status", "PUBLISHED")
+                )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content[0].title").value("Post Title"))
+                .andExpect(jsonPath("$.content[0].slug").value("post-slug"))
     }
 
     @Test
@@ -116,47 +119,48 @@ class PostsControllerTest {
         // Given
         val slug = "post-slug"
         val author =
-            User(
-                id = ULID.nextULID(),
-                username = Username("author"),
-                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
-                isActive = true,
-                role = Role.USER,
-                createdAt = OffsetDateTime.now(),
-                updatedAt = OffsetDateTime.now()
-            )
+                User(
+                        id = ULID.nextULID(),
+                        username = Username("author"),
+                        totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                        passwordHash = null,
+                        isActive = true,
+                        role = Role.USER,
+                        createdAt = OffsetDateTime.now(),
+                        updatedAt = OffsetDateTime.now()
+                )
         val category =
-            Category(
-                id = ULID.nextULID(),
-                name = CategoryName("Category"),
-                slug = CategorySlug("category"),
-                posts = emptySet(),
-                createdAt = OffsetDateTime.now(),
-                updatedAt = OffsetDateTime.now()
-            )
+                Category(
+                        id = ULID.nextULID(),
+                        name = CategoryName("Category"),
+                        slug = CategorySlug("category"),
+                        posts = emptySet(),
+                        createdAt = OffsetDateTime.now(),
+                        updatedAt = OffsetDateTime.now()
+                )
         val post =
-            Post(
-                id = ULID.nextULID(),
-                author = author,
-                title = PostTitle("Post Title"),
-                slug = PostSlug(slug),
-                content = PostContent("Full content"),
-                status = PostStatus.PUBLISHED,
-                category = category,
-                tags = emptySet(),
-                publishedAt = OffsetDateTime.now(),
-                createdAt = OffsetDateTime.now(),
-                updatedAt = OffsetDateTime.now()
-            )
+                Post(
+                        id = ULID.nextULID(),
+                        author = author,
+                        title = PostTitle("Post Title"),
+                        slug = PostSlug(slug),
+                        content = PostContent("Full content"),
+                        status = PostStatus.PUBLISHED,
+                        category = category,
+                        tags = emptySet(),
+                        publishedAt = OffsetDateTime.now(),
+                        createdAt = OffsetDateTime.now(),
+                        updatedAt = OffsetDateTime.now()
+                )
 
         every { postService.findBySlug(slug) } returns post
 
         // When / Then
         mockMvc.perform(get("/api/posts/$slug"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.title").value("Post Title"))
-            .andExpect(jsonPath("$.slug").value(slug))
-            .andExpect(jsonPath("$.content").value("Full content"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.title").value("Post Title"))
+                .andExpect(jsonPath("$.slug").value(slug))
+                .andExpect(jsonPath("$.content").value("Full content"))
     }
 
     @Test
@@ -164,59 +168,60 @@ class PostsControllerTest {
     fun `should create post successfully`() {
         // Given
         val request =
-            CreatePostRequest(
-                title = PostTitle("New Post"),
-                content = PostContent("New content"),
-                status = PostStatus.PUBLISHED,
-                categoryName = CategoryName("Category"),
-                tagNames = listOf(TagName("Tag")),
-                authorUsername = Username("author")
-            )
+                CreatePostRequest(
+                        title = PostTitle("New Post"),
+                        content = PostContent("New content"),
+                        status = PostStatus.PUBLISHED,
+                        categoryName = CategoryName("Category"),
+                        tagNames = listOf(TagName("Tag")),
+                        authorUsername = Username("author")
+                )
 
         val author =
-            User(
-                id = ULID.nextULID(),
-                username = Username("author"),
-                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
-                isActive = true,
-                role = Role.USER,
-                createdAt = OffsetDateTime.now(),
-                updatedAt = OffsetDateTime.now()
-            )
+                User(
+                        id = ULID.nextULID(),
+                        username = Username("author"),
+                        totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                        passwordHash = null,
+                        isActive = true,
+                        role = Role.USER,
+                        createdAt = OffsetDateTime.now(),
+                        updatedAt = OffsetDateTime.now()
+                )
         val category =
-            Category(
-                id = ULID.nextULID(),
-                name = CategoryName("Category"),
-                slug = CategorySlug("category"),
-                posts = emptySet(),
-                createdAt = OffsetDateTime.now(),
-                updatedAt = OffsetDateTime.now()
-            )
+                Category(
+                        id = ULID.nextULID(),
+                        name = CategoryName("Category"),
+                        slug = CategorySlug("category"),
+                        posts = emptySet(),
+                        createdAt = OffsetDateTime.now(),
+                        updatedAt = OffsetDateTime.now()
+                )
         val post =
-            Post(
-                id = ULID.nextULID(),
-                author = author,
-                title = PostTitle("New Post"),
-                slug = PostSlug("new-post"),
-                content = PostContent("New content"),
-                status = PostStatus.PUBLISHED,
-                category = category,
-                tags = emptySet(),
-                publishedAt = OffsetDateTime.now(),
-                createdAt = OffsetDateTime.now(),
-                updatedAt = OffsetDateTime.now()
-            )
+                Post(
+                        id = ULID.nextULID(),
+                        author = author,
+                        title = PostTitle("New Post"),
+                        slug = PostSlug("new-post"),
+                        content = PostContent("New content"),
+                        status = PostStatus.PUBLISHED,
+                        category = category,
+                        tags = emptySet(),
+                        publishedAt = OffsetDateTime.now(),
+                        createdAt = OffsetDateTime.now(),
+                        updatedAt = OffsetDateTime.now()
+                )
 
         every { postService.createPost(any(), any(), any(), any(), any(), any()) } returns post
 
         // When / Then
         mockMvc.perform(
-            post("/api/posts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isCreated)
-            .andExpect(jsonPath("$.title").value("New Post"))
-            .andExpect(jsonPath("$.slug").value("new-post"))
+                        post("/api/posts")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isCreated)
+                .andExpect(jsonPath("$.title").value("New Post"))
+                .andExpect(jsonPath("$.slug").value("new-post"))
     }
 }

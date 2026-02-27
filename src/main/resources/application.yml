@@ -66,6 +66,18 @@ security:
   encryption:
     key: ${SECURITY_ENCRYPTION_KEY:}
     old-keys: ${SECURITY_ENCRYPTION_OLD_KEYS:}
+  password:
+    min-length: 12
+    max-length: 128
+    require-uppercase: true
+    require-lowercase: true
+    require-digit: true
+    require-special-char: true
+    bcrypt-strength: 12
+    special-chars: "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    reset-token-expiry-hours: 1
+    reset-token-byte-size: 32
+    cleanup-cron: "0 0 * * * *"
 
 logging:
   structured:

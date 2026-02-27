@@ -12,14 +12,15 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "users")
 open class UserEntity(
-    @Column(name = "username", nullable = false, unique = true, length = 50)
-    open var username: String,
-    @Convert(converter = TotpSecretConverter::class)
-    @Column(name = "totp_secret", nullable = true, length = 255)
-    open var totpSecret: String?,
-    @Column(name = "is_active", nullable = false)
-    open var isActive: Boolean,
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 20)
-    open var role: Role,
+        @Column(name = "username", nullable = false, unique = true, length = 50)
+        open var username: String,
+        @Convert(converter = TotpSecretConverter::class)
+        @Column(name = "totp_secret", nullable = true, length = 255)
+        open var totpSecret: String?,
+        @Column(name = "password_hash", nullable = true, length = 60)
+        open var passwordHash: String?,
+        @Column(name = "is_active", nullable = false) open var isActive: Boolean,
+        @Enumerated(EnumType.STRING)
+        @Column(name = "role", nullable = false, length = 20)
+        open var role: Role,
 ) : BaseEntity()

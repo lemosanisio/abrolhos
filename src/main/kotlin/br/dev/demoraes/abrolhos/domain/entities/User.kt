@@ -1,8 +1,8 @@
 package br.dev.demoraes.abrolhos.domain.entities
 
 import com.fasterxml.jackson.annotation.JsonValue
-import ulid.ULID
 import java.time.OffsetDateTime
+import ulid.ULID
 
 /**
  * Represents a user in the system.
@@ -17,13 +17,14 @@ import java.time.OffsetDateTime
  * @property role User role (ADMIN, USER)
  */
 data class User(
-    val id: ULID,
-    val username: Username,
-    val totpSecret: TotpSecret?,
-    val isActive: Boolean,
-    val role: Role,
-    val createdAt: OffsetDateTime,
-    val updatedAt: OffsetDateTime,
+        val id: ULID,
+        val username: Username,
+        val totpSecret: TotpSecret?,
+        val passwordHash: PasswordHash?, // Nullable during migration period
+        val isActive: Boolean,
+        val role: Role,
+        val createdAt: OffsetDateTime,
+        val updatedAt: OffsetDateTime,
 )
 
 enum class Role {
@@ -45,17 +46,17 @@ value class Username(@get:JsonValue val value: String) {
         private const val MIN_LENGTH = 3
         private const val MAX_LENGTH = 20
         private val USERNAME_REGEX =
-            Regex("^[a-z0-9_]+$") // Only lowercase, numbers, and underscore
+                Regex("^[a-z0-9_]+$") // Only lowercase, numbers, and underscore
         private val RESERVED_WORDS =
-            setOf(
-                "root",
-                "admin",
-                "administrator",
-                "support",
-                "contact",
-                "user",
-                "guest",
-            )
+                setOf(
+                        "root",
+                        "admin",
+                        "administrator",
+                        "support",
+                        "contact",
+                        "user",
+                        "guest",
+                )
     }
 
     init {

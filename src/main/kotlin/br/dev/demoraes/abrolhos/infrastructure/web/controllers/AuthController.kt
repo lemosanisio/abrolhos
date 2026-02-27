@@ -2,14 +2,18 @@ package br.dev.demoraes.abrolhos.infrastructure.web.controllers
 
 import br.dev.demoraes.abrolhos.application.services.AuthService
 import br.dev.demoraes.abrolhos.domain.entities.InviteToken
+import br.dev.demoraes.abrolhos.domain.entities.PlaintextPassword
 import br.dev.demoraes.abrolhos.domain.entities.TotpCode
 import br.dev.demoraes.abrolhos.domain.entities.Username
 import br.dev.demoraes.abrolhos.infrastructure.web.dto.request.ActivateAccountRequest
 import br.dev.demoraes.abrolhos.infrastructure.web.dto.request.LoginRequest
 import br.dev.demoraes.abrolhos.infrastructure.web.dto.response.AuthResponse
 import br.dev.demoraes.abrolhos.infrastructure.web.dto.response.InviteValidationResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -23,17 +27,13 @@ import org.springframework.web.bind.annotation.RestController
  *
  * Exposes endpoints for:
  * - Validating invites (public)
- * - Activating accounts with TOTP setup (public)
- * - Logging in with username and TOTP (public)
- *
- * Serves as the entry point for the user onboarding and authentication flow.
+ * - Activating accounts with password + TOTP setup (public)
+ * - Logging in with username, password, and TOTP (public)
  */
-
 @RestController
 @RequestMapping("/api/auth")
-class AuthController(
-    private val authService: AuthService
-) {
+@Validated
+class AuthController(private val authService: AuthService) {
 
     @GetMapping("/invite/{token}")
     @ResponseStatus(HttpStatus.OK)
@@ -46,18 +46,36 @@ class AuthController(
 
     @PostMapping("/activate")
     @ResponseStatus(HttpStatus.OK)
-    fun activateAccount(@RequestBody request: ActivateAccountRequest): AuthResponse {
+    fun activateAccount(
+            @RequestBody @Valid request: ActivateAccountRequest,
+            httpRequest: HttpServletRequest,
+    ): AuthResponse {
         logger.info("Received request to activate account with invite token")
-        val token = authService.activateAccount(InviteToken(request.inviteToken), TotpCode(request.totpCode))
+        val token =
+                authService.activateAccount(
+                        InviteToken(request.inviteToken),
+                        PlaintextPassword(request.password),
+                        TotpCode(request.totpCode),
+                )
         logger.info("Account activated successfully")
         return AuthResponse(token)
     }
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    fun login(@RequestBody request: LoginRequest): AuthResponse {
+    fun login(
+            @RequestBody @Valid request: LoginRequest,
+            httpRequest: HttpServletRequest,
+    ): AuthResponse {
         logger.info("Received login request for username: ${request.username}")
-        val token = authService.login(Username(request.username), TotpCode(request.totpCode))
+        val clientIp = httpRequest.remoteAddr ?: "unknown"
+        val token =
+                authService.login(
+                        Username(request.username),
+                        PlaintextPassword(request.password),
+                        TotpCode(request.totpCode),
+                        clientIp,
+                )
         logger.info("Login successful for username: ${request.username}")
         return AuthResponse(token)
     }

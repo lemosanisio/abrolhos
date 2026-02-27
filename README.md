@@ -4,7 +4,7 @@ Abrolhos is a modern, lightweight blog engine and content management system buil
 
 ## 🚀 Features
 
-- **TOTP-Only Authentication**: Secure passwordless authentication using Time-based One-Time Passwords (TOTP) with invitation-based user provisioning.
+- **Two-Factor Authentication**: Secure primary authentication via passwords, and secondary Time-based One-Time Passwords (TOTP) with invitation-based user provisioning.
 - **Post Management**: Create, read, and list blog posts with support for slugs and status (`DRAFT`, `PUBLISHED`, `SCHEDULED`, `ARCHIVED`).
 - **Categorization**: Organize content using categories and tags with automatic slug generation.
 - **Domain-Driven Design**: Uses value classes (inline classes) and ULIDs for strong typing and efficient identification.
@@ -27,7 +27,7 @@ Abrolhos is a modern, lightweight blog engine and content management system buil
 - **Security**: Spring Security with JWT ([Auth0 Java JWT](https://github.com/auth0/java-jwt))
 - **TOTP**: [Kotlin OTP](https://github.com/marcelkliemannel/kotlin-onetimepassword)
 - **Documentation**: [SpringDoc OpenAPI](https://springdoc.org/)
-- **Monitoring**: Micrometer Prometheus Registry & Logstash Encoder
+- **Monitoring**: Micrometer Prometheus Registry & Spring Boot Structured Logging (ECS format)
 - **Testing**: JUnit 5, Kotest, MockK, SpringMockK, Testcontainers
 - **Property-Based Testing**: [Kotest Property](https://kotest.io/docs/proptest/property-based-testing.html)
 - **Static Analysis**: [Detekt](https://detekt.dev/)
@@ -60,6 +60,8 @@ The application uses environment variables for configuration. You can find a tem
 - `DB_USERNAME`: Database username
 - `DB_PASSWORD`: Database password
 - `JWT_SECRET`: Secret key for JWT signing (minimum 256 bits recommended)
+- `SECURITY_ENCRYPTION_KEY`: Secret key for TOTP secret encryption in the database
+- `SECURITY_ENCRYPTION_OLD_KEYS`: Optional comma-separated list of old encryption keys for rotation
 
 **Optional Variables**:
 - `ALLOWED_ORIGINS`: Comma-separated list of allowed CORS origins (default: `*`)
@@ -96,11 +98,16 @@ Once the application is running, you can access the interactive API documentatio
 
 **Authentication**:
 - `GET /api/auth/invite/{token}` - Validate invitation token and get TOTP provisioning URI
-- `POST /api/auth/activate` - Activate account with invitation token and TOTP code
-- `POST /api/auth/login` - Login with username and TOTP code
+- `POST /api/auth/activate` - Activate account with invitation token, password, and TOTP code
+- `POST /api/auth/login` - Login with username, password, and TOTP code
+
+**Password Management**:
+- `POST /api/password/change` - Change user password (authenticated)
+- `POST /api/password/reset/request` - Request a password reset token
+- `POST /api/password/reset/confirm` - Confirm password reset and set new password
 
 **Posts** (some require authentication):
-- `GET /api/posts` - List posts with pagination and filtering
+- `GET /api/posts` - List posts with cursor-based pagination and filtering
 - `GET /api/posts/{slug}` - Get post by slug
 - `POST /api/posts` - Create new post (authenticated)
 
@@ -158,9 +165,9 @@ To automatically format the code using the `detekt-formatting` ruleset:
 ./gradlew detektFormat
 ```
 
-## 👥 User Provisioning (TOTP Authentication)
+## 👥 User Provisioning & Authentication
 
-Abrolhos uses TOTP-only authentication with manual user provisioning. Users are created via SQL scripts and receive invitation tokens to activate their accounts.
+Abrolhos uses Two-Factor Authentication (Passwords + TOTP) with manual user provisioning. Users are created via SQL scripts and receive invitation tokens to activate their accounts.
 
 ### Creating a New User
 
@@ -203,9 +210,9 @@ The `docs/user-provisioning.sql` file contains additional helper scripts:
 
 1. User receives an invitation token from an administrator
 2. User scans the QR code or manually enters the TOTP secret in their authenticator app (Google Authenticator, Authy, etc.)
-3. User calls `POST /api/auth/activate` with the invite token and a TOTP code
-4. System validates the invite, activates the account, and returns a JWT token
-5. User can now log in using `POST /api/auth/login` with their username and TOTP code
+3. User calls `POST /api/auth/activate` with the invite token, a new password, and a TOTP code
+4. System validates the invite, activates the account, hashes the password, and returns a JWT token
+5. User can now log in using `POST /api/auth/login` with their username, password, and TOTP code
 
 ### Security Notes
 
@@ -213,14 +220,14 @@ The `docs/user-provisioning.sql` file contains additional helper scripts:
 - Tokens expire after the configured period (default: 7 days)
 - Expired invites are automatically deleted during activation attempts
 - Users start as inactive and cannot log in until they complete activation
-- TOTP secrets are generated during activation with 160 bits of entropy
+- Passwords are hashed using BCrypt (strength 12)
+- TOTP secrets are generated during activation with 160 bits of entropy and stored encrypted in the database utilizing AES-256 (requires `SECURITY_ENCRYPTION_KEY`)
 - JWT tokens use HMAC256 signing algorithm
 - Stateless authentication (no server-side sessions)
 
 ### Security Considerations
 
 ⚠️ **Current Limitations** (see improvement recommendations):
-- TOTP secrets are stored unencrypted in the database
 - CORS is configured with wildcard origins by default
 - Rate limiting is configured but not enforced by default
 - No audit logging for authentication events
@@ -289,7 +296,7 @@ The application follows a **Hexagonal Architecture** (Ports and Adapters) with c
 
 ### Key Design Decisions
 
-1. **TOTP-Only Authentication**: No passwords to manage, reduced attack surface
+1. **Two-Factor Authentication**: Passwords as primary factor while retaining TOTP as secondary
 2. **Invitation-Based Provisioning**: Manual user creation for controlled access
 3. **Value Objects**: Strong typing prevents primitive obsession
 4. **ULIDs**: Sortable, URL-safe identifiers with timestamp information
