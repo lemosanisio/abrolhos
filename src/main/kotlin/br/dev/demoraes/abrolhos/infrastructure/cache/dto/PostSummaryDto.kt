@@ -13,11 +13,11 @@ import java.time.OffsetDateTime
  * Mapping from the JPA proxy to this DTO happens in [PostRepositoryImpl.searchSummary].
  */
 data class PostSummaryDto(
-        override val id: String,
-        override val authorUsername: String,
-        override val title: String,
-        override val slug: String,
-        override val categoryName: String,
-        override val shortContent: String,
-        override val publishedAt: OffsetDateTime,
+    override val id: String,
+    override val authorUsername: String,
+    override val title: String,
+    override val slug: String,
+    override val categoryName: String,
+    override val shortContent: String,
+    override val publishedAt: OffsetDateTime,
 ) : PostSummary

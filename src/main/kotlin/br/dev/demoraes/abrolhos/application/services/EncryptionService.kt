@@ -4,14 +4,14 @@ import br.dev.demoraes.abrolhos.domain.exceptions.EncryptionException
 import br.dev.demoraes.abrolhos.infrastructure.web.config.SecurityProperties
 import io.micrometer.core.instrument.MeterRegistry
 import jakarta.annotation.PostConstruct
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 import java.security.SecureRandom
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
-import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
 
 /**
  * Service for encrypting and decrypting sensitive data using AES-256-GCM.
@@ -26,8 +26,8 @@ import org.springframework.stereotype.Service
  */
 @Service
 class EncryptionService(
-        private val securityProperties: SecurityProperties,
-        private val meterRegistry: MeterRegistry
+    private val securityProperties: SecurityProperties,
+    private val meterRegistry: MeterRegistry
 ) {
     private val logger = LoggerFactory.getLogger(EncryptionService::class.java)
     private val secureRandom = SecureRandom()
@@ -61,25 +61,25 @@ class EncryptionService(
             }
             currentKey = SecretKeySpec(keyBytes, ALGORITHM)
             logger.info(
-                    "Encryption key validated successfully (${keyBytes.size * BITS_PER_BYTE} bits)"
+                "Encryption key validated successfully (${keyBytes.size * BITS_PER_BYTE} bits)"
             )
 
             // Load old keys for rotation support
             if (securityProperties.encryption.oldKeys.isNotBlank()) {
                 oldKeys =
-                        securityProperties
-                                .encryption
-                                .oldKeys
-                                .split(",")
-                                .map { it.trim() }
-                                .filter { it.isNotBlank() }
-                                .map { oldKey ->
-                                    val oldKeyBytes = Base64.getDecoder().decode(oldKey)
-                                    require(oldKeyBytes.size >= KEY_SIZE) {
-                                        "Old encryption key must be at least 256 bits (32 bytes)"
-                                    }
-                                    SecretKeySpec(oldKeyBytes, ALGORITHM)
-                                }
+                    securityProperties
+                        .encryption
+                        .oldKeys
+                        .split(",")
+                        .map { it.trim() }
+                        .filter { it.isNotBlank() }
+                        .map { oldKey ->
+                            val oldKeyBytes = Base64.getDecoder().decode(oldKey)
+                            require(oldKeyBytes.size >= KEY_SIZE) {
+                                "Old encryption key must be at least 256 bits (32 bytes)"
+                            }
+                            SecretKeySpec(oldKeyBytes, ALGORITHM)
+                        }
                 logger.info("Loaded ${oldKeys.size} old encryption key(s) for rotation support")
             }
         } catch (e: IllegalArgumentException) {
@@ -214,13 +214,13 @@ class EncryptionService(
         val duration = System.currentTimeMillis() - startTime
 
         meterRegistry
-                .timer("encryption.duration", "operation", operation)
-                .record(duration, java.util.concurrent.TimeUnit.MILLISECONDS)
+            .timer("encryption.duration", "operation", operation)
+            .record(duration, java.util.concurrent.TimeUnit.MILLISECONDS)
 
         if (duration > PERFORMANCE_THRESHOLD_MS) {
             logger.warn(
-                    "Encryption operation '$operation' took ${duration}ms " +
-                            "(threshold: ${PERFORMANCE_THRESHOLD_MS}ms)"
+                "Encryption operation '$operation' took ${duration}ms " +
+                    "(threshold: ${PERFORMANCE_THRESHOLD_MS}ms)"
             )
             meterRegistry.counter("encryption.slow_operations", "operation", operation).increment()
         }

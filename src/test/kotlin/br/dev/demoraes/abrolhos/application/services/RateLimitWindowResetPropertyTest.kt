@@ -174,12 +174,12 @@ class RateLimitWindowResetPropertyTest {
 
             verify {
                 zSetOperations.removeRangeByScore(
-                        key,
-                        0.0,
-                        match { timestamp ->
-                            timestamp >= expectedWindowStart.toDouble() &&
-                                    timestamp <= expectedWindowEnd.toDouble()
-                        }
+                    key,
+                    0.0,
+                    match { timestamp ->
+                        timestamp >= expectedWindowStart.toDouble() &&
+                            timestamp <= expectedWindowEnd.toDouble()
+                    }
                 )
             }
         }

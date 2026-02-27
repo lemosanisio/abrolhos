@@ -1,6 +1,5 @@
 package br.dev.demoraes.abrolhos.infrastructure.web.handlers
 
-import br.dev.demoraes.abrolhos.infrastructure.web.config.SecurityConfig
 import br.dev.demoraes.abrolhos.application.services.AuthService
 import br.dev.demoraes.abrolhos.domain.entities.InviteToken
 import br.dev.demoraes.abrolhos.domain.entities.TotpCode
@@ -10,6 +9,7 @@ import br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException
 import br.dev.demoraes.abrolhos.domain.exceptions.InvalidInviteException
 import br.dev.demoraes.abrolhos.domain.exceptions.InvalidTotpCodeException
 import br.dev.demoraes.abrolhos.domain.repository.UserRepository
+import br.dev.demoraes.abrolhos.infrastructure.web.config.SecurityConfig
 import br.dev.demoraes.abrolhos.infrastructure.web.controllers.AuthController
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean

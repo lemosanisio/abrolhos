@@ -18,29 +18,29 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface PostRepositoryPostgresql :
-        JpaRepository<PostEntity, String>, JpaSpecificationExecutor<PostEntity> {
+    JpaRepository<PostEntity, String>, JpaSpecificationExecutor<PostEntity> {
     fun findBySlug(slug: String): PostEntity?
 
     fun findByStatus(status: PostStatus, pageable: Pageable): Page<PostEntity>
 
     @EntityGraph(attributePaths = ["author", "category", "tags"])
     fun findBySlugAndStatus(
-            slug: String,
-            status: PostStatus,
+        slug: String,
+        status: PostStatus,
     ): PostEntity?
 
     fun findByCategorySlugAndStatus(
-            slug: String,
-            status: PostStatus,
+        slug: String,
+        status: PostStatus,
     ): List<PostEntity>
 
     fun findByTagsSlugAndStatus(
-            slug: String,
-            status: PostStatus,
+        slug: String,
+        status: PostStatus,
     ): List<PostEntity>
 
     @Query(
-            """
+        """
         SELECT
             p.id AS id,
             p.author.username AS authorUsername,
@@ -56,10 +56,10 @@ interface PostRepositoryPostgresql :
     """,
     )
     fun searchSummary(
-            status: PostStatus,
-            categoryName: String?,
-            tagName: String?,
-            pageable: Pageable,
+        status: PostStatus,
+        categoryName: String?,
+        tagName: String?,
+        pageable: Pageable,
     ): Page<PostSummary>
 
     @Query(value = "SELECT * FROM posts", nativeQuery = true)

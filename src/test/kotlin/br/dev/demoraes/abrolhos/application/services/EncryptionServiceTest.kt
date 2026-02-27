@@ -1,7 +1,7 @@
 package br.dev.demoraes.abrolhos.application.services
 
-import br.dev.demoraes.abrolhos.infrastructure.web.config.SecurityProperties
 import br.dev.demoraes.abrolhos.domain.exceptions.EncryptionException
+import br.dev.demoraes.abrolhos.infrastructure.web.config.SecurityProperties
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals

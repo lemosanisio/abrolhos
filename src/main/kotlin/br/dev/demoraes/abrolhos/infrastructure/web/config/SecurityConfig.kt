@@ -27,8 +27,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 class SecurityConfig(
-        private val jwtAuthenticationFilter: JwtAuthenticationFilter,
-        private val corsConfig: CorsConfig,
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    private val corsConfig: CorsConfig,
 ) {
 
     @Bean

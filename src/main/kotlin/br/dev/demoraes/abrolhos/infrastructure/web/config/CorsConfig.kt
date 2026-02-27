@@ -1,7 +1,6 @@
 package br.dev.demoraes.abrolhos.infrastructure.web.config
 
 import jakarta.annotation.PostConstruct
-import java.net.URI
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -9,6 +8,7 @@ import org.springframework.core.env.Environment
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import java.net.URI
 
 /**
  * CORS configuration with environment-based origin validation.
@@ -23,8 +23,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
  */
 @Configuration
 class CorsConfig(
-        private val securityProperties: SecurityProperties,
-        private val environment: Environment
+    private val securityProperties: SecurityProperties,
+    private val environment: Environment
 ) {
 
     private val logger = LoggerFactory.getLogger(CorsConfig::class.java)
@@ -42,13 +42,13 @@ class CorsConfig(
         // Requirement 1.3: Reject wildcards in production
         if (isProduction && origins.any { it == "*" }) {
             throw IllegalStateException(
-                    "Wildcard (*) CORS origins are not allowed in production profile. " +
-                            "Please configure specific origins in SECURITY_CORS_ALLOWED_ORIGINS"
+                "Wildcard (*) CORS origins are not allowed in production profile. " +
+                    "Please configure specific origins in SECURITY_CORS_ALLOWED_ORIGINS"
             )
         }
 
         logger.info(
-                "CORS configuration validated successfully: ${origins.size} origin(s) configured"
+            "CORS configuration validated successfully: ${origins.size} origin(s) configured"
         )
     }
 
@@ -65,7 +65,7 @@ class CorsConfig(
 
         // Requirement 1.5: Configure allowed headers
         configuration.allowedHeaders =
-                listOf("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With")
+            listOf("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With")
 
         // Requirement 1.6: Allow credentials for authenticated requests
         configuration.allowCredentials = true
@@ -117,9 +117,9 @@ class CorsConfig(
             require(!uri.host.isNullOrBlank()) { "Origin must include a valid host: $origin" }
         } catch (e: IllegalArgumentException) {
             throw IllegalStateException(
-                    "Invalid CORS origin URL '$origin': ${e.message}. " +
-                            "Origins must be well-formed URLs (e.g., https://example.com)",
-                    e
+                "Invalid CORS origin URL '$origin': ${e.message}. " +
+                    "Origins must be well-formed URLs (e.g., https://example.com)",
+                e
             )
         }
     }

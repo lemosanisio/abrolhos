@@ -80,7 +80,8 @@ class SecurityProperties {
          *
          * Requirement 6.3: Encryption key configuration
          */
-        @NotBlank(message = "Encryption key must be configured") var key: String = ""
+        @NotBlank(message = "Encryption key must be configured")
+        var key: String = ""
 
         /**
          * Comma-separated list of old encryption keys for key rotation. Optional - used when
