@@ -19,9 +19,9 @@ class PasswordResetException(message: String) : PasswordException(message)
  * @property violations Human-readable list of which policy rules were not satisfied
  */
 class PasswordPolicyViolationException(val violations: List<String>) :
-        PasswordException(
-                "Password does not meet policy requirements: ${violations.joinToString(", ")}"
-        )
+    PasswordException(
+        "Password does not meet policy requirements: ${violations.joinToString(", ")}"
+    )
 
 /** Thrown when a password reset token has passed its expiration time. */
 class PasswordResetTokenExpiredException : PasswordException("Password reset token has expired")

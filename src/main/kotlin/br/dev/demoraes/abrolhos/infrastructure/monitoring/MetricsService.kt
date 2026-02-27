@@ -26,10 +26,9 @@ class MetricsService(private val meterRegistry: MeterRegistry) {
                     .description("Total number of successful logins")
                     .register(meterRegistry)
 
-    private val loginFailures: Counter =
+    private val loginFailuresBuilder =
             Counter.builder("auth.login.failure")
                     .description("Total number of failed logins")
-                    .register(meterRegistry)
 
     // Post metrics
     private val postCreations: Counter =
@@ -68,6 +67,17 @@ class MetricsService(private val meterRegistry: MeterRegistry) {
                     .description("Time taken to run the scheduled publishing job")
                     .register(meterRegistry)
 
+    // Cache metrics
+    private val cacheHits: Counter =
+            Counter.builder("cache.hits")
+                    .description("Total number of cache hits")
+                    .register(meterRegistry)
+
+    private val cacheMisses: Counter =
+            Counter.builder("cache.misses")
+                    .description("Total number of cache misses")
+                    .register(meterRegistry)
+
     /** Records a single login attempt (independent of outcome). */
     fun recordLoginAttempt() = loginAttempts.increment()
 
@@ -75,7 +85,8 @@ class MetricsService(private val meterRegistry: MeterRegistry) {
     fun recordLoginSuccess() = loginSuccesses.increment()
 
     /** Records any failure during the authentication flow (bad credentials, inactive, etc.). */
-    fun recordLoginFailure() = loginFailures.increment()
+    fun recordLoginFailure(outcome: String) = 
+        loginFailuresBuilder.tag("outcome", outcome).register(meterRegistry).increment()
 
     /** Records a successful post creation via POST /api/posts. */
     fun recordPostCreation() = postCreations.increment()
@@ -107,4 +118,10 @@ class MetricsService(private val meterRegistry: MeterRegistry) {
     fun recordScheduledPublishingJobTime(duration: Duration) {
         scheduledPublishingJobTimer.record(duration)
     }
+
+    /** Records a single cache hit. */
+    fun recordCacheHit() = cacheHits.increment()
+
+    /** Records a single cache miss. */
+    fun recordCacheMiss() = cacheMisses.increment()
 }

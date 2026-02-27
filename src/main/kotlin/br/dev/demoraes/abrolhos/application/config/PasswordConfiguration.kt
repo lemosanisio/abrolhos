@@ -1,6 +1,5 @@
 package br.dev.demoraes.abrolhos.application.config
 
-import java.security.SecureRandom
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -9,6 +8,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.security.SecureRandom
 
 /**
  * Type-safe configuration properties for password policy and security settings.
@@ -29,16 +29,16 @@ import org.springframework.security.crypto.password.PasswordEncoder
  */
 @ConfigurationProperties(prefix = "security.password")
 data class PasswordProperties(
-        val minLength: Int = 12,
-        val maxLength: Int = 128,
-        val requireUppercase: Boolean = true,
-        val requireLowercase: Boolean = true,
-        val requireDigit: Boolean = true,
-        val requireSpecialChar: Boolean = true,
-        val bcryptStrength: Int = 12,
-        val specialChars: String = "!@#\$%^&*()_+-=[]{}|;:,.<>?",
-        val resetTokenExpiryHours: Long = 1,
-        val resetTokenByteSize: Int = 32,
+    val minLength: Int = 12,
+    val maxLength: Int = 128,
+    val requireUppercase: Boolean = true,
+    val requireLowercase: Boolean = true,
+    val requireDigit: Boolean = true,
+    val requireSpecialChar: Boolean = true,
+    val bcryptStrength: Int = 12,
+    val specialChars: String = "!@#\$%^&*()_+-=[]{}|;:,.<>?",
+    val resetTokenExpiryHours: Long = 1,
+    val resetTokenByteSize: Int = 32,
 )
 
 /**
@@ -53,9 +53,10 @@ data class PasswordProperties(
 @EnableScheduling
 class PasswordConfiguration {
 
-        @Bean
-        fun passwordEncoder(properties: PasswordProperties): PasswordEncoder =
-                BCryptPasswordEncoder(properties.bcryptStrength)
+    @Bean
+    fun passwordEncoder(properties: PasswordProperties): PasswordEncoder =
+        BCryptPasswordEncoder(properties.bcryptStrength)
 
-        @Bean @ConditionalOnMissingBean fun secureRandom(): SecureRandom = SecureRandom()
+    @Bean @ConditionalOnMissingBean
+    fun secureRandom(): SecureRandom = SecureRandom()
 }

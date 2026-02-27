@@ -6,7 +6,6 @@ package br.dev.demoraes.abrolhos.domain.exceptions
  * These exceptions are thrown by the Domain layer and are typically handled by the
  * GlobalExceptionHandler in the Web layer.
  */
-// TODO-USER(Could this one be moved to infrastructure?)
 class InvalidInviteException(message: String) : RuntimeException(message)
 
 class UserNotFoundException(message: String) : RuntimeException(message)

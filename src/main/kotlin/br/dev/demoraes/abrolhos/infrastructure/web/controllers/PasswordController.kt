@@ -40,8 +40,8 @@ import ulid.ULID
 @RequestMapping("/api/password")
 @Validated
 class PasswordController(
-        private val passwordService: PasswordService,
-        private val userRepository: UserRepository,
+    private val passwordService: PasswordService,
+    private val userRepository: UserRepository,
 ) {
 
     /**
@@ -55,41 +55,41 @@ class PasswordController(
     @PostMapping("/change")
     @PreAuthorize("isAuthenticated()")
     fun changePassword(
-            @org.springframework.security.core.annotation.AuthenticationPrincipal userId: String,
-            @RequestBody @Valid request: ChangePasswordRequest,
-            httpRequest: HttpServletRequest,
+        @org.springframework.security.core.annotation.AuthenticationPrincipal userId: String,
+        @RequestBody @Valid request: ChangePasswordRequest,
+        httpRequest: HttpServletRequest,
     ): ResponseEntity<*> {
         return try {
             val clientIp = httpRequest.remoteAddr ?: "unknown"
             val userUlid = ULID.parseULID(userId)
             val user =
-                    userRepository.findById(userUlid)
-                            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                    .body(
-                                            ErrorResponse(
-                                                    "User not found",
-                                                    HttpStatus.UNAUTHORIZED.value()
-                                            )
-                                    )
+                userRepository.findById(userUlid)
+                    ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(
+                            ErrorResponse(
+                                "User not found",
+                                HttpStatus.UNAUTHORIZED.value()
+                            )
+                        )
 
             val currentHash =
-                    user.passwordHash
-                            ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                    .body(
-                                            ErrorResponse(
-                                                    "No password set. Use the reset flow to set a password.",
-                                                    HttpStatus.BAD_REQUEST.value()
-                                            )
-                                    )
+                user.passwordHash
+                    ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(
+                            ErrorResponse(
+                                "No password set. Use the reset flow to set a password.",
+                                HttpStatus.BAD_REQUEST.value()
+                            )
+                        )
 
             val newHash =
-                    passwordService.changePassword(
-                            userId = userUlid,
-                            currentPassword = PlaintextPassword(request.currentPassword),
-                            newPassword = PlaintextPassword(request.newPassword),
-                            currentHash = currentHash,
-                            clientIp = clientIp,
-                    )
+                passwordService.changePassword(
+                    userId = userUlid,
+                    currentPassword = PlaintextPassword(request.currentPassword),
+                    newPassword = PlaintextPassword(request.newPassword),
+                    currentHash = currentHash,
+                    clientIp = clientIp,
+                )
 
             // Persist the new hash
             userRepository.save(user.copy(passwordHash = newHash))
@@ -99,20 +99,20 @@ class PasswordController(
             ResponseEntity.badRequest().body(PasswordValidationErrorResponse(e.violations))
         } catch (e: InvalidPasswordException) {
             ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(
-                            ErrorResponse(
-                                    e.message ?: "Invalid password",
-                                    HttpStatus.UNAUTHORIZED.value()
-                            )
+                .body(
+                    ErrorResponse(
+                        e.message ?: "Invalid password",
+                        HttpStatus.UNAUTHORIZED.value()
                     )
+                )
         } catch (e: PasswordResetException) {
             ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body(
-                            ErrorResponse(
-                                    e.message ?: "Too many attempts",
-                                    HttpStatus.TOO_MANY_REQUESTS.value()
-                            )
+                .body(
+                    ErrorResponse(
+                        e.message ?: "Too many attempts",
+                        HttpStatus.TOO_MANY_REQUESTS.value()
                     )
+                )
         }
     }
 
@@ -125,8 +125,8 @@ class PasswordController(
      */
     @PostMapping("/reset/request")
     fun requestPasswordReset(
-            @RequestBody @Valid request: PasswordResetRequest,
-            httpRequest: HttpServletRequest,
+        @RequestBody @Valid request: PasswordResetRequest,
+        httpRequest: HttpServletRequest,
     ): ResponseEntity<Unit> {
         return try {
             val clientIp = httpRequest.remoteAddr ?: "unknown"
@@ -155,8 +155,8 @@ class PasswordController(
      */
     @PostMapping("/reset/confirm")
     fun confirmPasswordReset(
-            @RequestBody @Valid request: ConfirmPasswordResetRequest,
-            httpRequest: HttpServletRequest,
+        @RequestBody @Valid request: ConfirmPasswordResetRequest,
+        httpRequest: HttpServletRequest,
     ): ResponseEntity<*> {
         return try {
             val clientIp = httpRequest.remoteAddr ?: "unknown"
@@ -167,20 +167,20 @@ class PasswordController(
             ResponseEntity.badRequest().body(PasswordValidationErrorResponse(e.violations))
         } catch (e: PasswordResetTokenExpiredException) {
             ResponseEntity.badRequest()
-                    .body(
-                            ErrorResponse(
-                                    e.message ?: "Invalid or expired token",
-                                    HttpStatus.BAD_REQUEST.value()
-                            )
+                .body(
+                    ErrorResponse(
+                        e.message ?: "Invalid or expired token",
+                        HttpStatus.BAD_REQUEST.value()
                     )
+                )
         } catch (e: PasswordResetTokenNotFoundException) {
             ResponseEntity.badRequest()
-                    .body(
-                            ErrorResponse(
-                                    e.message ?: "Invalid or expired token",
-                                    HttpStatus.BAD_REQUEST.value()
-                            )
+                .body(
+                    ErrorResponse(
+                        e.message ?: "Invalid or expired token",
+                        HttpStatus.BAD_REQUEST.value()
                     )
+                )
         }
     }
 

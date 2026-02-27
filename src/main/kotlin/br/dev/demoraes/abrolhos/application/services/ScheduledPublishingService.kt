@@ -4,13 +4,13 @@ import br.dev.demoraes.abrolhos.application.audit.AuditLogger
 import br.dev.demoraes.abrolhos.domain.entities.PostStatus
 import br.dev.demoraes.abrolhos.domain.repository.PostRepository
 import br.dev.demoraes.abrolhos.infrastructure.monitoring.MetricsService
-import java.time.Duration
-import java.time.OffsetDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
+import java.time.OffsetDateTime
 
 /**
  * Service responsible for automatically publishing scheduled posts.
@@ -23,9 +23,9 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Service
 class ScheduledPublishingService(
-        private val postRepository: PostRepository,
-        private val metricsService: MetricsService,
-        private val auditLogger: AuditLogger,
+    private val postRepository: PostRepository,
+    private val metricsService: MetricsService,
+    private val auditLogger: AuditLogger,
 ) {
     private val logger = LoggerFactory.getLogger(ScheduledPublishingService::class.java)
 
@@ -55,38 +55,38 @@ class ScheduledPublishingService(
             postsToPublish.forEach { post ->
                 try {
                     val published =
-                            post.withUpdatedFields(
-                                    status = PostStatus.PUBLISHED,
-                                    publishedAt = post.publishedAt ?: now,
-                            )
+                        post.withUpdatedFields(
+                            status = PostStatus.PUBLISHED,
+                            publishedAt = post.publishedAt ?: now,
+                        )
                     postRepository.save(published)
 
                     metricsService.recordPostAutoPublished()
                     auditLogger.logPostAutoPublished(
-                            postId = post.id.toString(),
-                            slug = post.slug.value,
-                            scheduledTime = (post.publishedAt ?: now).toString(),
+                        postId = post.id.toString(),
+                        slug = post.slug.value,
+                        scheduledTime = (post.publishedAt ?: now).toString(),
                     )
 
                     logger.info("Auto-published post: {}", post.slug.value)
                 } catch (e: Exception) {
                     logger.error(
-                            "Failed to auto-publish post '{}': {}",
-                            post.slug.value,
-                            e.message,
-                            e,
+                        "Failed to auto-publish post '{}': {}",
+                        post.slug.value,
+                        e.message,
+                        e,
                     )
                 }
             }
         } catch (e: Exception) {
             logger.error(
-                    "Scheduled publishing job encountered an unexpected error: {}",
-                    e.message,
-                    e
+                "Scheduled publishing job encountered an unexpected error: {}",
+                e.message,
+                e
             )
         } finally {
             metricsService.recordScheduledPublishingJobTime(
-                    Duration.ofNanos(System.nanoTime() - start)
+                Duration.ofNanos(System.nanoTime() - start)
             )
         }
     }

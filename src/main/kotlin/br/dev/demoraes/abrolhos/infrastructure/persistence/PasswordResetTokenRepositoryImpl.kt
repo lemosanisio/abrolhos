@@ -5,10 +5,10 @@ import br.dev.demoraes.abrolhos.domain.entities.PasswordResetTokenEntity
 import br.dev.demoraes.abrolhos.domain.repository.PasswordResetTokenRepository
 import br.dev.demoraes.abrolhos.infrastructure.persistence.entities.PasswordResetTokenJpaEntity
 import br.dev.demoraes.abrolhos.infrastructure.persistence.postgresql.PasswordResetTokenPostgresqlRepository
-import java.time.OffsetDateTime
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import ulid.ULID
+import java.time.OffsetDateTime
 
 /**
  * Persistence implementation of [PasswordResetTokenRepository].
@@ -18,23 +18,23 @@ import ulid.ULID
  */
 @Repository
 class PasswordResetTokenRepositoryImpl(
-        private val jpaRepository: PasswordResetTokenPostgresqlRepository,
+    private val jpaRepository: PasswordResetTokenPostgresqlRepository,
 ) : PasswordResetTokenRepository {
 
     override fun save(token: PasswordResetTokenEntity): PasswordResetTokenEntity {
         val entity =
-                PasswordResetTokenJpaEntity(
-                                userId = token.userId.toString(),
-                                token = token.token.value,
-                                expiresAt = token.expiresAt,
-                        )
-                        .apply { id = token.id.toString() }
+            PasswordResetTokenJpaEntity(
+                userId = token.userId.toString(),
+                token = token.token.value,
+                expiresAt = token.expiresAt,
+            )
+                .apply { id = token.id.toString() }
         val saved = jpaRepository.save(entity)
         return saved.toDomain()
     }
 
     override fun findByToken(token: PasswordResetToken): PasswordResetTokenEntity? =
-            jpaRepository.findByToken(token.value)?.toDomain()
+        jpaRepository.findByToken(token.value)?.toDomain()
 
     override fun deleteById(id: ULID) {
         jpaRepository.deleteById(id.toString())
@@ -53,16 +53,16 @@ class PasswordResetTokenRepositoryImpl(
 
 private fun PasswordResetTokenJpaEntity.toDomain(): PasswordResetTokenEntity {
     val createdAt =
-            this.createdAt
-                    ?: throw IllegalStateException(
-                            "PasswordResetTokenJpaEntity $id is missing createdAt"
-                    )
+        this.createdAt
+            ?: throw IllegalStateException(
+                "PasswordResetTokenJpaEntity $id is missing createdAt"
+            )
 
     return PasswordResetTokenEntity(
-            id = ULID.parseULID(this.id),
-            userId = ULID.parseULID(this.userId),
-            token = PasswordResetToken(this.token),
-            expiresAt = this.expiresAt,
-            createdAt = createdAt,
+        id = ULID.parseULID(this.id),
+        userId = ULID.parseULID(this.userId),
+        token = PasswordResetToken(this.token),
+        expiresAt = this.expiresAt,
+        createdAt = createdAt,
     )
 }

@@ -42,6 +42,8 @@ dependencies {
     
     // Monitoring dependencies
     implementation("io.micrometer:micrometer-registry-prometheus")
+    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("io.zipkin.reporter2:zipkin-reporter-brave")
     
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.6")
     runtimeOnly("org.postgresql:postgresql")

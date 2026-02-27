@@ -4,10 +4,10 @@ import br.dev.demoraes.abrolhos.domain.entities.CursorPage
 import br.dev.demoraes.abrolhos.domain.entities.Post
 import br.dev.demoraes.abrolhos.domain.entities.PostStatus
 import br.dev.demoraes.abrolhos.domain.entities.PostSummary
-import java.time.OffsetDateTime
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import ulid.ULID
+import java.time.OffsetDateTime
 
 /**
  * Repository interface for Post entity persistence.
@@ -33,15 +33,15 @@ interface PostRepository {
     fun delete(post: Post)
 
     fun searchSummary(
-            pageable: Pageable,
-            categoryName: String?,
-            tagName: String?,
-            status: PostStatus
+        pageable: Pageable,
+        categoryName: String?,
+        tagName: String?,
+        status: PostStatus
     ): Page<PostSummary>
 
     fun searchSummaryByCursor(
-            cursor: String?,
-            size: Int,
-            status: PostStatus
+        cursor: String?,
+        size: Int,
+        status: PostStatus
     ): CursorPage<PostSummary>
 }

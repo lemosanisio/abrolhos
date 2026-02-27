@@ -12,9 +12,9 @@ import br.dev.demoraes.abrolhos.domain.entities.TagName
  * All fields are optional — only the non-null fields will be applied to the post.
  */
 data class UpdatePostRequest(
-        val title: PostTitle?,
-        val content: PostContent?,
-        val status: PostStatus?,
-        val categoryName: CategoryName?,
-        val tagNames: List<TagName>?,
+    val title: PostTitle?,
+    val content: PostContent?,
+    val status: PostStatus?,
+    val categoryName: CategoryName?,
+    val tagNames: List<TagName>?,
 )

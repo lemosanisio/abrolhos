@@ -25,6 +25,15 @@ class HealthCheckIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `health sub-paths should return UP without authentication`() {
+        val paths = listOf("/actuator/health/readiness", "/actuator/health/liveness")
+        paths.forEach { path ->
+            val response = restTemplate.getForEntity(path, String::class.java)
+            assertEquals(HttpStatus.OK, response.statusCode, "Path \$path should be public")
+        }
+    }
+
+    @Test
     fun `readiness probe should return 200`() {
         val response = restTemplate.getForEntity("/actuator/health/readiness", String::class.java)
 

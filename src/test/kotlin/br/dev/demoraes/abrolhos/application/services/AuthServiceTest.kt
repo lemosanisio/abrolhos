@@ -19,12 +19,12 @@ import br.dev.demoraes.abrolhos.infrastructure.monitoring.MetricsService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.OffsetDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import ulid.ULID
+import java.time.OffsetDateTime
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class AuthServiceTest {
     private val userRepository: UserRepository = mockk()
@@ -34,25 +34,25 @@ class AuthServiceTest {
     private val tokenService: TokenService = mockk()
     private val metricsService: MetricsService = mockk(relaxed = true)
     private val auditLogger: br.dev.demoraes.abrolhos.application.audit.AuditLogger =
-            mockk(relaxed = true)
+        mockk(relaxed = true)
     private val rateLimitService: RateLimitService = mockk()
 
     private val authService =
-            AuthService(
-                    userRepository,
-                    inviteRepository,
-                    totpService,
-                    passwordService,
-                    tokenService,
-                    metricsService,
-                    auditLogger,
-                    rateLimitService,
-            )
+        AuthService(
+            userRepository,
+            inviteRepository,
+            totpService,
+            passwordService,
+            tokenService,
+            metricsService,
+            auditLogger,
+            rateLimitService,
+        )
 
     private val testSecret = TotpSecret("JBSWY3DPEHPK3PXP")
     private val testPassword = PlaintextPassword("Test@1234Abc!")
     private val testHash =
-            PasswordHash("\$2a\$12\$abcdefghijklmnopqrstuvuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
+        PasswordHash("\$2a\$12\$abcdefghijklmnopqrstuvuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
 
     // ---------------------------------------------------------------------------
     // activateAccount tests
@@ -62,14 +62,14 @@ class AuthServiceTest {
     fun `activateAccount should reject expired invite`() {
         val token = InviteToken("a".repeat(64))
         val expiredInvite =
-                Invite(
-                        id = ULID.nextULID(),
-                        token = token,
-                        userId = ULID.nextULID(),
-                        expiryDate = OffsetDateTime.now().minusDays(1),
-                        createdAt = OffsetDateTime.now().minusDays(2),
-                        totpSecret = testSecret
-                )
+            Invite(
+                id = ULID.nextULID(),
+                token = token,
+                userId = ULID.nextULID(),
+                expiryDate = OffsetDateTime.now().minusDays(1),
+                createdAt = OffsetDateTime.now().minusDays(2),
+                totpSecret = testSecret
+            )
 
         every { inviteRepository.findByToken(token) } returns expiredInvite
         every { inviteRepository.deleteById(any()) } returns Unit
@@ -95,14 +95,14 @@ class AuthServiceTest {
     fun `activateAccount should reject when user not found`() {
         val token = InviteToken("a".repeat(64))
         val invite =
-                Invite(
-                        id = ULID.nextULID(),
-                        token = token,
-                        userId = ULID.nextULID(),
-                        expiryDate = OffsetDateTime.now().plusDays(1),
-                        createdAt = OffsetDateTime.now(),
-                        totpSecret = testSecret
-                )
+            Invite(
+                id = ULID.nextULID(),
+                token = token,
+                userId = ULID.nextULID(),
+                expiryDate = OffsetDateTime.now().plusDays(1),
+                createdAt = OffsetDateTime.now(),
+                totpSecret = testSecret
+            )
 
         every { inviteRepository.findByToken(token) } returns invite
         every { userRepository.findById(any()) } returns null
@@ -116,26 +116,26 @@ class AuthServiceTest {
     fun `activateAccount should reject already active user`() {
         val token = InviteToken("a".repeat(64))
         val invite =
-                Invite(
-                        id = ULID.nextULID(),
-                        token = token,
-                        userId = ULID.nextULID(),
-                        expiryDate = OffsetDateTime.now().plusDays(1),
-                        createdAt = OffsetDateTime.now(),
-                        totpSecret = testSecret
-                )
+            Invite(
+                id = ULID.nextULID(),
+                token = token,
+                userId = ULID.nextULID(),
+                expiryDate = OffsetDateTime.now().plusDays(1),
+                createdAt = OffsetDateTime.now(),
+                totpSecret = testSecret
+            )
 
         val activeUser =
-                User(
-                        id = invite.userId,
-                        username = Username("testuser"),
-                        totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
-                        passwordHash = testHash,
-                        isActive = true,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            User(
+                id = invite.userId,
+                username = Username("testuser"),
+                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                passwordHash = testHash,
+                isActive = true,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         every { inviteRepository.findByToken(token) } returns invite
         every { userRepository.findById(any()) } returns activeUser
@@ -151,26 +151,26 @@ class AuthServiceTest {
         val totpCode = TotpCode("123456")
         val newSecret = TotpSecret("JBSWY3DPEHPK3PXP")
         val invite =
-                Invite(
-                        id = ULID.nextULID(),
-                        token = token,
-                        userId = ULID.nextULID(),
-                        expiryDate = OffsetDateTime.now().plusDays(1),
-                        createdAt = OffsetDateTime.now(),
-                        totpSecret = newSecret
-                )
+            Invite(
+                id = ULID.nextULID(),
+                token = token,
+                userId = ULID.nextULID(),
+                expiryDate = OffsetDateTime.now().plusDays(1),
+                createdAt = OffsetDateTime.now(),
+                totpSecret = newSecret
+            )
 
         val inactiveUser =
-                User(
-                        id = invite.userId,
-                        username = Username("testuser"),
-                        totpSecret = null,
-                        passwordHash = null,
-                        isActive = false,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            User(
+                id = invite.userId,
+                username = Username("testuser"),
+                totpSecret = null,
+                passwordHash = null,
+                isActive = false,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         every { inviteRepository.findByToken(token) } returns invite
         every { userRepository.findById(any()) } returns inactiveUser
@@ -189,26 +189,26 @@ class AuthServiceTest {
         val totpCode = TotpCode("123456")
         val newSecret = TotpSecret("JBSWY3DPEHPK3PXP")
         val invite =
-                Invite(
-                        id = ULID.nextULID(),
-                        token = token,
-                        userId = ULID.nextULID(),
-                        expiryDate = OffsetDateTime.now().plusDays(1),
-                        createdAt = OffsetDateTime.now(),
-                        totpSecret = newSecret
-                )
+            Invite(
+                id = ULID.nextULID(),
+                token = token,
+                userId = ULID.nextULID(),
+                expiryDate = OffsetDateTime.now().plusDays(1),
+                createdAt = OffsetDateTime.now(),
+                totpSecret = newSecret
+            )
 
         val inactiveUser =
-                User(
-                        id = invite.userId,
-                        username = Username("testuser"),
-                        totpSecret = null,
-                        passwordHash = null,
-                        isActive = false,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            User(
+                id = invite.userId,
+                username = Username("testuser"),
+                totpSecret = null,
+                passwordHash = null,
+                isActive = false,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         val expectedToken = "jwt-token-123"
 
@@ -227,9 +227,9 @@ class AuthServiceTest {
         assertEquals(expectedToken, result)
         verify {
             userRepository.save(
-                    match {
-                        it.isActive && it.totpSecret == newSecret && it.passwordHash == testHash
-                    }
+                match {
+                    it.isActive && it.totpSecret == newSecret && it.passwordHash == testHash
+                }
             )
         }
         verify { inviteRepository.deleteById(invite.id) }
@@ -240,26 +240,26 @@ class AuthServiceTest {
         val token = InviteToken("a".repeat(64))
         val totpCode = TotpCode("123456")
         val invite =
-                Invite(
-                        id = ULID.nextULID(),
-                        token = token,
-                        userId = ULID.nextULID(),
-                        expiryDate = OffsetDateTime.now().plusDays(1),
-                        createdAt = OffsetDateTime.now(),
-                        totpSecret = null
-                )
+            Invite(
+                id = ULID.nextULID(),
+                token = token,
+                userId = ULID.nextULID(),
+                expiryDate = OffsetDateTime.now().plusDays(1),
+                createdAt = OffsetDateTime.now(),
+                totpSecret = null
+            )
 
         val inactiveUser =
-                User(
-                        id = invite.userId,
-                        username = Username("testuser"),
-                        totpSecret = null,
-                        passwordHash = null,
-                        isActive = false,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            User(
+                id = invite.userId,
+                username = Username("testuser"),
+                totpSecret = null,
+                passwordHash = null,
+                isActive = false,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         every { inviteRepository.findByToken(token) } returns invite
         every { userRepository.findById(any()) } returns inactiveUser
@@ -267,13 +267,13 @@ class AuthServiceTest {
         every { passwordService.hashPassword(testPassword) } returns testHash
 
         val exception =
-                assertThrows<IllegalStateException> {
-                    authService.activateAccount(token, testPassword, totpCode)
-                }
+            assertThrows<IllegalStateException> {
+                authService.activateAccount(token, testPassword, totpCode)
+            }
 
         assertEquals(
-                "TOTP secret not found in invite. Invite must be validated first.",
-                exception.message
+            "TOTP secret not found in invite. Invite must be validated first.",
+            exception.message
         )
     }
 
@@ -285,36 +285,36 @@ class AuthServiceTest {
     fun `validateInvite should generate and persist secret for invite without one`() {
         val token = InviteToken("a".repeat(64))
         val invite =
-                Invite(
-                        id = ULID.nextULID(),
-                        token = token,
-                        userId = ULID.nextULID(),
-                        expiryDate = OffsetDateTime.now().plusDays(1),
-                        createdAt = OffsetDateTime.now(),
-                        totpSecret = null
-                )
+            Invite(
+                id = ULID.nextULID(),
+                token = token,
+                userId = ULID.nextULID(),
+                expiryDate = OffsetDateTime.now().plusDays(1),
+                createdAt = OffsetDateTime.now(),
+                totpSecret = null
+            )
 
         val inactiveUser =
-                User(
-                        id = invite.userId,
-                        username = Username("testuser"),
-                        totpSecret = null,
-                        passwordHash = null,
-                        isActive = false,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            User(
+                id = invite.userId,
+                username = Username("testuser"),
+                totpSecret = null,
+                passwordHash = null,
+                isActive = false,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         val newSecret = TotpSecret("JBSWY3DPEHPK3PXP")
         val provisioningUri =
-                "otpauth://totp/Abrolhos:testuser?secret=JBSWY3DPEHPK3PXP&issuer=Abrolhos"
+            "otpauth://totp/Abrolhos:testuser?secret=JBSWY3DPEHPK3PXP&issuer=Abrolhos"
 
         every { inviteRepository.findByToken(token) } returns invite
         every { userRepository.findById(any()) } returns inactiveUser
         every { totpService.generateSecret() } returns newSecret
         every { totpService.validateSecret(newSecret) } returns
-                SecretValidation(isValid = true, byteCount = 10, expectedByteCount = 20)
+            SecretValidation(isValid = true, byteCount = 10, expectedByteCount = 20)
         every { totpService.generateProvisioningUri("testuser", newSecret) } returns provisioningUri
         every { inviteRepository.save(any()) } returns invite.copy(totpSecret = newSecret)
 
@@ -332,34 +332,34 @@ class AuthServiceTest {
         val token = InviteToken("a".repeat(64))
         val existingSecret = TotpSecret("EXISTINGSECRETVAL")
         val invite =
-                Invite(
-                        id = ULID.nextULID(),
-                        token = token,
-                        userId = ULID.nextULID(),
-                        expiryDate = OffsetDateTime.now().plusDays(1),
-                        createdAt = OffsetDateTime.now(),
-                        totpSecret = existingSecret
-                )
+            Invite(
+                id = ULID.nextULID(),
+                token = token,
+                userId = ULID.nextULID(),
+                expiryDate = OffsetDateTime.now().plusDays(1),
+                createdAt = OffsetDateTime.now(),
+                totpSecret = existingSecret
+            )
 
         val inactiveUser =
-                User(
-                        id = invite.userId,
-                        username = Username("testuser"),
-                        totpSecret = null,
-                        passwordHash = null,
-                        isActive = false,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            User(
+                id = invite.userId,
+                username = Username("testuser"),
+                totpSecret = null,
+                passwordHash = null,
+                isActive = false,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         val provisioningUri =
-                "otpauth://totp/Abrolhos:testuser?secret=EXISTINGSECRETVAL&issuer=Abrolhos"
+            "otpauth://totp/Abrolhos:testuser?secret=EXISTINGSECRETVAL&issuer=Abrolhos"
 
         every { inviteRepository.findByToken(token) } returns invite
         every { userRepository.findById(any()) } returns inactiveUser
         every { totpService.generateProvisioningUri("testuser", existingSecret) } returns
-                provisioningUri
+            provisioningUri
 
         val result = authService.validateInvite(token)
 
@@ -372,13 +372,13 @@ class AuthServiceTest {
     fun `validateInvite should reject expired invite`() {
         val token = InviteToken("a".repeat(64))
         val expiredInvite =
-                Invite(
-                        id = ULID.nextULID(),
-                        token = token,
-                        userId = ULID.nextULID(),
-                        expiryDate = OffsetDateTime.now().minusDays(1),
-                        createdAt = OffsetDateTime.now().minusDays(2)
-                )
+            Invite(
+                id = ULID.nextULID(),
+                token = token,
+                userId = ULID.nextULID(),
+                expiryDate = OffsetDateTime.now().minusDays(1),
+                createdAt = OffsetDateTime.now().minusDays(2)
+            )
 
         every { inviteRepository.findByToken(token) } returns expiredInvite
 
@@ -395,13 +395,13 @@ class AuthServiceTest {
         val password = testPassword
 
         every { rateLimitService.tryConsume(any(), any()) } returns
-                mockk { every { isAllowed } returns true }
+            mockk { every { isAllowed } returns true }
         every { userRepository.findByUsername(username) } returns null
 
         val exception =
-                assertThrows<br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException> {
-                    authService.login(username, password, TotpCode("123456"))
-                }
+            assertThrows<br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException> {
+                authService.login(username, password, TotpCode("123456"))
+            }
 
         assertEquals("Invalid credentials", exception.message)
     }
@@ -410,25 +410,25 @@ class AuthServiceTest {
     fun `login should reject inactive user`() {
         val username = Username("testuser")
         val inactiveUser =
-                User(
-                        id = ULID.nextULID(),
-                        username = username,
-                        totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
-                        passwordHash = testHash,
-                        isActive = false,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            User(
+                id = ULID.nextULID(),
+                username = username,
+                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                passwordHash = testHash,
+                isActive = false,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         every { rateLimitService.tryConsume(any(), any()) } returns
-                mockk { every { isAllowed } returns true }
+            mockk { every { isAllowed } returns true }
         every { userRepository.findByUsername(username) } returns inactiveUser
 
         val exception =
-                assertThrows<br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException> {
-                    authService.login(username, testPassword, TotpCode("123456"))
-                }
+            assertThrows<br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException> {
+                authService.login(username, testPassword, TotpCode("123456"))
+            }
 
         assertEquals("Invalid credentials", exception.message)
     }
@@ -437,29 +437,29 @@ class AuthServiceTest {
     fun `login should reject user with null password hash`() {
         val username = Username("testuser")
         val userWithoutPassword =
-                User(
-                        id = ULID.nextULID(),
-                        username = username,
-                        totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
-                        passwordHash = null,
-                        isActive = true,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            User(
+                id = ULID.nextULID(),
+                username = username,
+                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                passwordHash = null,
+                isActive = true,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         every { rateLimitService.tryConsume(any(), any()) } returns
-                mockk { every { isAllowed } returns true }
+            mockk { every { isAllowed } returns true }
         every { userRepository.findByUsername(username) } returns userWithoutPassword
 
         val exception =
-                assertThrows<br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException> {
-                    authService.login(username, testPassword, TotpCode("123456"))
-                }
+            assertThrows<br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException> {
+                authService.login(username, testPassword, TotpCode("123456"))
+            }
 
         assertEquals(
-                "No password set. Please use the password reset flow to set your password.",
-                exception.message
+            "No password set. Please use the password reset flow to set your password.",
+            exception.message
         )
     }
 
@@ -469,26 +469,26 @@ class AuthServiceTest {
         val totpCode = TotpCode("123456")
         val secret = TotpSecret("JBSWY3DPEHPK3PXP")
         val activeUser =
-                User(
-                        id = ULID.nextULID(),
-                        username = username,
-                        totpSecret = secret,
-                        passwordHash = testHash,
-                        isActive = true,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            User(
+                id = ULID.nextULID(),
+                username = username,
+                totpSecret = secret,
+                passwordHash = testHash,
+                isActive = true,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         every { rateLimitService.tryConsume(any(), any()) } returns
-                mockk { every { isAllowed } returns true }
+            mockk { every { isAllowed } returns true }
         every { userRepository.findByUsername(username) } returns activeUser
         every { passwordService.verifyPassword(testPassword, testHash) } returns false
 
         val exception =
-                assertThrows<br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException> {
-                    authService.login(username, testPassword, totpCode)
-                }
+            assertThrows<br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException> {
+                authService.login(username, testPassword, totpCode)
+            }
 
         assertEquals("Invalid credentials", exception.message)
     }
@@ -499,27 +499,27 @@ class AuthServiceTest {
         val totpCode = TotpCode("123456")
         val secret = TotpSecret("JBSWY3DPEHPK3PXP")
         val activeUser =
-                User(
-                        id = ULID.nextULID(),
-                        username = username,
-                        totpSecret = secret,
-                        passwordHash = testHash,
-                        isActive = true,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            User(
+                id = ULID.nextULID(),
+                username = username,
+                totpSecret = secret,
+                passwordHash = testHash,
+                isActive = true,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         every { rateLimitService.tryConsume(any(), any()) } returns
-                mockk { every { isAllowed } returns true }
+            mockk { every { isAllowed } returns true }
         every { userRepository.findByUsername(username) } returns activeUser
         every { passwordService.verifyPassword(testPassword, testHash) } returns true
         every { totpService.verifyCode(secret, totpCode) } returns false
 
         val exception =
-                assertThrows<br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException> {
-                    authService.login(username, testPassword, totpCode)
-                }
+            assertThrows<br.dev.demoraes.abrolhos.domain.exceptions.AuthenticationException> {
+                authService.login(username, testPassword, totpCode)
+            }
 
         assertEquals("Invalid credentials", exception.message)
     }
@@ -530,20 +530,20 @@ class AuthServiceTest {
         val totpCode = TotpCode("123456")
         val secret = TotpSecret("JBSWY3DPEHPK3PXP")
         val activeUser =
-                User(
-                        id = ULID.nextULID(),
-                        username = username,
-                        totpSecret = secret,
-                        passwordHash = testHash,
-                        isActive = true,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            User(
+                id = ULID.nextULID(),
+                username = username,
+                totpSecret = secret,
+                passwordHash = testHash,
+                isActive = true,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
         val expectedToken = "jwt-token-123"
 
         every { rateLimitService.tryConsume(any(), any()) } returns
-                mockk { every { isAllowed } returns true }
+            mockk { every { isAllowed } returns true }
         every { userRepository.findByUsername(username) } returns activeUser
         every { passwordService.verifyPassword(testPassword, testHash) } returns true
         every { totpService.verifyCode(secret, totpCode) } returns true

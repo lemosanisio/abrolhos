@@ -18,9 +18,9 @@ import br.dev.demoraes.abrolhos.infrastructure.monitoring.MetricsService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.OffsetDateTime
 import org.junit.jupiter.api.Test
 import ulid.ULID
+import java.time.OffsetDateTime
 
 class ScheduledPublishingServiceTest {
 
@@ -31,39 +31,39 @@ class ScheduledPublishingServiceTest {
     private val service = ScheduledPublishingService(postRepository, metricsService, auditLogger)
 
     private fun makeScheduledPost(
-            publishedAt: OffsetDateTime = OffsetDateTime.now().minusMinutes(5)
+        publishedAt: OffsetDateTime = OffsetDateTime.now().minusMinutes(5)
     ) =
-            Post(
-                    id = ULID.nextULID(),
-                    author =
-                            User(
-                                    id = ULID.nextULID(),
-                                    username = Username("author"),
-                                    totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
-                                    passwordHash = null,
-                                    isActive = true,
-                                    role = Role.USER,
-                                    createdAt = OffsetDateTime.now(),
-                                    updatedAt = OffsetDateTime.now(),
-                            ),
-                    title = PostTitle("Scheduled Post"),
-                    slug = PostSlug("scheduled-post"),
-                    content = PostContent("Content"),
-                    status = PostStatus.SCHEDULED,
-                    publishedAt = publishedAt,
-                    category =
-                            Category(
-                                    id = ULID.nextULID(),
-                                    name = CategoryName("Cat"),
-                                    slug = CategorySlug("cat"),
-                                    posts = emptySet(),
-                                    createdAt = OffsetDateTime.now(),
-                                    updatedAt = OffsetDateTime.now(),
-                            ),
-                    tags = emptySet(),
-                    createdAt = OffsetDateTime.now(),
-                    updatedAt = OffsetDateTime.now(),
-            )
+        Post(
+            id = ULID.nextULID(),
+            author =
+            User(
+                id = ULID.nextULID(),
+                username = Username("author"),
+                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                passwordHash = null,
+                isActive = true,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now(),
+            ),
+            title = PostTitle("Scheduled Post"),
+            slug = PostSlug("scheduled-post"),
+            content = PostContent("Content"),
+            status = PostStatus.SCHEDULED,
+            publishedAt = publishedAt,
+            category =
+            Category(
+                id = ULID.nextULID(),
+                name = CategoryName("Cat"),
+                slug = CategorySlug("cat"),
+                posts = emptySet(),
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now(),
+            ),
+            tags = emptySet(),
+            createdAt = OffsetDateTime.now(),
+            updatedAt = OffsetDateTime.now(),
+        )
 
     @Test
     fun `publishScheduledPosts should publish posts ready to publish`() {
@@ -95,12 +95,12 @@ class ScheduledPublishingServiceTest {
     fun `publishScheduledPosts should continue processing when one post fails`() {
         val failingPost = makeScheduledPost()
         val goodPost =
-                makeScheduledPost()
-                        .copy(slug = PostSlug("good-post"), title = PostTitle("Good Post"))
+            makeScheduledPost()
+                .copy(slug = PostSlug("good-post"), title = PostTitle("Good Post"))
         every { postRepository.findScheduledPostsReadyToPublish(any()) } returns
-                listOf(failingPost, goodPost)
+            listOf(failingPost, goodPost)
         every { postRepository.save(match { it.slug.value == "scheduled-post" }) } throws
-                RuntimeException("DB error")
+            RuntimeException("DB error")
         every { postRepository.save(match { it.slug.value == "good-post" }) } answers { firstArg() }
 
         // Should not throw — error is caught per-post

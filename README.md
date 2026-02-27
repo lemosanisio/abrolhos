@@ -64,11 +64,9 @@ The application uses environment variables for configuration. You can find a tem
 - `SECURITY_ENCRYPTION_OLD_KEYS`: Optional comma-separated list of old encryption keys for rotation
 
 **Optional Variables**:
-- `ALLOWED_ORIGINS`: Comma-separated list of allowed CORS origins (default: `*`)
-- `RATE_LIMIT_ENABLED`: Enable rate limiting (default: `false`)
-- `RATE_LIMIT_CAPACITY`: Rate limit capacity (default: `10`)
-- `RATE_LIMIT_REFILL_TOKENS`: Tokens to refill per period (default: `10`)
-- `RATE_LIMIT_REFILL_DURATION_SECONDS`: Refill period in seconds (default: `60`)
+- `CORS_ALLOWED_ORIGINS`: Comma-separated list of allowed CORS origins (default: `*`)
+- `SECURITY_RATE_LIMIT_MAX_REQUESTS`: Rate limit capacity (default: `5`)
+- `SECURITY_RATE_LIMIT_WINDOW_MINUTES`: Rate limit window in minutes (default: `15`)
 
 **Example `local.env`**:
 ```bash
@@ -303,6 +301,41 @@ The application follows a **Hexagonal Architecture** (Ports and Adapters) with c
 3. **Value Objects**: Strong typing prevents primitive obsession
 4. **ULIDs**: Sortable, URL-safe identifiers with timestamp information
 5. **Stateless JWT**: Scalable authentication without server-side sessions
+
+## 🚧 Infrastructure & Deployment (Out of Scope)
+
+The following infrastructure concerns are **out of scope** for this backend service and will be handled separately during deployment:
+
+### Observability Stack
+- **Metrics**: VictoriaMetrics for Prometheus-compatible metrics collection
+- **Logging**: VictoriaLogs for centralized log aggregation
+- **Tracing**: Zipkin for distributed tracing (application uses Micrometer Tracing)
+- **Dashboards**: Grafana for visualization (not included in this project)
+- **Alerting**: Alert configuration and notification channels (to be configured later)
+
+### Secrets Management
+- **Injection Method**: Secrets (JWT_SECRET, SECURITY_ENCRYPTION_KEY, DB credentials) injected via CI/CD pipeline
+- **Rotation**: Manual rotation or automated via Ansible (not handled by application)
+- **No Runtime Secrets Manager**: No AWS Secrets Manager, HashiCorp Vault, or similar integration
+
+### Container Orchestration
+- **Runtime**: Podman containers integrated with systemd on Ubuntu Server
+- **Deployment**: Single container instance (no multi-instance orchestration)
+- **Docker Compose**: Used only for local development, not for production deployment
+
+### Log Aggregation
+- **Shipping**: Log shipping to VictoriaLogs (Promtail, Vector, or direct HTTP push)
+- **Configuration**: To be determined during infrastructure setup
+
+### Infrastructure as Code
+- **Provisioning**: Ansible playbooks for server configuration and secret rotation
+- **Container Management**: systemd service units for Podman containers
+
+### Notes
+- Application exposes Prometheus-compatible metrics at `/actuator/prometheus` for VictoriaMetrics scraping
+- Application uses Spring Boot structured logging (ECS format) compatible with VictoriaLogs
+- Application uses Micrometer Tracing for Zipkin integration (Spring Boot 3.4 compatible)
+- Health checks available at `/actuator/health` for container health monitoring
 
 ## ⚖️ License
 

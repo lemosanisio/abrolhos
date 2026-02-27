@@ -20,8 +20,6 @@ import br.dev.demoraes.abrolhos.domain.repository.PostRepository
 import br.dev.demoraes.abrolhos.domain.repository.TagRepository
 import br.dev.demoraes.abrolhos.domain.repository.UserRepository
 import br.dev.demoraes.abrolhos.infrastructure.monitoring.MetricsService
-import java.time.Duration
-import java.time.OffsetDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
@@ -31,6 +29,8 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import ulid.ULID
+import java.time.Duration
+import java.time.OffsetDateTime
 
 /**
  * Service for managing blog posts.
@@ -47,30 +47,30 @@ import ulid.ULID
 @Service
 @Transactional
 class PostService(
-        private val postRepository: PostRepository,
-        private val userRepository: UserRepository,
-        private val categoryRepository: CategoryRepository,
-        private val tagRepository: TagRepository,
-        private val metricsService: MetricsService,
-        private val auditLogger: AuditLogger,
+    private val postRepository: PostRepository,
+    private val userRepository: UserRepository,
+    private val categoryRepository: CategoryRepository,
+    private val tagRepository: TagRepository,
+    private val metricsService: MetricsService,
+    private val auditLogger: AuditLogger,
 ) {
     private val logger = LoggerFactory.getLogger(PostService::class.java)
 
     @CacheEvict(value = ["postBySlug", "postSummaries"], allEntries = true)
     fun createPost(
-            title: String,
-            content: String,
-            status: PostStatus,
-            categoryName: String,
-            tagNames: List<String>,
-            authorUsername: String
+        title: String,
+        content: String,
+        status: PostStatus,
+        categoryName: String,
+        tagNames: List<String>,
+        authorUsername: String
     ): Post {
         logger.debug("Creating post: title={}, author={}", title, authorUsername)
         val author =
-                userRepository.findByUsername(Username(authorUsername))
-                        ?: throw NoSuchElementException("Author not found").also {
-                            logger.error("Author not found: {}", authorUsername)
-                        }
+            userRepository.findByUsername(Username(authorUsername))
+                ?: throw NoSuchElementException("Author not found").also {
+                    logger.error("Author not found: {}", authorUsername)
+                }
 
         val slug = generateSlug(title)
 
@@ -78,24 +78,24 @@ class PostService(
         val tags = tagNames.map { findOrCreateTag(it) }.toSet()
 
         val post =
-                Post(
-                        id = ULID.nextULID(),
-                        author = author,
-                        title = PostTitle(title),
-                        slug = PostSlug(slug),
-                        content = PostContent(content),
-                        status = status,
-                        category = category,
-                        tags = tags,
-                        publishedAt =
-                                if (status == PostStatus.PUBLISHED) {
-                                    OffsetDateTime.now()
-                                } else {
-                                    null
-                                },
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now()
-                )
+            Post(
+                id = ULID.nextULID(),
+                author = author,
+                title = PostTitle(title),
+                slug = PostSlug(slug),
+                content = PostContent(content),
+                status = status,
+                category = category,
+                tags = tags,
+                publishedAt =
+                if (status == PostStatus.PUBLISHED) {
+                    OffsetDateTime.now()
+                } else {
+                    null
+                },
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         return postRepository.save(post).also {
             logger.debug("Post saved with slug: {}", it.slug.value)
@@ -108,9 +108,9 @@ class PostService(
     fun findPublishedBySlug(slug: String): Post {
         logger.debug("Finding published post by slug: {}", slug)
         return postRepository.findPublishedBySlug(slug)?.also { metricsService.recordPostView() }
-                ?: throw NoSuchElementException("Post with slug '$slug' not found").also {
-                    logger.warn("Published post with slug '{}' not found", slug)
-                }
+            ?: throw NoSuchElementException("Post with slug '$slug' not found").also {
+                logger.warn("Published post with slug '{}' not found", slug)
+            }
     }
 
     /**
@@ -122,9 +122,9 @@ class PostService(
      * Uses generic 404 messages to prevent information disclosure.
      */
     fun findBySlugForUser(
-            slug: String,
-            currentUsername: String?,
-            currentUserRole: Role?,
+        slug: String,
+        currentUsername: String?,
+        currentUserRole: Role?,
     ): Post {
         val post = postRepository.findBySlug(slug) ?: throw NoSuchElementException("Post not found")
 
@@ -144,8 +144,8 @@ class PostService(
         }
 
         val currentUser =
-                userRepository.findByUsername(Username(currentUsername))
-                        ?: throw NoSuchElementException("Post not found")
+            userRepository.findByUsername(Username(currentUsername))
+                ?: throw NoSuchElementException("Post not found")
 
         if (post.isOwnedBy(currentUser.id)) {
             return post
@@ -156,22 +156,22 @@ class PostService(
 
     @CacheEvict(value = ["postBySlug", "postSummaries"], allEntries = true)
     fun updatePost(
-            slug: String,
-            title: String?,
-            content: String?,
-            status: PostStatus?,
-            categoryName: String?,
-            tagNames: List<String>?,
-            currentUsername: String,
-            currentUserRole: Role,
+        slug: String,
+        title: String?,
+        content: String?,
+        status: PostStatus?,
+        categoryName: String?,
+        tagNames: List<String>?,
+        currentUsername: String,
+        currentUserRole: Role,
     ): Post {
         logger.debug("Updating post slug={} by user={}", slug, currentUsername)
 
         val post = postRepository.findBySlug(slug) ?: throw NoSuchElementException("Post not found")
 
         val currentUser =
-                userRepository.findByUsername(Username(currentUsername))
-                        ?: throw NoSuchElementException("User not found")
+            userRepository.findByUsername(Username(currentUsername))
+                ?: throw NoSuchElementException("User not found")
 
         if (!post.isOwnedBy(currentUser.id) && currentUserRole != Role.ADMIN) {
             throw AccessDeniedException("Access denied")
@@ -179,37 +179,41 @@ class PostService(
 
         // Regenerate slug only when the title actually changes
         val newSlug =
-                if (title != null && title != post.title.value) {
-                    PostSlug(generateUniqueSlug(title, post.id))
-                } else null
+            if (title != null && title != post.title.value) {
+                PostSlug(generateUniqueSlug(title, post.id))
+            } else {
+                null
+            }
 
         val newCategory = categoryName?.let { findOrCreateCategory(it) }
         val newTags = tagNames?.map { findOrCreateTag(it) }?.toSet()
 
         val newPublishedAt =
-                if (status == PostStatus.PUBLISHED && post.publishedAt == null) {
-                    OffsetDateTime.now()
-                } else null
+            if (status == PostStatus.PUBLISHED && post.publishedAt == null) {
+                OffsetDateTime.now()
+            } else {
+                null
+            }
 
         val updatedPost =
-                post.withUpdatedFields(
-                        title = title?.let { PostTitle(it) },
-                        slug = newSlug,
-                        content = content?.let { PostContent(it) },
-                        status = status,
-                        category = newCategory,
-                        tags = newTags,
-                        publishedAt = newPublishedAt,
-                )
+            post.withUpdatedFields(
+                title = title?.let { PostTitle(it) },
+                slug = newSlug,
+                content = content?.let { PostContent(it) },
+                status = status,
+                category = newCategory,
+                tags = newTags,
+                publishedAt = newPublishedAt,
+            )
 
         val saved = postRepository.save(updatedPost)
 
         metricsService.recordPostUpdate()
         auditLogger.logPostUpdate(
-                postId = post.id.toString(),
-                username = currentUsername,
-                oldSlug = post.slug.value,
-                newSlug = saved.slug.value,
+            postId = post.id.toString(),
+            username = currentUsername,
+            oldSlug = post.slug.value,
+            newSlug = saved.slug.value,
         )
 
         logger.info("Post updated: oldSlug={}, newSlug={}", post.slug.value, saved.slug.value)
@@ -218,17 +222,17 @@ class PostService(
 
     @CacheEvict(value = ["postBySlug", "postSummaries"], allEntries = true)
     fun deletePost(
-            slug: String,
-            currentUsername: String,
-            currentUserRole: Role,
+        slug: String,
+        currentUsername: String,
+        currentUserRole: Role,
     ) {
         logger.debug("Deleting post slug={} by user={}", slug, currentUsername)
 
         val post = postRepository.findBySlug(slug) ?: throw NoSuchElementException("Post not found")
 
         val currentUser =
-                userRepository.findByUsername(Username(currentUsername))
-                        ?: throw NoSuchElementException("User not found")
+            userRepository.findByUsername(Username(currentUsername))
+                ?: throw NoSuchElementException("User not found")
 
         if (!post.isOwnedBy(currentUser.id) && currentUserRole != Role.ADMIN) {
             throw AccessDeniedException("Access denied")
@@ -238,30 +242,30 @@ class PostService(
 
         metricsService.recordPostDeletion()
         auditLogger.logPostDeletion(
-                postId = post.id.toString(),
-                username = currentUsername,
-                slug = post.slug.value,
+            postId = post.id.toString(),
+            username = currentUsername,
+            slug = post.slug.value,
         )
 
         logger.info("Post soft-deleted: slug={}", slug)
     }
 
     @Cacheable(
-            value = ["postSummaries"],
-            condition = "#categoryName == null && #tagName == null && #pageable.pageNumber == 0"
+        value = ["postSummaries"],
+        condition = "#categoryName == null && #tagName == null && #pageable.pageNumber == 0"
     )
     fun searchPostSummaries(
-            pageable: Pageable,
-            categoryName: String?,
-            tagName: String?,
-            status: PostStatus
+        pageable: Pageable,
+        categoryName: String?,
+        tagName: String?,
+        status: PostStatus
     ): Page<PostSummary> {
         logger.debug(
-                "Searching for posts summary with pageable: {}, category: {}, tag: {}, status: {}",
-                pageable,
-                categoryName,
-                tagName,
-                status
+            "Searching for posts summary with pageable: {}, category: {}, tag: {}, status: {}",
+            pageable,
+            categoryName,
+            tagName,
+            status
         )
         val start = System.nanoTime()
         return postRepository.searchSummary(pageable, categoryName, tagName, status).also {
@@ -270,15 +274,15 @@ class PostService(
     }
 
     fun searchPostSummariesByCursor(
-            cursor: String?,
-            size: Int,
-            status: PostStatus
+        cursor: String?,
+        size: Int,
+        status: PostStatus
     ): br.dev.demoraes.abrolhos.domain.entities.CursorPage<PostSummary> {
         logger.debug(
-                "Searching for posts summary by cursor: {}, size: {}, status: {}",
-                cursor,
-                size,
-                status
+            "Searching for posts summary by cursor: {}, size: {}, status: {}",
+            cursor,
+            size,
+            status
         )
         return postRepository.searchSummaryByCursor(cursor, size, status)
     }
@@ -310,45 +314,45 @@ class PostService(
     private fun findOrCreateCategory(name: String): Category {
         val categoryName = CategoryName(name)
         return categoryRepository.findByName(categoryName)
-                ?: run {
-                    logger.info("Category '{}' not found, creating new one", name)
-                    val slug = generateSlug(name)
-                    categoryRepository.save(
-                            Category(
-                                    id = ULID.nextULID(),
-                                    name = categoryName,
-                                    slug = CategorySlug(slug),
-                                    posts = emptySet(),
-                                    createdAt = OffsetDateTime.now(),
-                                    updatedAt = OffsetDateTime.now()
-                            )
+            ?: run {
+                logger.info("Category '{}' not found, creating new one", name)
+                val slug = generateSlug(name)
+                categoryRepository.save(
+                    Category(
+                        id = ULID.nextULID(),
+                        name = categoryName,
+                        slug = CategorySlug(slug),
+                        posts = emptySet(),
+                        createdAt = OffsetDateTime.now(),
+                        updatedAt = OffsetDateTime.now()
                     )
-                }
+                )
+            }
     }
 
     private fun findOrCreateTag(name: String): Tag {
         val tagName = TagName(name)
         return tagRepository.findByName(tagName)
-                ?: run {
-                    logger.info("Tag '{}' not found, creating new one", name)
-                    val slug = generateSlug(name)
-                    tagRepository.save(
-                            Tag(
-                                    id = ULID.nextULID(),
-                                    name = tagName,
-                                    slug = TagSlug(slug),
-                                    posts = emptySet(),
-                                    createdAt = OffsetDateTime.now(),
-                                    updatedAt = OffsetDateTime.now()
-                            )
+            ?: run {
+                logger.info("Tag '{}' not found, creating new one", name)
+                val slug = generateSlug(name)
+                tagRepository.save(
+                    Tag(
+                        id = ULID.nextULID(),
+                        name = tagName,
+                        slug = TagSlug(slug),
+                        posts = emptySet(),
+                        createdAt = OffsetDateTime.now(),
+                        updatedAt = OffsetDateTime.now()
                     )
-                }
+                )
+            }
     }
 
     private fun generateSlug(text: String): String {
         return text.lowercase()
-                .replace(Regex("[^a-z0-9\\s]"), "")
-                .replace(Regex("\\s+"), "-")
-                .trim('-')
+            .replace(Regex("[^a-z0-9\\s]"), "")
+            .replace(Regex("\\s+"), "-")
+            .trim('-')
     }
 }

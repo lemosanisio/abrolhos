@@ -20,8 +20,8 @@ import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.enum
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.string
-import java.time.OffsetDateTime
 import ulid.ULID
+import java.time.OffsetDateTime
 
 /** Shared Kotest [Arb] generators for domain entities used in property-based tests. */
 object TestArbitraries {
@@ -30,14 +30,14 @@ object TestArbitraries {
     fun user(): Arb<User> = arbitrary {
         val suffix = Arb.int(1_000..9_999).bind()
         User(
-                id = ULID.nextULID(),
-                username = Username("user$suffix"),
-                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
-                passwordHash = null,
-                isActive = true,
-                role = Arb.enum<Role>().bind(),
-                createdAt = OffsetDateTime.now(),
-                updatedAt = OffsetDateTime.now(),
+            id = ULID.nextULID(),
+            username = Username("user$suffix"),
+            totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+            passwordHash = null,
+            isActive = true,
+            role = Arb.enum<Role>().bind(),
+            createdAt = OffsetDateTime.now(),
+            updatedAt = OffsetDateTime.now(),
         )
     }
 
@@ -45,12 +45,12 @@ object TestArbitraries {
     fun category(): Arb<Category> = arbitrary {
         val slug = "cat-${Arb.int(1_000..9_999).bind()}"
         Category(
-                id = ULID.nextULID(),
-                name = CategoryName("Category $slug"),
-                slug = CategorySlug(slug),
-                posts = emptySet(),
-                createdAt = OffsetDateTime.now(),
-                updatedAt = OffsetDateTime.now(),
+            id = ULID.nextULID(),
+            name = CategoryName("Category $slug"),
+            slug = CategorySlug(slug),
+            posts = emptySet(),
+            createdAt = OffsetDateTime.now(),
+            updatedAt = OffsetDateTime.now(),
         )
     }
 
@@ -58,12 +58,12 @@ object TestArbitraries {
     fun tag(): Arb<Tag> = arbitrary {
         val slug = "tag-${Arb.int(1_000..9_999).bind()}"
         Tag(
-                id = ULID.nextULID(),
-                name = TagName("Tag $slug"),
-                slug = TagSlug(slug),
-                posts = emptySet(),
-                createdAt = OffsetDateTime.now(),
-                updatedAt = OffsetDateTime.now(),
+            id = ULID.nextULID(),
+            name = TagName("Tag $slug"),
+            slug = TagSlug(slug),
+            posts = emptySet(),
+            createdAt = OffsetDateTime.now(),
+            updatedAt = OffsetDateTime.now(),
         )
     }
 
@@ -73,9 +73,9 @@ object TestArbitraries {
         // Use alphanumeric chars only to avoid value-class validation failures
         val chars = ('a'..'z') + ('0'..'9') + listOf(' ')
         val raw =
-                (1..n).map { chars.random() }.joinToString("").trim().let {
-                    if (it.length < 3) "abc" else it
-                }
+            (1..n).map { chars.random() }.joinToString("").trim().let {
+                if (it.length < 3) "abc" else it
+            }
         PostTitle(raw)
     }
 
@@ -99,20 +99,22 @@ object TestArbitraries {
         val tagCount = Arb.int(0..2).bind()
         val tagSet = allTags.take(tagCount).toSet()
         Post(
-                id = ULID.nextULID(),
-                author = author,
-                title = PostTitle("Post $slug"),
-                slug = PostSlug(slug),
-                content = PostContent("Content for $slug"),
-                status = status,
-                publishedAt =
-                        if (status == PostStatus.PUBLISHED || status == PostStatus.SCHEDULED) {
-                            OffsetDateTime.now().minusHours(1)
-                        } else null,
-                category = cat,
-                tags = tagSet,
-                createdAt = OffsetDateTime.now(),
-                updatedAt = OffsetDateTime.now(),
+            id = ULID.nextULID(),
+            author = author,
+            title = PostTitle("Post $slug"),
+            slug = PostSlug(slug),
+            content = PostContent("Content for $slug"),
+            status = status,
+            publishedAt =
+            if (status == PostStatus.PUBLISHED || status == PostStatus.SCHEDULED) {
+                OffsetDateTime.now().minusHours(1)
+            } else {
+                null
+            },
+            category = cat,
+            tags = tagSet,
+            createdAt = OffsetDateTime.now(),
+            updatedAt = OffsetDateTime.now(),
         )
     }
 }

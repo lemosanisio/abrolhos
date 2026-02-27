@@ -3,10 +3,10 @@ package br.dev.demoraes.abrolhos.domain.exceptions
 /**
  * Exception thrown when encryption or decryption operations fail.
  *
- * This exception is used to wrap cryptographic errors and provide
- * meaningful error messages for encryption-related failures.
+ * This exception is used to wrap cryptographic errors and provide meaningful error messages for
+ * encryption-related failures.
  *
  * Requirement 3.6: Error handling for encryption operations
  */
-// TODO-USER(Could this one be moved to infrastructure?)
-class EncryptionException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+class EncryptionException(message: String, cause: Throwable? = null) :
+        RuntimeException(message, cause)

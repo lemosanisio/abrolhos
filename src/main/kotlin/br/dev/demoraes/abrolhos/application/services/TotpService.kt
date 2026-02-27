@@ -5,11 +5,11 @@ import br.dev.demoraes.abrolhos.domain.entities.TotpSecret
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordConfig
 import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordGenerator
+import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
 import org.apache.commons.codec.binary.Base32
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.security.SecureRandom
-import java.util.concurrent.TimeUnit
 
 /**
  * Data class representing TOTP codes for diagnostic purposes. Contains codes for previous, current,
@@ -21,10 +21,10 @@ import java.util.concurrent.TimeUnit
  * @property timestamp Epoch milliseconds when codes were generated
  */
 data class WindowCodes(
-    val previous: String,
-    val current: String,
-    val next: String,
-    val timestamp: Long
+        val previous: String,
+        val current: String,
+        val next: String,
+        val timestamp: Long
 )
 
 /**
@@ -37,10 +37,10 @@ data class WindowCodes(
  * @property error Error message if validation failed (null if valid)
  */
 data class SecretValidation(
-    val isValid: Boolean,
-    val byteCount: Int? = null,
-    val expectedByteCount: Int? = null,
-    val error: String? = null
+        val isValid: Boolean,
+        val byteCount: Int? = null,
+        val expectedByteCount: Int? = null,
+        val error: String? = null
 )
 
 /**
@@ -72,11 +72,7 @@ class TotpService {
         val secret = base32.encodeToString(bytes).replace("=", "")
 
         // Diagnostic logging - Requirement 1.1
-        logger.debug(
-            "Generated TOTP secret (first {} chars): {}",
-            SECRET_PREFIX_LENGTH,
-            secret.take(SECRET_PREFIX_LENGTH)
-        )
+        logger.debug("Generated new TOTP secret")
 
         return TotpSecret(secret)
     }
@@ -88,40 +84,35 @@ class TotpService {
 
             // Diagnostic logging - Requirements 1.1, 1.2, 1.3
             logger.debug("Verifying TOTP code")
-            logger.debug(
-                "Secret (first {} chars): {}",
-                SECRET_PREFIX_LENGTH,
-                secret.value.take(SECRET_PREFIX_LENGTH)
-            )
             logger.debug("Decoded byte count: {}", secretBytes.size)
             logger.debug("System timestamp: {}", System.currentTimeMillis())
 
             val config =
-                TimeBasedOneTimePasswordConfig(
-                    codeDigits = 6,
-                    hmacAlgorithm = HmacAlgorithm.SHA1,
-                    timeStep = 30,
-                    timeStepUnit = TimeUnit.SECONDS
-                )
+                    TimeBasedOneTimePasswordConfig(
+                            codeDigits = 6,
+                            hmacAlgorithm = HmacAlgorithm.SHA1,
+                            timeStep = 30,
+                            timeStepUnit = TimeUnit.SECONDS
+                    )
             val generator = TimeBasedOneTimePasswordGenerator(secretBytes, config)
             val now = java.util.Date()
 
             // Generate codes for all windows for debugging - Requirement 1.4
             val codes = generateCodesForWindows(secret, now)
             logger.debug(
-                "Generated codes - Previous: {}, Current: {}, Next: {}",
-                codes.previous,
-                codes.current,
-                codes.next
+                    "Generated codes - Previous: {}, Current: {}, Next: {}",
+                    codes.previous,
+                    codes.current,
+                    codes.next
             )
 
             val isValid =
-                generator.isValid(code.value, now) ||
-                    generator.isValid(
-                        code.value,
-                        java.util.Date(now.time - WINDOW_MILLIS)
-                    ) ||
-                    generator.isValid(code.value, java.util.Date(now.time + WINDOW_MILLIS))
+                    generator.isValid(code.value, now) ||
+                            generator.isValid(
+                                    code.value,
+                                    java.util.Date(now.time - WINDOW_MILLIS)
+                            ) ||
+                            generator.isValid(code.value, java.util.Date(now.time + WINDOW_MILLIS))
 
             if (!isValid) {
                 logger.warn("TOTP verification failed for code: {}", code.value)
@@ -133,11 +124,7 @@ class TotpService {
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             // Enhanced error logging - Requirement 1.6
             logger.error("TOTP verification exception: {}", e.message, e)
-            logger.error(
-                "Failed to decode secret (first {} chars): {}",
-                SECRET_PREFIX_LENGTH,
-                secret.value.take(SECRET_PREFIX_LENGTH)
-            )
+            logger.error("Failed to decode secret")
             false
         }
     }
@@ -154,19 +141,19 @@ class TotpService {
         val base32 = Base32()
         val secretBytes = base32.decode(secret.value.uppercase())
         val config =
-            TimeBasedOneTimePasswordConfig(
-                codeDigits = 6,
-                hmacAlgorithm = HmacAlgorithm.SHA1,
-                timeStep = 30,
-                timeStepUnit = TimeUnit.SECONDS
-            )
+                TimeBasedOneTimePasswordConfig(
+                        codeDigits = 6,
+                        hmacAlgorithm = HmacAlgorithm.SHA1,
+                        timeStep = 30,
+                        timeStepUnit = TimeUnit.SECONDS
+                )
         val generator = TimeBasedOneTimePasswordGenerator(secretBytes, config)
 
         return WindowCodes(
-            previous = generator.generate(java.util.Date(timestamp.time - WINDOW_MILLIS)),
-            current = generator.generate(timestamp),
-            next = generator.generate(java.util.Date(timestamp.time + WINDOW_MILLIS)),
-            timestamp = timestamp.time
+                previous = generator.generate(java.util.Date(timestamp.time - WINDOW_MILLIS)),
+                current = generator.generate(timestamp),
+                next = generator.generate(java.util.Date(timestamp.time + WINDOW_MILLIS)),
+                timestamp = timestamp.time
         )
     }
 
@@ -182,9 +169,9 @@ class TotpService {
             val base32 = Base32()
             val secretBytes = base32.decode(secret.value.uppercase())
             SecretValidation(
-                isValid = true,
-                byteCount = secretBytes.size,
-                expectedByteCount = SECRET_BYTE_SIZE
+                    isValid = true,
+                    byteCount = secretBytes.size,
+                    expectedByteCount = SECRET_BYTE_SIZE
             )
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             logger.error("Failed to validate TOTP secret: {}", e.message)
@@ -193,9 +180,9 @@ class TotpService {
     }
 
     fun generateProvisioningUri(
-        username: String,
-        secret: TotpSecret,
-        issuer: String = "Abrolhos",
+            username: String,
+            secret: TotpSecret,
+            issuer: String = "Abrolhos",
     ): String {
         val encodedIssuer = java.net.URLEncoder.encode(issuer, "UTF-8").replace("+", "%20")
         val encodedUsername = java.net.URLEncoder.encode(username, "UTF-8").replace("+", "%20")

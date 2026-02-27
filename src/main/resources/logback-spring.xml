@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     
+    <conversionRule conversionWord="redactedMsg" converterClass="br.dev.demoraes.abrolhos.infrastructure.web.config.SensitiveDataRedactorConverter" />
     <!-- Dev/default profile: human-readable console + file output -->
     <springProfile name="!production">
         <!-- Console appender for application logs -->
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
-                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{correlationId}] [%thread] %-5level %logger{36} - %redactedMsg%n</pattern>
             </encoder>
         </appender>
         
@@ -18,7 +19,7 @@
                 <maxHistory>30</maxHistory>
             </rollingPolicy>
             <encoder>
-                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{correlationId}] [%thread] %-5level %logger{36} - %redactedMsg%n</pattern>
             </encoder>
         </appender>
         
@@ -32,7 +33,7 @@
             </rollingPolicy>
             <encoder>
                 <!-- Raw JSON output, no extra formatting -->
-                <pattern>%msg%n</pattern>
+                <pattern>%redactedMsg%n</pattern>
             </encoder>
         </appender>
         

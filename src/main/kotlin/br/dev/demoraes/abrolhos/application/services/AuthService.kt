@@ -167,7 +167,7 @@ class AuthService(
         val rateLimitResult = rateLimitService.tryConsume(username.value, "auth:login")
         if (!rateLimitResult.isAllowed) {
             auditLogger.logRateLimitExceeded(clientIp, "auth:login:${username.value}")
-            metricsService.recordLoginFailure()
+            metricsService.recordLoginFailure("rate_limited")
             throw AuthenticationException("Too many login attempts. Try again later.")
         }
 
@@ -175,13 +175,13 @@ class AuthService(
         val user =
                 userRepository.findByUsername(username)
                         ?: run {
-                            metricsService.recordLoginFailure()
+                            metricsService.recordLoginFailure("invalid_user")
                             throw AuthenticationException("Invalid credentials")
                         }
 
         // Check user is active
         if (!user.isActive) {
-            metricsService.recordLoginFailure()
+            metricsService.recordLoginFailure("inactive_user")
             throw AuthenticationException("Invalid credentials")
         }
 
@@ -189,7 +189,7 @@ class AuthService(
         val currentHash =
                 user.passwordHash
                         ?: run {
-                            metricsService.recordLoginFailure()
+                            metricsService.recordLoginFailure("no_password")
                             throw AuthenticationException(
                                     "No password set. Please use the password reset flow to set your password."
                             )
@@ -198,7 +198,7 @@ class AuthService(
         // Verify password BEFORE TOTP to fail fast (Requirement 3.5, 12.2)
         if (!passwordService.verifyPassword(password, currentHash)) {
             auditLogger.logAuthenticationFailedInvalidPassword(username.value, clientIp)
-            metricsService.recordLoginFailure()
+            metricsService.recordLoginFailure("invalid_password")
             throw AuthenticationException("Invalid credentials")
         }
 
@@ -206,12 +206,12 @@ class AuthService(
         val secret =
                 user.totpSecret
                         ?: run {
-                            metricsService.recordLoginFailure()
+                            metricsService.recordLoginFailure("no_totp_secret")
                             throw AuthenticationException("Invalid credentials")
                         }
 
         if (!totpService.verifyCode(secret, totpCode)) {
-            metricsService.recordLoginFailure()
+            metricsService.recordLoginFailure("invalid_totp")
             throw AuthenticationException("Invalid credentials")
         }
 

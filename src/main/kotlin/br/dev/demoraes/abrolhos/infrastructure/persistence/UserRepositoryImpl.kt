@@ -19,7 +19,7 @@ import ulid.ULID
  */
 @Repository
 class UserRepositoryImpl(
-        private val userRepositoryPostgresql: UserRepositoryPostgresql,
+    private val userRepositoryPostgresql: UserRepositoryPostgresql,
 ) : UserRepository {
     private val logger = LoggerFactory.getLogger(UserRepositoryImpl::class.java)
 
@@ -46,42 +46,42 @@ class UserRepositoryImpl(
 }
 
 internal fun User.toEntity() =
-        UserEntity(
-                        username = this.username.value,
-                        totpSecret = this.totpSecret?.value,
-                        passwordHash = this.passwordHash?.value,
-                        isActive = this.isActive,
-                        role = this.role,
-                )
-                .apply {
-                    id = this@toEntity.id.toString()
-                    createdAt = this@toEntity.createdAt
-                    updatedAt = this@toEntity.updatedAt
-                }
+    UserEntity(
+        username = this.username.value,
+        totpSecret = this.totpSecret?.value,
+        passwordHash = this.passwordHash?.value,
+        isActive = this.isActive,
+        role = this.role,
+    )
+        .apply {
+            id = this@toEntity.id.toString()
+            createdAt = this@toEntity.createdAt
+            updatedAt = this@toEntity.updatedAt
+        }
 
 internal fun UserEntity.toDomain(): User {
     val createdAt =
-            this.createdAt
-                    ?: throw IllegalStateException(
-                            "UserEntity with id ${this.id} is missing a createdAt timestamp. " +
-                                    "This should not happen for a persisted entity.",
-                    )
+        this.createdAt
+            ?: throw IllegalStateException(
+                "UserEntity with id ${this.id} is missing a createdAt timestamp. " +
+                    "This should not happen for a persisted entity.",
+            )
 
     val updatedAt =
-            this.updatedAt
-                    ?: throw IllegalStateException(
-                            "UserEntity with id ${this.id} is missing an updatedAt timestamp. " +
-                                    "This should not happen for a persisted entity.",
-                    )
+        this.updatedAt
+            ?: throw IllegalStateException(
+                "UserEntity with id ${this.id} is missing an updatedAt timestamp. " +
+                    "This should not happen for a persisted entity.",
+            )
 
     return User(
-            id = ULID.parseULID(this.id),
-            username = Username(this.username),
-            totpSecret = this.totpSecret?.let { TotpSecret(it) },
-            passwordHash = this.passwordHash?.let { PasswordHash(it) },
-            isActive = this.isActive,
-            role = this.role,
-            createdAt = createdAt,
-            updatedAt = updatedAt,
+        id = ULID.parseULID(this.id),
+        username = Username(this.username),
+        totpSecret = this.totpSecret?.let { TotpSecret(it) },
+        passwordHash = this.passwordHash?.let { PasswordHash(it) },
+        isActive = this.isActive,
+        role = this.role,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
     )
 }

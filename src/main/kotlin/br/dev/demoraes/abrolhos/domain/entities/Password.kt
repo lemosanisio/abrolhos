@@ -29,9 +29,9 @@ value class PasswordHash(@get:JsonValue val value: String) {
     init {
         require(value.isNotBlank()) { "Password hash cannot be blank" }
         require(
-                value.startsWith("\$2a\$") ||
-                        value.startsWith("\$2b\$") ||
-                        value.startsWith("\$2y\$")
+            value.startsWith("\$2a\$") ||
+                value.startsWith("\$2b\$") ||
+                value.startsWith("\$2y\$")
         ) { "Password hash must be in bcrypt format" }
     }
 }

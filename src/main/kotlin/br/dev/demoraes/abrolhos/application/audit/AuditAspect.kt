@@ -13,27 +13,21 @@ import org.springframework.web.context.request.ServletRequestAttributes
 /**
  * AOP Aspect for auditing authentication-related operations.
  *
- * This aspect intercepts calls to AuthService methods and logs audit events
- * for login attempts, successes, failures, and account activations.
+ * This aspect intercepts calls to AuthService methods and logs audit events for login attempts,
+ * successes, failures, and account activations.
  *
  * Requirements:
  * - 5.1: Log login attempts with username, timestamp, IP, and outcome
  * - 5.2: Log account activations
  * - 5.3: Log authentication failures with reason
  */
-// TODO-USER(I dont know how that audit works, it seemed nice to have when kiro suggested)
 @Aspect
 @Component
-class AuditAspect(
-    private val auditLogger: AuditLogger
-) {
+class AuditAspect(private val auditLogger: AuditLogger) {
 
     private val logger = LoggerFactory.getLogger(AuditAspect::class.java)
 
-    /**
-     * Audit login attempts, successes, and failures.
-     * Requirement 5.1
-     */
+    /** Audit login attempts, successes, and failures. Requirement 5.1 */
     @Around("execution(* br.dev.demoraes.abrolhos.application.services.AuthService.login(..))")
     fun auditLogin(joinPoint: ProceedingJoinPoint): Any? {
         val args = joinPoint.args
@@ -57,11 +51,10 @@ class AuditAspect(
         }
     }
 
-    /**
-     * Audit account activation attempts.
-     * Requirement 5.2
-     */
-    @Around("execution(* br.dev.demoraes.abrolhos.application.services.AuthService.activateAccount(..))")
+    /** Audit account activation attempts. Requirement 5.2 */
+    @Around(
+            "execution(* br.dev.demoraes.abrolhos.application.services.AuthService.activateAccount(..))"
+    )
     fun auditActivation(joinPoint: ProceedingJoinPoint): Any? {
         val request = getHttpRequest()
         val clientIp = extractClientIp(request)
@@ -82,12 +75,11 @@ class AuditAspect(
         }
     }
 
-    /**
-     * Extract the HTTP request from the current request context.
-     */
+    /** Extract the HTTP request from the current request context. */
     private fun getHttpRequest(): HttpServletRequest? {
         return try {
-            val attributes = RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes
+            val attributes =
+                    RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes
             attributes?.request
         } catch (e: Exception) {
             logger.warn("Could not extract HTTP request from context: ${e.message}")
@@ -95,16 +87,8 @@ class AuditAspect(
         }
     }
 
-    /**
-     * Extract client IP address from request, considering X-Forwarded-For header.
-     */
+    /** Extract client IP address securely. */
     private fun extractClientIp(request: HttpServletRequest?): String {
-        if (request == null) {
-            return "unknown"
-        }
-
-        return request.getHeader("X-Forwarded-For")?.split(",")?.first()?.trim()
-            ?: request.remoteAddr
-            ?: "unknown"
+        return request?.remoteAddr ?: "unknown"
     }
 }

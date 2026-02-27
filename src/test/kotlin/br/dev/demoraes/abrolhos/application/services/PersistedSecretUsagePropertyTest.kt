@@ -15,10 +15,10 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.OffsetDateTime
-import java.util.Locale
 import org.junit.jupiter.api.Test
 import ulid.ULID
+import java.time.OffsetDateTime
+import java.util.Locale
 
 /**
  * Property-based test for persisted secret usage during account activation.
@@ -52,25 +52,25 @@ class PersistedSecretUsagePropertyTest {
 
     private val testPassword = PlaintextPassword("Test@1234Abc!")
     private val testHash =
-            PasswordHash("\$2a\$12\$abcdefghijklmnopqrstuvuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
+        PasswordHash("\$2a\$12\$abcdefghijklmnopqrstuvuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
 
     private fun buildAuthService(
-            userRepository: UserRepository,
-            inviteRepository: InviteRepository,
-            totpService: TotpService,
-            tokenService: TokenService,
-            passwordService: PasswordService,
+        userRepository: UserRepository,
+        inviteRepository: InviteRepository,
+        totpService: TotpService,
+        tokenService: TokenService,
+        passwordService: PasswordService,
     ) =
-            AuthService(
-                    userRepository,
-                    inviteRepository,
-                    totpService,
-                    passwordService,
-                    tokenService,
-                    mockk(relaxed = true),
-                    mockk(relaxed = true),
-                    mockk(relaxed = true),
-            )
+        AuthService(
+            userRepository,
+            inviteRepository,
+            totpService,
+            passwordService,
+            tokenService,
+            mockk(relaxed = true),
+            mockk(relaxed = true),
+            mockk(relaxed = true),
+        )
 
     /**
      * Property: For any invite with a persisted secret and any valid TOTP code, activateAccount
@@ -93,41 +93,41 @@ class PersistedSecretUsagePropertyTest {
             val tokenService: TokenService = mockk()
             val passwordService: PasswordService = mockk(relaxed = true)
             val authService =
-                    buildAuthService(
-                            userRepository,
-                            inviteRepository,
-                            totpService,
-                            tokenService,
-                            passwordService
-                    )
+                buildAuthService(
+                    userRepository,
+                    inviteRepository,
+                    totpService,
+                    tokenService,
+                    passwordService
+                )
 
             // Given: Create an invite with a persisted secret
             val token = InviteToken("a".repeat(64))
             val userId = ULID.nextULID()
             val persistedSecret = TotpSecret("PER${generateBase32Suffix(it)}")
             val invite =
-                    Invite(
-                            id = ULID.nextULID(),
-                            token = token,
-                            userId = userId,
-                            expiryDate = OffsetDateTime.now().plusDays(1),
-                            createdAt = OffsetDateTime.now(),
-                            totpSecret = persistedSecret // Secret is persisted
-                    )
+                Invite(
+                    id = ULID.nextULID(),
+                    token = token,
+                    userId = userId,
+                    expiryDate = OffsetDateTime.now().plusDays(1),
+                    createdAt = OffsetDateTime.now(),
+                    totpSecret = persistedSecret // Secret is persisted
+                )
 
             // Given: Create an inactive user
             val username = "testuser$it"
             val user =
-                    User(
-                            id = userId,
-                            username = Username(username),
-                            totpSecret = null,
-                            passwordHash = null,
-                            isActive = false,
-                            role = Role.USER,
-                            createdAt = OffsetDateTime.now(),
-                            updatedAt = OffsetDateTime.now()
-                    )
+                User(
+                    id = userId,
+                    username = Username(username),
+                    totpSecret = null,
+                    passwordHash = null,
+                    isActive = false,
+                    role = Role.USER,
+                    createdAt = OffsetDateTime.now(),
+                    updatedAt = OffsetDateTime.now()
+                )
 
             // Given: Create a valid TOTP code
             val totpCode = TotpCode(String.format(Locale.US, "%06d", it % 1000000))
@@ -151,12 +151,12 @@ class PersistedSecretUsagePropertyTest {
             // Then: The user should be saved with the persisted secret and password hash
             verify(exactly = 1) {
                 userRepository.save(
-                        match { savedUser ->
-                            savedUser.totpSecret == persistedSecret &&
-                                    savedUser.passwordHash == testHash &&
-                                    savedUser.isActive &&
-                                    savedUser.id == userId
-                        }
+                    match { savedUser ->
+                        savedUser.totpSecret == persistedSecret &&
+                            savedUser.passwordHash == testHash &&
+                            savedUser.isActive &&
+                            savedUser.id == userId
+                    }
                 )
             }
 
@@ -188,40 +188,40 @@ class PersistedSecretUsagePropertyTest {
             val tokenService: TokenService = mockk()
             val passwordService: PasswordService = mockk(relaxed = true)
             val authService =
-                    buildAuthService(
-                            userRepository,
-                            inviteRepository,
-                            totpService,
-                            tokenService,
-                            passwordService
-                    )
+                buildAuthService(
+                    userRepository,
+                    inviteRepository,
+                    totpService,
+                    tokenService,
+                    passwordService
+                )
 
             // Given: Create an invite WITHOUT a persisted secret
             val token = InviteToken("b".repeat(64))
             val userId = ULID.nextULID()
             val invite =
-                    Invite(
-                            id = ULID.nextULID(),
-                            token = token,
-                            userId = userId,
-                            expiryDate = OffsetDateTime.now().plusDays(1),
-                            createdAt = OffsetDateTime.now(),
-                            totpSecret = null // No secret persisted
-                    )
+                Invite(
+                    id = ULID.nextULID(),
+                    token = token,
+                    userId = userId,
+                    expiryDate = OffsetDateTime.now().plusDays(1),
+                    createdAt = OffsetDateTime.now(),
+                    totpSecret = null // No secret persisted
+                )
 
             // Given: Create an inactive user
             val username = "testuser$it"
             val user =
-                    User(
-                            id = userId,
-                            username = Username(username),
-                            totpSecret = null,
-                            passwordHash = null,
-                            isActive = false,
-                            role = Role.USER,
-                            createdAt = OffsetDateTime.now(),
-                            updatedAt = OffsetDateTime.now()
-                    )
+                User(
+                    id = userId,
+                    username = Username(username),
+                    totpSecret = null,
+                    passwordHash = null,
+                    isActive = false,
+                    role = Role.USER,
+                    createdAt = OffsetDateTime.now(),
+                    updatedAt = OffsetDateTime.now()
+                )
 
             // Given: Create a TOTP code
             val totpCode = TotpCode(String.format(Locale.US, "%06d", it % 1000000))
@@ -234,13 +234,13 @@ class PersistedSecretUsagePropertyTest {
 
             // When/Then: Activating the account should throw an exception
             val exception =
-                    org.junit.jupiter.api.assertThrows<IllegalStateException> {
-                        authService.activateAccount(token, testPassword, totpCode)
-                    }
+                org.junit.jupiter.api.assertThrows<IllegalStateException> {
+                    authService.activateAccount(token, testPassword, totpCode)
+                }
 
             // Then: The exception message should indicate the missing secret
             exception.message shouldBe
-                    "TOTP secret not found in invite. Invite must be validated first."
+                "TOTP secret not found in invite. Invite must be validated first."
 
             // Then: The user should NOT be saved
             verify(exactly = 0) { userRepository.save(any()) }
@@ -273,41 +273,41 @@ class PersistedSecretUsagePropertyTest {
             val tokenService: TokenService = mockk()
             val passwordService: PasswordService = mockk(relaxed = true)
             val authService =
-                    buildAuthService(
-                            userRepository,
-                            inviteRepository,
-                            totpService,
-                            tokenService,
-                            passwordService
-                    )
+                buildAuthService(
+                    userRepository,
+                    inviteRepository,
+                    totpService,
+                    tokenService,
+                    passwordService
+                )
 
             // Given: Create an invite with a persisted secret
             val token = InviteToken("c".repeat(64))
             val userId = ULID.nextULID()
             val persistedSecret = TotpSecret("PER${generateBase32Suffix(it)}")
             val invite =
-                    Invite(
-                            id = ULID.nextULID(),
-                            token = token,
-                            userId = userId,
-                            expiryDate = OffsetDateTime.now().plusDays(1),
-                            createdAt = OffsetDateTime.now(),
-                            totpSecret = persistedSecret
-                    )
+                Invite(
+                    id = ULID.nextULID(),
+                    token = token,
+                    userId = userId,
+                    expiryDate = OffsetDateTime.now().plusDays(1),
+                    createdAt = OffsetDateTime.now(),
+                    totpSecret = persistedSecret
+                )
 
             // Given: Create an inactive user
             val username = "testuser$it"
             val user =
-                    User(
-                            id = userId,
-                            username = Username(username),
-                            totpSecret = null,
-                            passwordHash = null,
-                            isActive = false,
-                            role = Role.USER,
-                            createdAt = OffsetDateTime.now(),
-                            updatedAt = OffsetDateTime.now()
-                    )
+                User(
+                    id = userId,
+                    username = Username(username),
+                    totpSecret = null,
+                    passwordHash = null,
+                    isActive = false,
+                    role = Role.USER,
+                    createdAt = OffsetDateTime.now(),
+                    updatedAt = OffsetDateTime.now()
+                )
 
             // Given: Create an invalid TOTP code
             val invalidTotpCode = TotpCode(String.format(Locale.US, "%06d", it % 1000000))
@@ -321,10 +321,11 @@ class PersistedSecretUsagePropertyTest {
 
             // When/Then: Activating the account should throw an exception
             val exception =
-                    org.junit.jupiter.api.assertThrows<
-                            br.dev.demoraes.abrolhos.domain.exceptions.InvalidTotpCodeException> {
-                        authService.activateAccount(token, testPassword, invalidTotpCode)
-                    }
+                org.junit.jupiter.api.assertThrows<
+                    br.dev.demoraes.abrolhos.domain.exceptions.InvalidTotpCodeException
+                    > {
+                    authService.activateAccount(token, testPassword, invalidTotpCode)
+                }
 
             // Then: The exception message should indicate invalid code
             exception.message shouldBe "Invalid TOTP code"

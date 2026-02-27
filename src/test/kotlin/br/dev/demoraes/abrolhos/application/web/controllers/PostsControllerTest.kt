@@ -24,7 +24,6 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.OffsetDateTime
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -41,298 +40,300 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import ulid.ULID
+import java.time.OffsetDateTime
 
 @WebMvcTest(PostsController::class)
 @Import(
-        SecurityConfig::class,
-        br.dev.demoraes.abrolhos.infrastructure.web.config.TestConfig::class,
-        PostsControllerTest.TestSecurityConfig::class
+    SecurityConfig::class,
+    br.dev.demoraes.abrolhos.infrastructure.web.config.TestConfig::class,
+    PostsControllerTest.TestSecurityConfig::class
 )
 class PostsControllerTest {
 
-        @Autowired private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var mockMvc: MockMvc
 
-        @MockkBean private lateinit var postService: PostService
+    @MockkBean private lateinit var postService: PostService
 
-        @Suppress("UnusedPrivateProperty")
-        @MockkBean
-        private lateinit var userRepository: UserRepository
+    @Suppress("UnusedPrivateProperty")
+    @MockkBean
+    private lateinit var userRepository: UserRepository
 
-        @Suppress("UnusedPrivateProperty")
-        @MockkBean
-        private lateinit var encryptionService:
-                br.dev.demoraes.abrolhos.application.services.EncryptionService
+    @Suppress("UnusedPrivateProperty")
+    @MockkBean
+    private lateinit var encryptionService:
+        br.dev.demoraes.abrolhos.application.services.EncryptionService
 
-        @Suppress("UnusedPrivateProperty")
-        @MockkBean
-        private lateinit var rateLimitService:
-                br.dev.demoraes.abrolhos.application.services.RateLimitService
+    @Suppress("UnusedPrivateProperty")
+    @MockkBean
+    private lateinit var rateLimitService:
+        br.dev.demoraes.abrolhos.application.services.RateLimitService
 
-        @Suppress("UnusedPrivateProperty")
-        @MockkBean
-        private lateinit var auditLogger: br.dev.demoraes.abrolhos.application.audit.AuditLogger
+    @Suppress("UnusedPrivateProperty")
+    @MockkBean
+    private lateinit var auditLogger: br.dev.demoraes.abrolhos.application.audit.AuditLogger
 
-        @Autowired private lateinit var objectMapper: ObjectMapper
+    @Autowired private lateinit var objectMapper: ObjectMapper
 
-        @org.springframework.boot.test.context.TestConfiguration
-        class TestSecurityConfig {
-                @org.springframework.context.annotation.Bean
-                @org.springframework.context.annotation.Primary
-                fun corsConfig(): br.dev.demoraes.abrolhos.infrastructure.web.config.CorsConfig {
-                        val mock =
-                                mockk<
-                                        br.dev.demoraes.abrolhos.infrastructure.web.config.CorsConfig>(
-                                        relaxed = true
-                                )
-                        every { mock.corsConfigurationSource() } returns mockk(relaxed = true)
-                        return mock
-                }
-        }
-
-        // -------------------------------------------------------------------------
-        // Helpers
-        // -------------------------------------------------------------------------
-
-        private fun makePost(slug: String = "post-slug"): Post {
-                val author =
-                        User(
-                                id = ULID.nextULID(),
-                                username = Username("author"),
-                                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
-                                passwordHash = null,
-                                isActive = true,
-                                role = Role.USER,
-                                createdAt = OffsetDateTime.now(),
-                                updatedAt = OffsetDateTime.now(),
-                        )
-                val category =
-                        Category(
-                                id = ULID.nextULID(),
-                                name = CategoryName("Category"),
-                                slug = CategorySlug("category"),
-                                posts = emptySet(),
-                                createdAt = OffsetDateTime.now(),
-                                updatedAt = OffsetDateTime.now(),
-                        )
-                return Post(
-                        id = ULID.nextULID(),
-                        author = author,
-                        title = PostTitle("Post Title"),
-                        slug = PostSlug(slug),
-                        content = PostContent("Full content"),
-                        status = PostStatus.PUBLISHED,
-                        category = category,
-                        tags = emptySet(),
-                        publishedAt = OffsetDateTime.now(),
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now(),
+    @org.springframework.boot.test.context.TestConfiguration
+    class TestSecurityConfig {
+        @org.springframework.context.annotation.Bean
+        @org.springframework.context.annotation.Primary
+        fun corsConfig(): br.dev.demoraes.abrolhos.infrastructure.web.config.CorsConfig {
+            val mock =
+                mockk<
+                    br.dev.demoraes.abrolhos.infrastructure.web.config.CorsConfig
+                    >(
+                    relaxed = true
                 )
+            every { mock.corsConfigurationSource() } returns mockk(relaxed = true)
+            return mock
         }
+    }
 
-        // -------------------------------------------------------------------------
-        // GET /api/posts
-        // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
-        @Test
-        fun `should search posts successfully`() {
-                val summary =
-                        object : PostSummary {
-                                override val id = ULID.nextULID().toString()
-                                override val authorUsername = "author"
-                                override val title = "Post Title"
-                                override val slug = "post-slug"
-                                override val categoryName = "Category"
-                                override val shortContent = "Short content"
-                                override val publishedAt = OffsetDateTime.now()
-                        }
-                val page: org.springframework.data.domain.Page<PostSummary> =
-                        PageImpl(listOf(summary))
-                every { postService.searchPostSummaries(any(), any(), any(), any()) } returns page
+    private fun makePost(slug: String = "post-slug"): Post {
+        val author =
+            User(
+                id = ULID.nextULID(),
+                username = Username("author"),
+                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                passwordHash = null,
+                isActive = true,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now(),
+            )
+        val category =
+            Category(
+                id = ULID.nextULID(),
+                name = CategoryName("Category"),
+                slug = CategorySlug("category"),
+                posts = emptySet(),
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now(),
+            )
+        return Post(
+            id = ULID.nextULID(),
+            author = author,
+            title = PostTitle("Post Title"),
+            slug = PostSlug(slug),
+            content = PostContent("Full content"),
+            status = PostStatus.PUBLISHED,
+            category = category,
+            tags = emptySet(),
+            publishedAt = OffsetDateTime.now(),
+            createdAt = OffsetDateTime.now(),
+            updatedAt = OffsetDateTime.now(),
+        )
+    }
 
-                mockMvc.perform(
-                                get("/api/posts")
-                                        .param("page", "0")
-                                        .param("size", "10")
-                                        .param("status", "PUBLISHED")
-                        )
-                        .andExpect(status().isOk)
-                        .andExpect(jsonPath("$.content[0].title").value("Post Title"))
-        }
+    // -------------------------------------------------------------------------
+    // GET /api/posts
+    // -------------------------------------------------------------------------
 
-        // -------------------------------------------------------------------------
-        // GET /api/posts/{slug}
-        // -------------------------------------------------------------------------
+    @Test
+    fun `should search posts successfully`() {
+        val summary =
+            object : PostSummary {
+                override val id = ULID.nextULID().toString()
+                override val authorUsername = "author"
+                override val title = "Post Title"
+                override val slug = "post-slug"
+                override val categoryName = "Category"
+                override val shortContent = "Short content"
+                override val publishedAt = OffsetDateTime.now()
+            }
+        val page: org.springframework.data.domain.Page<PostSummary> =
+            PageImpl(listOf(summary))
+        every { postService.searchPostSummaries(any(), any(), any(), any()) } returns page
 
-        @Test
-        fun `should get published post by slug without auth`() {
-                val post = makePost()
-                every { postService.findBySlugForUser("post-slug", null, null) } returns post
+        mockMvc.perform(
+            get("/api/posts")
+                .param("page", "0")
+                .param("size", "10")
+                .param("status", "PUBLISHED")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content[0].title").value("Post Title"))
+    }
 
-                mockMvc.perform(get("/api/posts/post-slug"))
-                        .andExpect(status().isOk)
-                        .andExpect(jsonPath("$.title").value("Post Title"))
-        }
+    // -------------------------------------------------------------------------
+    // GET /api/posts/{slug}
+    // -------------------------------------------------------------------------
 
-        @Test
-        @WithMockUser(username = "author", roles = ["USER"])
-        fun `should get draft post by slug as owner`() {
-                val post = makePost().copy(status = PostStatus.DRAFT, publishedAt = null)
-                every { postService.findBySlugForUser(eq("post-slug"), any(), any()) } returns post
+    @Test
+    fun `should get published post by slug without auth`() {
+        val post = makePost()
+        every { postService.findBySlugForUser("post-slug", null, null) } returns post
 
-                mockMvc.perform(get("/api/posts/post-slug")).andExpect(status().isOk)
-        }
+        mockMvc.perform(get("/api/posts/post-slug"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.title").value("Post Title"))
+    }
 
-        // -------------------------------------------------------------------------
-        // POST /api/posts
-        // -------------------------------------------------------------------------
+    @Test
+    @WithMockUser(username = "author", roles = ["USER"])
+    fun `should get draft post by slug as owner`() {
+        val post = makePost().copy(status = PostStatus.DRAFT, publishedAt = null)
+        every { postService.findBySlugForUser(eq("post-slug"), any(), any()) } returns post
 
-        @Test
-        @WithMockUser(username = "author")
-        fun `should create post successfully`() {
-                val request =
-                        CreatePostRequest(
-                                title = PostTitle("New Post"),
-                                content = PostContent("New content"),
-                                status = PostStatus.PUBLISHED,
-                                categoryName = CategoryName("Category"),
-                                tagNames = listOf(TagName("Tag")),
-                                authorUsername = Username("author"),
-                        )
-                val post = makePost("new-post").copy(title = PostTitle("New Post"))
-                every { postService.createPost(any(), any(), any(), any(), any(), any()) } returns
-                        post
+        mockMvc.perform(get("/api/posts/post-slug")).andExpect(status().isOk)
+    }
 
-                mockMvc.perform(
-                                post("/api/posts")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(objectMapper.writeValueAsString(request))
-                        )
-                        .andExpect(status().isCreated)
-                        .andExpect(jsonPath("$.slug").value("new-post"))
-        }
+    // -------------------------------------------------------------------------
+    // POST /api/posts
+    // -------------------------------------------------------------------------
 
-        // -------------------------------------------------------------------------
-        // PUT /api/posts/{slug}
-        // -------------------------------------------------------------------------
+    @Test
+    @WithMockUser(username = "author")
+    fun `should create post successfully`() {
+        val request =
+            CreatePostRequest(
+                title = PostTitle("New Post"),
+                content = PostContent("New content"),
+                status = PostStatus.PUBLISHED,
+                categoryName = CategoryName("Category"),
+                tagNames = listOf(TagName("Tag")),
+                authorUsername = Username("author"),
+            )
+        val post = makePost("new-post").copy(title = PostTitle("New Post"))
+        every { postService.createPost(any(), any(), any(), any(), any(), any()) } returns
+            post
 
-        @Test
-        @WithMockUser(username = "author", roles = ["USER"])
-        fun `should update post successfully as owner`() {
-                val updatedPost = makePost()
-                every {
-                        postService.updatePost(
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any()
-                        )
-                } returns updatedPost
+        mockMvc.perform(
+            post("/api/posts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.slug").value("new-post"))
+    }
 
-                val body = mapOf("content" to "Updated content")
-                mockMvc.perform(
-                                put("/api/posts/post-slug")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(objectMapper.writeValueAsString(body))
-                        )
-                        .andExpect(status().isOk)
-        }
+    // -------------------------------------------------------------------------
+    // PUT /api/posts/{slug}
+    // -------------------------------------------------------------------------
 
-        @Test
-        fun `should return 403 for PUT without authentication`() {
-                mockMvc.perform(
-                                put("/api/posts/post-slug")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content("{}")
-                        )
-                        .andExpect(status().isForbidden)
-        }
+    @Test
+    @WithMockUser(username = "author", roles = ["USER"])
+    fun `should update post successfully as owner`() {
+        val updatedPost = makePost()
+        every {
+            postService.updatePost(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } returns updatedPost
 
-        @Test
-        @WithMockUser(username = "other", roles = ["USER"])
-        fun `should return 403 for PUT when not post owner`() {
-                every {
-                        postService.updatePost(
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any()
-                        )
-                } throws AccessDeniedException("Access denied")
+        val body = mapOf("content" to "Updated content")
+        mockMvc.perform(
+            put("/api/posts/post-slug")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(body))
+        )
+            .andExpect(status().isOk)
+    }
 
-                mockMvc.perform(
-                                put("/api/posts/post-slug")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content("{}")
-                        )
-                        .andExpect(status().isForbidden)
-        }
+    @Test
+    fun `should return 403 for PUT without authentication`() {
+        mockMvc.perform(
+            put("/api/posts/post-slug")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+        )
+            .andExpect(status().isForbidden)
+    }
 
-        @Test
-        @WithMockUser(username = "admin", roles = ["ADMIN"])
-        fun `should update post successfully as admin`() {
-                val updatedPost = makePost()
-                every {
-                        postService.updatePost(
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any(),
-                                any()
-                        )
-                } returns updatedPost
+    @Test
+    @WithMockUser(username = "other", roles = ["USER"])
+    fun `should return 403 for PUT when not post owner`() {
+        every {
+            postService.updatePost(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } throws AccessDeniedException("Access denied")
 
-                mockMvc.perform(
-                                put("/api/posts/post-slug")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content("{}")
-                        )
-                        .andExpect(status().isOk)
-        }
+        mockMvc.perform(
+            put("/api/posts/post-slug")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+        )
+            .andExpect(status().isForbidden)
+    }
 
-        // -------------------------------------------------------------------------
-        // DELETE /api/posts/{slug}
-        // -------------------------------------------------------------------------
+    @Test
+    @WithMockUser(username = "admin", roles = ["ADMIN"])
+    fun `should update post successfully as admin`() {
+        val updatedPost = makePost()
+        every {
+            postService.updatePost(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } returns updatedPost
 
-        @Test
-        @WithMockUser(username = "author", roles = ["USER"])
-        fun `should delete post successfully as owner`() {
-                every { postService.deletePost(any(), any(), any()) } returns Unit
+        mockMvc.perform(
+            put("/api/posts/post-slug")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+        )
+            .andExpect(status().isOk)
+    }
 
-                mockMvc.perform(delete("/api/posts/post-slug")).andExpect(status().isNoContent)
+    // -------------------------------------------------------------------------
+    // DELETE /api/posts/{slug}
+    // -------------------------------------------------------------------------
 
-                verify { postService.deletePost("post-slug", "author", any()) }
-        }
+    @Test
+    @WithMockUser(username = "author", roles = ["USER"])
+    fun `should delete post successfully as owner`() {
+        every { postService.deletePost(any(), any(), any()) } returns Unit
 
-        @Test
-        fun `should return 403 for DELETE without authentication`() {
-                mockMvc.perform(delete("/api/posts/post-slug")).andExpect(status().isForbidden)
-        }
+        mockMvc.perform(delete("/api/posts/post-slug")).andExpect(status().isNoContent)
 
-        @Test
-        @WithMockUser(username = "other", roles = ["USER"])
-        fun `should return 403 for DELETE when not post owner`() {
-                every { postService.deletePost(any(), any(), any()) } throws
-                        AccessDeniedException("Access denied")
+        verify { postService.deletePost("post-slug", "author", any()) }
+    }
 
-                mockMvc.perform(delete("/api/posts/post-slug")).andExpect(status().isForbidden)
-        }
+    @Test
+    fun `should return 403 for DELETE without authentication`() {
+        mockMvc.perform(delete("/api/posts/post-slug")).andExpect(status().isForbidden)
+    }
 
-        @Test
-        @WithMockUser(username = "admin", roles = ["ADMIN"])
-        fun `should delete post successfully as admin`() {
-                every { postService.deletePost(any(), any(), any()) } returns Unit
+    @Test
+    @WithMockUser(username = "other", roles = ["USER"])
+    fun `should return 403 for DELETE when not post owner`() {
+        every { postService.deletePost(any(), any(), any()) } throws
+            AccessDeniedException("Access denied")
 
-                mockMvc.perform(delete("/api/posts/post-slug")).andExpect(status().isNoContent)
-        }
+        mockMvc.perform(delete("/api/posts/post-slug")).andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = ["ADMIN"])
+    fun `should delete post successfully as admin`() {
+        every { postService.deletePost(any(), any(), any()) } returns Unit
+
+        mockMvc.perform(delete("/api/posts/post-slug")).andExpect(status().isNoContent)
+    }
 }

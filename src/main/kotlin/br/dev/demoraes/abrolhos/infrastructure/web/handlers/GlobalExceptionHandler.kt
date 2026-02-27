@@ -154,4 +154,42 @@ class GlobalExceptionHandler {
                                 )
                         )
         }
+
+        @ExceptionHandler(org.springframework.security.access.AccessDeniedException::class)
+        fun handleAccessDeniedException(
+                e: org.springframework.security.access.AccessDeniedException
+        ): ResponseEntity<ErrorResponse> {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(
+                                ErrorResponse(
+                                        e.message ?: "Access denied",
+                                        HttpStatus.FORBIDDEN.value()
+                                )
+                        )
+        }
+
+        @ExceptionHandler(Exception::class)
+        fun handleGenericException(
+                e: Exception,
+                request: jakarta.servlet.http.HttpServletRequest
+        ): ResponseEntity<ErrorResponse> {
+                val correlationId = org.slf4j.MDC.get("correlationId")
+                org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
+                        .error(
+                                "Unhandled exception during request processing | CorrelationId: {}, Type: {}, Message: {}",
+                                correlationId,
+                                e.javaClass.name,
+                                e.message,
+                                e
+                        )
+
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(
+                                ErrorResponse(
+                                        "Internal server error",
+                                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                        correlationId
+                                )
+                        )
+        }
 }

@@ -40,7 +40,7 @@ class AuthController(private val authService: AuthService) {
     fun validateInvite(@PathVariable token: String): InviteValidationResponse {
         logger.info("Received request to validate invite token")
         val details = authService.validateInvite(InviteToken(token))
-        logger.info("Invite token validated successfully for username: ${details.username}")
+        logger.info("Invite token validated successfully")
         return InviteValidationResponse(details.username, details.provisioningUri)
     }
 
@@ -50,7 +50,7 @@ class AuthController(private val authService: AuthService) {
             @RequestBody @Valid request: ActivateAccountRequest,
             httpRequest: HttpServletRequest,
     ): AuthResponse {
-        logger.info("Received request to activate account with invite token")
+        logger.info("Received request to activate account")
         val token =
                 authService.activateAccount(
                         InviteToken(request.inviteToken),
@@ -67,7 +67,7 @@ class AuthController(private val authService: AuthService) {
             @RequestBody @Valid request: LoginRequest,
             httpRequest: HttpServletRequest,
     ): AuthResponse {
-        logger.info("Received login request for username: ${request.username}")
+        logger.info("Received login request")
         val clientIp = httpRequest.remoteAddr ?: "unknown"
         val token =
                 authService.login(
@@ -76,7 +76,7 @@ class AuthController(private val authService: AuthService) {
                         TotpCode(request.totpCode),
                         clientIp,
                 )
-        logger.info("Login successful for username: ${request.username}")
+        logger.info("Login successful")
         return AuthResponse(token)
     }
 

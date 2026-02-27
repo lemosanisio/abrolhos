@@ -14,14 +14,14 @@ import br.dev.demoraes.abrolhos.domain.exceptions.PasswordResetTokenNotFoundExce
 import br.dev.demoraes.abrolhos.domain.repository.PasswordResetTokenRepository
 import br.dev.demoraes.abrolhos.domain.repository.UserRepository
 import io.micrometer.core.instrument.MeterRegistry
-import java.security.SecureRandom
-import java.time.OffsetDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import ulid.ULID
+import java.security.SecureRandom
+import java.time.OffsetDateTime
 
 /**
  * Service responsible for all password-related operations.
@@ -37,14 +37,14 @@ import ulid.ULID
  */
 @Service
 class PasswordService(
-        private val passwordEncoder: PasswordEncoder,
-        private val passwordResetTokenRepository: PasswordResetTokenRepository,
-        private val userRepository: UserRepository,
-        private val auditLogger: AuditLogger,
-        private val rateLimitService: RateLimitService,
-        private val meterRegistry: MeterRegistry,
-        private val passwordProperties: PasswordProperties,
-        private val secureRandom: SecureRandom,
+    private val passwordEncoder: PasswordEncoder,
+    private val passwordResetTokenRepository: PasswordResetTokenRepository,
+    private val userRepository: UserRepository,
+    private val auditLogger: AuditLogger,
+    private val rateLimitService: RateLimitService,
+    private val meterRegistry: MeterRegistry,
+    private val passwordProperties: PasswordProperties,
+    private val secureRandom: SecureRandom,
 ) {
     private val logger = LoggerFactory.getLogger(PasswordService::class.java)
 
@@ -85,10 +85,10 @@ class PasswordService(
             violations += "Password must contain at least one digit"
         }
         if (passwordProperties.requireSpecialChar &&
-                        value.none { it in passwordProperties.specialChars }
+            value.none { it in passwordProperties.specialChars }
         ) {
             violations +=
-                    "Password must contain at least one special character (${passwordProperties.specialChars})"
+                "Password must contain at least one special character (${passwordProperties.specialChars})"
         }
 
         return violations
@@ -118,7 +118,7 @@ class PasswordService(
         recordOperationMetrics("password.hash", duration)
         if (duration > PERFORMANCE_THRESHOLD_MS) {
             logger.warn(
-                    "Password hashing took ${duration}ms, exceeding threshold of ${PERFORMANCE_THRESHOLD_MS}ms"
+                "Password hashing took ${duration}ms, exceeding threshold of ${PERFORMANCE_THRESHOLD_MS}ms"
             )
         }
 
@@ -140,7 +140,7 @@ class PasswordService(
         recordOperationMetrics("password.verify", duration)
         if (duration > PERFORMANCE_THRESHOLD_MS) {
             logger.warn(
-                    "Password verification took ${duration}ms, exceeding threshold of ${PERFORMANCE_THRESHOLD_MS}ms"
+                "Password verification took ${duration}ms, exceeding threshold of ${PERFORMANCE_THRESHOLD_MS}ms"
             )
         }
 
@@ -168,19 +168,19 @@ class PasswordService(
      */
     @Transactional
     fun changePassword(
-            userId: ULID,
-            currentPassword: PlaintextPassword,
-            newPassword: PlaintextPassword,
-            currentHash: PasswordHash,
-            clientIp: String = "unknown",
+        userId: ULID,
+        currentPassword: PlaintextPassword,
+        newPassword: PlaintextPassword,
+        currentHash: PasswordHash,
+        clientIp: String = "unknown",
     ): PasswordHash {
         // Rate limiting
         val rateLimitResult =
-                rateLimitService.tryConsume(userId.toString(), RATE_LIMIT_ENDPOINT_CHANGE)
+            rateLimitService.tryConsume(userId.toString(), RATE_LIMIT_ENDPOINT_CHANGE)
         if (!rateLimitResult.isAllowed) {
             auditLogger.logRateLimitExceeded(clientIp, RATE_LIMIT_ENDPOINT_CHANGE)
             throw br.dev.demoraes.abrolhos.domain.exceptions.PasswordResetException(
-                    "Too many password change attempts. Try again later."
+                "Too many password change attempts. Try again later."
             )
         }
 
@@ -228,16 +228,16 @@ class PasswordService(
      */
     @Transactional
     fun generateResetToken(
-            userId: ULID,
-            username: Username,
-            clientIp: String = "unknown",
+        userId: ULID,
+        username: Username,
+        clientIp: String = "unknown",
     ): PasswordResetToken {
         // Rate limiting by username
         val rateLimitResult = rateLimitService.tryConsume(username.value, RATE_LIMIT_ENDPOINT_RESET)
         if (!rateLimitResult.isAllowed) {
             auditLogger.logRateLimitExceeded(clientIp, RATE_LIMIT_ENDPOINT_RESET)
             throw br.dev.demoraes.abrolhos.domain.exceptions.PasswordResetException(
-                    "Too many password reset requests. Try again later."
+                "Too many password reset requests. Try again later."
             )
         }
 
@@ -247,13 +247,13 @@ class PasswordService(
         val token = generateSecureToken()
         val now = OffsetDateTime.now()
         val entity =
-                PasswordResetTokenEntity(
-                        id = ULID.parseULID(ULID.randomULID()),
-                        userId = userId,
-                        token = token,
-                        expiresAt = now.plusHours(passwordProperties.resetTokenExpiryHours),
-                        createdAt = now,
-                )
+            PasswordResetTokenEntity(
+                id = ULID.parseULID(ULID.randomULID()),
+                userId = userId,
+                token = token,
+                expiresAt = now.plusHours(passwordProperties.resetTokenExpiryHours),
+                createdAt = now,
+            )
         passwordResetTokenRepository.save(entity)
 
         auditLogger.logPasswordResetRequested(username.value, clientIp)
@@ -275,13 +275,13 @@ class PasswordService(
      */
     @Transactional
     fun resetPassword(
-            token: PasswordResetToken,
-            newPassword: PlaintextPassword,
-            clientIp: String = "unknown",
+        token: PasswordResetToken,
+        newPassword: PlaintextPassword,
+        clientIp: String = "unknown",
     ): ULID {
         val tokenEntity =
-                passwordResetTokenRepository.findByToken(token)
-                        ?: throw PasswordResetTokenNotFoundException()
+            passwordResetTokenRepository.findByToken(token)
+                ?: throw PasswordResetTokenNotFoundException()
 
         if (tokenEntity.isExpired()) {
             passwordResetTokenRepository.deleteById(tokenEntity.id)
@@ -297,10 +297,10 @@ class PasswordService(
 
         // Persist the new password hash on the user
         val user =
-                userRepository.findById(tokenEntity.userId)
-                        ?: throw br.dev.demoraes.abrolhos.domain.exceptions.PasswordResetException(
-                                "User not found for password reset"
-                        )
+            userRepository.findById(tokenEntity.userId)
+                ?: throw br.dev.demoraes.abrolhos.domain.exceptions.PasswordResetException(
+                    "User not found for password reset"
+                )
         userRepository.save(user.copy(passwordHash = newHash))
 
         // Invalidate the token (single-use)
@@ -350,7 +350,7 @@ class PasswordService(
 
     private fun recordOperationMetrics(operation: String, durationMs: Long) {
         meterRegistry
-                .timer(operation)
-                .record(durationMs, java.util.concurrent.TimeUnit.MILLISECONDS)
+            .timer(operation)
+            .record(durationMs, java.util.concurrent.TimeUnit.MILLISECONDS)
     }
 }

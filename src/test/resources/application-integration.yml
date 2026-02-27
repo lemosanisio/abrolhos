@@ -48,3 +48,6 @@ logging:
     root: WARN
     br.dev.demoraes.abrolhos: INFO
     org.testcontainers: INFO
+
+server:
+  forward-headers-strategy: framework

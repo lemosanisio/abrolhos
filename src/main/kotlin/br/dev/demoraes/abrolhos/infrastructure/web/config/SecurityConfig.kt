@@ -3,6 +3,7 @@ package br.dev.demoraes.abrolhos.infrastructure.web.config
 import br.dev.demoraes.abrolhos.infrastructure.web.filters.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -26,12 +27,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  *    - All other endpoints require authentication.
  * ```
  * 5. If authorized, the request proceeds to the specific Controller.
+ * 6. In the prod profile, requests on HTTP are redirected to HTTPS.
  */
 @Configuration
 @EnableMethodSecurity
 class SecurityConfig(
         private val jwtAuthenticationFilter: JwtAuthenticationFilter,
         private val corsConfig: CorsConfig,
+        private val environment: Environment,
 ) {
 
     @Bean
@@ -49,9 +52,14 @@ class SecurityConfig(
                 authorize("/api/posts/**", permitAll)
                 authorize("/api/password/reset/request", permitAll)
                 authorize("/api/password/reset/confirm", permitAll)
-                authorize("/actuator/**", permitAll)
+                authorize("/actuator/health", permitAll)
+                authorize("/actuator/health/**", permitAll)
+                authorize("/actuator/**", hasRole("ADMIN"))
                 authorize("/error", permitAll)
                 authorize(anyRequest, authenticated)
+            }
+            if (environment.activeProfiles.contains("prod")) {
+                requiresChannel { secure(anyRequest, requiresSecure) }
             }
             sessionManagement { sessionCreationPolicy = SessionCreationPolicy.STATELESS }
             csrf { disable() }

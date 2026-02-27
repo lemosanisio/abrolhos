@@ -7,17 +7,16 @@ import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import io.kotest.matchers.shouldBe
+import kotlin.random.Random
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
-import kotlin.random.Random
 
 /**
  * Property-based test for diagnostic logging completeness in TotpService.
  *
- * **Property 10: Diagnostic Logging Completeness**
- * **Validates: Requirements 1.1, 1.2, 1.3, 1.4**
+ * **Property 10: Diagnostic Logging Completeness** **Validates: Requirements 1.1, 1.2, 1.3, 1.4**
  *
  * This test verifies that all required diagnostic information is logged when TOTP operations occur:
  * - Requirement 1.1: Log first 8 characters of Base32-encoded secret
@@ -47,9 +46,11 @@ class TotpServiceDiagnosticLoggingTest {
     }
 
     /**
-     * Property: For any valid TOTP secret and code, verifyCode() must log all required diagnostic information.
+     * Property: For any valid TOTP secret and code, verifyCode() must log all required diagnostic
+     * information.
      *
-     * This property verifies that the logging is complete regardless of whether the code is valid or invalid.
+     * This property verifies that the logging is complete regardless of whether the code is valid
+     * or invalid.
      */
     @Suppress("LoopWithTooManyJumpStatements", "CyclomaticComplexMethod")
     @Test
@@ -65,21 +66,18 @@ class TotpServiceDiagnosticLoggingTest {
 
             // Generate random Base32 secret (16-32 chars)
             val secretLength = Random.nextInt(16, 33)
-            val secretValue = (1..secretLength)
-                .map { base32Chars.random() }
-                .joinToString("")
+            val secretValue = (1..secretLength).map { base32Chars.random() }.joinToString("")
 
             // Try to create the secret - if validation fails, skip this iteration
-            val secret = try {
-                TotpSecret(secretValue)
-            } catch (@Suppress("SwallowedException") e: IllegalArgumentException) {
-                continue
-            }
+            val secret =
+                    try {
+                        TotpSecret(secretValue)
+                    } catch (@Suppress("SwallowedException") e: IllegalArgumentException) {
+                        continue
+                    }
 
             // Generate random 6-digit code
-            val codeValue = (1..6)
-                .map { Random.nextInt(0, 10) }
-                .joinToString("")
+            val codeValue = (1..6).map { Random.nextInt(0, 10) }.joinToString("")
             val code = TotpCode(codeValue)
 
             // Clear previous logs
@@ -114,57 +112,63 @@ class TotpServiceDiagnosticLoggingTest {
     }
 
     private fun hasRequiredLogs(
-        logMessages: List<String>,
-        secret: TotpSecret,
-        timestampBefore: Long,
-        timestampAfter: Long
+            logMessages: List<String>,
+            secret: TotpSecret,
+            timestampBefore: Long,
+            timestampAfter: Long
     ): Boolean {
-        // Requirement 1.1: Log first 8 characters of secret
-        val secretPrefix = secret.value.take(8)
-        val hasSecretLog = logMessages.any {
-            it.contains("Secret (first 8 chars): $secretPrefix")
-        }
+        // Requirement 1.1: Log that secret was generated/verified without leaking it
+        val hasSecretLog = logMessages.any { it.contains("Verifying TOTP code") }
 
         // Requirement 1.2: Log byte count of decoded result
-        val hasByteCountLog = logMessages.any {
-            it.contains("Decoded byte count:") && it.matches(Regex(".*Decoded byte count: \\d+.*"))
-        }
+        val hasByteCountLog =
+                logMessages.any {
+                    it.contains("Decoded byte count:") &&
+                            it.matches(Regex(".*Decoded byte count: \\d+.*"))
+                }
 
         // Requirement 1.3: Log system timestamp in epoch milliseconds
-        val hasTimestampLog = logMessages.any { message ->
-            if (message.contains("System timestamp:")) {
-                // Extract the timestamp from the log message
-                val timestampMatch = Regex("System timestamp: (\\d+)").find(message)
-                if (timestampMatch != null) {
-                    val loggedTimestamp = timestampMatch.groupValues[1].toLong()
-                    // Verify it's within the time range of the test execution
-                    loggedTimestamp in timestampBefore..timestampAfter
-                } else {
-                    false
+        val hasTimestampLog =
+                logMessages.any { message ->
+                    if (message.contains("System timestamp:")) {
+                        // Extract the timestamp from the log message
+                        val timestampMatch = Regex("System timestamp: (\\d+)").find(message)
+                        if (timestampMatch != null) {
+                            val loggedTimestamp = timestampMatch.groupValues[1].toLong()
+                            // Verify it's within the time range of the test execution
+                            loggedTimestamp in timestampBefore..timestampAfter
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
                 }
-            } else {
-                false
-            }
-        }
 
         // Requirement 1.4: Log codes for previous, current, and next windows
-        val hasWindowCodesLog = logMessages.any {
-            it.contains("Generated codes - Previous:") &&
-                it.contains("Current:") &&
-                it.contains("Next:")
-        }
+        val hasWindowCodesLog =
+                logMessages.any {
+                    it.contains("Generated codes - Previous:") &&
+                            it.contains("Current:") &&
+                            it.contains("Next:")
+                }
 
         // Verify the window codes are 6-digit numbers
-        val windowCodesMessage = logMessages.find {
-            it.contains("Generated codes - Previous:")
-        }
-        val windowCodesValid = windowCodesMessage != null && listOf(
-            windowCodesMessage.contains("Previous:"),
-            windowCodesMessage.contains("Current:"),
-            windowCodesMessage.contains("Next:")
-        ).all { it }
+        val windowCodesMessage = logMessages.find { it.contains("Generated codes - Previous:") }
+        val windowCodesValid =
+                windowCodesMessage != null &&
+                        listOf(
+                                        windowCodesMessage.contains("Previous:"),
+                                        windowCodesMessage.contains("Current:"),
+                                        windowCodesMessage.contains("Next:")
+                                )
+                                .all { it }
 
-        return hasSecretLog && hasByteCountLog && hasTimestampLog && hasWindowCodesLog && windowCodesValid
+        return hasSecretLog &&
+                hasByteCountLog &&
+                hasTimestampLog &&
+                hasWindowCodesLog &&
+                windowCodesValid
     }
 
     /**
@@ -183,11 +187,7 @@ class TotpServiceDiagnosticLoggingTest {
 
             // Then: Verify the first 8 characters are logged
             val logMessages = logAppender.list.map { it.formattedMessage }
-            val secretPrefix = secret.value.take(8)
-
-            val hasSecretLog = logMessages.any {
-                it.contains("Generated TOTP secret (first 8 chars): $secretPrefix")
-            }
+            val hasSecretLog = logMessages.any { it.contains("Generated new TOTP secret") }
             hasSecretLog shouldBe true
         }
     }
@@ -197,8 +197,8 @@ class TotpServiceDiagnosticLoggingTest {
      *
      * This verifies Requirement 1.6 for error logging.
      *
-     * Note: We use valid Base32 characters but create secrets that may fail during decoding
-     * due to length or padding issues.
+     * Note: We use valid Base32 characters but create secrets that may fail during decoding due to
+     * length or padding issues.
      */
     @Test
     fun `property - verifyCode logs exception details when Base32 decoding fails`() {
@@ -208,21 +208,18 @@ class TotpServiceDiagnosticLoggingTest {
         repeat(50) {
             // Generate random short secret (2-7 chars) that might cause decoding issues
             val secretLength = Random.nextInt(2, 8)
-            val secretValue = (1..secretLength)
-                .map { base32Chars.random() }
-                .joinToString("")
+            val secretValue = (1..secretLength).map { base32Chars.random() }.joinToString("")
 
             // Try to create the secret - if validation fails, skip this iteration
-            val secret = try {
-                TotpSecret(secretValue)
-            } catch (@Suppress("SwallowedException") e: IllegalArgumentException) {
-                return@repeat
-            }
+            val secret =
+                    try {
+                        TotpSecret(secretValue)
+                    } catch (@Suppress("SwallowedException") e: IllegalArgumentException) {
+                        return@repeat
+                    }
 
             // Generate random 6-digit code
-            val codeValue = (1..6)
-                .map { Random.nextInt(0, 10) }
-                .joinToString("")
+            val codeValue = (1..6).map { Random.nextInt(0, 10) }.joinToString("")
             val code = TotpCode(codeValue)
 
             // Clear previous logs
@@ -234,16 +231,11 @@ class TotpServiceDiagnosticLoggingTest {
             // Then: Check if exception was logged (only if decoding actually failed)
             val logMessages = logAppender.list.map { it.formattedMessage }
 
-            val hasExceptionLog = logMessages.any {
-                it.contains("TOTP verification exception:")
-            }
+            val hasExceptionLog = logMessages.any { it.contains("TOTP verification exception:") }
 
             // If exception was logged, verify the secret was also logged
             if (hasExceptionLog) {
-                val secretPrefix = secret.value.take(8)
-                val hasFailedSecretLog = logMessages.any {
-                    it.contains("Failed to decode secret (first 8 chars): $secretPrefix")
-                }
+                val hasFailedSecretLog = logMessages.any { it.contains("Failed to decode secret") }
                 hasFailedSecretLog shouldBe true
             }
         }

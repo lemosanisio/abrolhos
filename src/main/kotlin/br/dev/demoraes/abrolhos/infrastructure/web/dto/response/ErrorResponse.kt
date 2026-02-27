@@ -1,4 +1,10 @@
 package br.dev.demoraes.abrolhos.infrastructure.web.dto.response
 
-// TODO-USER(Can i make it inherit ErrorResponse? Will do some research later, dont know what it does)
-data class ErrorResponse(val message: String, val status: Int)
+import java.time.Instant
+
+data class ErrorResponse(
+        val message: String,
+        val status: Int,
+        val correlationId: String? = null,
+        val timestamp: Instant = Instant.now()
+)

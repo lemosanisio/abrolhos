@@ -13,17 +13,17 @@ import java.time.OffsetDateTime
  */
 @Entity
 @Table(
-        name = "password_reset_tokens",
-        indexes =
-                [
-                        Index(name = "idx_password_reset_token", columnList = "token"),
-                        Index(name = "idx_password_reset_expires_at", columnList = "expires_at"),
-                        Index(name = "idx_password_reset_user_id", columnList = "user_id"),
-                ]
+    name = "password_reset_tokens",
+    indexes =
+    [
+        Index(name = "idx_password_reset_token", columnList = "token"),
+        Index(name = "idx_password_reset_expires_at", columnList = "expires_at"),
+        Index(name = "idx_password_reset_user_id", columnList = "user_id"),
+    ]
 )
 open class PasswordResetTokenJpaEntity(
-        @Column(name = "user_id", nullable = false, length = 26) open var userId: String,
-        @Column(name = "token", nullable = false, unique = true, length = 64)
-        open var token: String,
-        @Column(name = "expires_at", nullable = false) open var expiresAt: OffsetDateTime,
+    @Column(name = "user_id", nullable = false, length = 26) open var userId: String,
+    @Column(name = "token", nullable = false, unique = true, length = 64)
+    open var token: String,
+    @Column(name = "expires_at", nullable = false) open var expiresAt: OffsetDateTime,
 ) : BaseEntity()

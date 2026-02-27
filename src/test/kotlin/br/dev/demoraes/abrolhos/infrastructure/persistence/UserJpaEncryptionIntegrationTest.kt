@@ -44,16 +44,16 @@ class UserJpaEncryptionIntegrationTest {
     fun setup() {
         // Create security properties with a test encryption key
         val securityProperties =
-                SecurityProperties().apply {
-                    // Generate a proper 32-byte (256-bit) key for testing
-                    encryption.key =
-                            "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=" // Base64 encoded 32-byte
-                    // key
-                    encryption.oldKeys = ""
-                    cors.allowedOrigins = "http://localhost:3000"
-                    rateLimit.maxRequests = 5
-                    rateLimit.windowMinutes = 15
-                }
+            SecurityProperties().apply {
+                // Generate a proper 32-byte (256-bit) key for testing
+                encryption.key =
+                    "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=" // Base64 encoded 32-byte
+                // key
+                encryption.oldKeys = ""
+                cors.allowedOrigins = "http://localhost:3000"
+                rateLimit.maxRequests = 5
+                rateLimit.windowMinutes = 15
+            }
 
         // Create encryption service
         val meterRegistry = SimpleMeterRegistry()
@@ -79,14 +79,14 @@ class UserJpaEncryptionIntegrationTest {
         val plaintextSecret = "JBSWY3DPEHPK3PXP"
         val userId = ULID.randomULID().toString()
         val user =
-                UserEntity(
-                                username = "testuser",
-                                totpSecret = plaintextSecret,
-                                passwordHash = null,
-                                isActive = true,
-                                role = Role.USER
-                        )
-                        .apply { id = userId }
+            UserEntity(
+                username = "testuser",
+                totpSecret = plaintextSecret,
+                passwordHash = null,
+                isActive = true,
+                role = Role.USER
+            )
+                .apply { id = userId }
 
         // When: Simulate saving to database (converter encrypts the value)
         val encryptedValueInDb = converter.convertToDatabaseColumn(user.totpSecret)
@@ -117,14 +117,14 @@ class UserJpaEncryptionIntegrationTest {
         // Given: A User entity with null TOTP secret
         val userId = ULID.randomULID().toString()
         val user =
-                UserEntity(
-                                username = "userwithoutotp",
-                                totpSecret = null,
-                                passwordHash = null,
-                                isActive = true,
-                                role = Role.USER
-                        )
-                        .apply { id = userId }
+            UserEntity(
+                username = "userwithoutotp",
+                totpSecret = null,
+                passwordHash = null,
+                isActive = true,
+                role = Role.USER
+            )
+                .apply { id = userId }
 
         // When: Simulate saving to database (converter handles null)
         val encryptedValue = converter.convertToDatabaseColumn(user.totpSecret)
@@ -153,14 +153,14 @@ class UserJpaEncryptionIntegrationTest {
         val initialSecret = "JBSWY3DPEHPK3PXP"
         val userId = ULID.randomULID().toString()
         val user =
-                UserEntity(
-                                username = "updateuser",
-                                totpSecret = initialSecret,
-                                passwordHash = null,
-                                isActive = true,
-                                role = Role.USER
-                        )
-                        .apply { id = userId }
+            UserEntity(
+                username = "updateuser",
+                totpSecret = initialSecret,
+                passwordHash = null,
+                isActive = true,
+                role = Role.USER
+            )
+                .apply { id = userId }
 
         // When: Simulate initial save
         val initialEncrypted = converter.convertToDatabaseColumn(user.totpSecret)
@@ -199,15 +199,15 @@ class UserJpaEncryptionIntegrationTest {
     fun `should encrypt different TOTP secrets independently for multiple users`() {
         // Given: Multiple users with different TOTP secrets
         val users =
-                listOf(
-                        Triple("user1", "JBSWY3DPEHPK3PXP", ULID.randomULID().toString()),
-                        Triple("user2", "HXDMVJECJJWSRB3H", ULID.randomULID().toString()),
-                        Triple("user3", "GEZDGNBVGY3TQOJQ", ULID.randomULID().toString())
-                )
+            listOf(
+                Triple("user1", "JBSWY3DPEHPK3PXP", ULID.randomULID().toString()),
+                Triple("user2", "HXDMVJECJJWSRB3H", ULID.randomULID().toString()),
+                Triple("user3", "GEZDGNBVGY3TQOJQ", ULID.randomULID().toString())
+            )
 
         // When: Simulate saving all users (encrypt their secrets)
         val encryptedValues =
-                users.map { (_, secret, _) -> converter.convertToDatabaseColumn(secret) }
+            users.map { (_, secret, _) -> converter.convertToDatabaseColumn(secret) }
 
         // Then: Verify each user's encrypted value in database is different
         encryptedValues.toSet().size shouldBe users.size
@@ -220,7 +220,7 @@ class UserJpaEncryptionIntegrationTest {
 
         // When: Simulate loading all users (decrypt their secrets)
         val decryptedValues =
-                encryptedValues.map { encrypted -> converter.convertToEntityAttribute(encrypted) }
+            encryptedValues.map { encrypted -> converter.convertToEntityAttribute(encrypted) }
 
         // Then: Verify each user's decrypted secret matches the original
         decryptedValues.forEachIndexed { index, decrypted ->

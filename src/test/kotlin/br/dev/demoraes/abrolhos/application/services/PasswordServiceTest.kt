@@ -17,16 +17,16 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.security.SecureRandom
-import java.time.OffsetDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import ulid.ULID
+import java.security.SecureRandom
+import java.time.OffsetDateTime
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /**
  * Unit tests for [PasswordService].
@@ -37,18 +37,18 @@ import ulid.ULID
 class PasswordServiceTest {
 
     private val properties =
-            PasswordProperties(
-                    minLength = 12,
-                    maxLength = 128,
-                    requireUppercase = true,
-                    requireLowercase = true,
-                    requireDigit = true,
-                    requireSpecialChar = true,
-                    bcryptStrength = 4, // fast for tests
-                    specialChars = "!@#\$%^&*()_+-=[]{}|;:,.<>?",
-                    resetTokenExpiryHours = 1,
-                    resetTokenByteSize = 32,
-            )
+        PasswordProperties(
+            minLength = 12,
+            maxLength = 128,
+            requireUppercase = true,
+            requireLowercase = true,
+            requireDigit = true,
+            requireSpecialChar = true,
+            bcryptStrength = 4, // fast for tests
+            specialChars = "!@#\$%^&*()_+-=[]{}|;:,.<>?",
+            resetTokenExpiryHours = 1,
+            resetTokenByteSize = 32,
+        )
 
     private val encoder = BCryptPasswordEncoder(4)
     private val tokenRepository: PasswordResetTokenRepository = mockk(relaxed = true)
@@ -59,16 +59,16 @@ class PasswordServiceTest {
     private val secureRandom = SecureRandom()
 
     private val service =
-            PasswordService(
-                    encoder,
-                    tokenRepository,
-                    userRepository,
-                    auditLogger,
-                    rateLimitService,
-                    meterRegistry,
-                    properties,
-                    secureRandom,
-            )
+        PasswordService(
+            encoder,
+            tokenRepository,
+            userRepository,
+            auditLogger,
+            rateLimitService,
+            meterRegistry,
+            properties,
+            secureRandom,
+        )
 
     // ---------------------------------------------------------------------------
     // validatePassword tests
@@ -130,9 +130,9 @@ class PasswordServiceTest {
     @Test
     fun `hashPassword throws PasswordPolicyViolationException for weak password`() {
         val ex =
-                assertThrows<PasswordPolicyViolationException> {
-                    service.hashPassword(PlaintextPassword("weak"))
-                }
+            assertThrows<PasswordPolicyViolationException> {
+                service.hashPassword(PlaintextPassword("weak"))
+            }
         assertTrue(ex.violations.isNotEmpty())
     }
 
@@ -165,7 +165,7 @@ class PasswordServiceTest {
         val userId = ULID.parseULID(ULID.randomULID())
 
         every { rateLimitService.tryConsume(any(), any()) } returns
-                mockk { every { isAllowed } returns true }
+            mockk { every { isAllowed } returns true }
 
         val newHash = service.changePassword(userId, currentPassword, newPassword, currentHash)
 
@@ -181,14 +181,14 @@ class PasswordServiceTest {
         val userId = ULID.parseULID(ULID.randomULID())
 
         every { rateLimitService.tryConsume(any(), any()) } returns
-                mockk { every { isAllowed } returns true }
+            mockk { every { isAllowed } returns true }
 
         assertThrows<InvalidPasswordException> {
             service.changePassword(
-                    userId,
-                    wrongPassword,
-                    PlaintextPassword("NewP@ssw0rd456!"),
-                    currentHash
+                userId,
+                wrongPassword,
+                PlaintextPassword("NewP@ssw0rd456!"),
+                currentHash
             )
         }
     }
@@ -200,7 +200,7 @@ class PasswordServiceTest {
         val userId = ULID.parseULID(ULID.randomULID())
 
         every { rateLimitService.tryConsume(any(), any()) } returns
-                mockk { every { isAllowed } returns true }
+            mockk { every { isAllowed } returns true }
 
         assertThrows<InvalidPasswordException> {
             service.changePassword(userId, password, password, hash)
@@ -217,7 +217,7 @@ class PasswordServiceTest {
         val username = Username("testuser")
 
         every { rateLimitService.tryConsume(any(), any()) } returns
-                mockk { every { isAllowed } returns true }
+            mockk { every { isAllowed } returns true }
         every { tokenRepository.deleteByUserId(any()) } returns Unit
         every { tokenRepository.save(any()) } answers { firstArg() }
 
@@ -247,13 +247,13 @@ class PasswordServiceTest {
     fun `resetPassword throws PasswordResetTokenExpiredException for expired token`() {
         val token = PasswordResetToken("b".repeat(64))
         val expiredEntity =
-                br.dev.demoraes.abrolhos.domain.entities.PasswordResetTokenEntity(
-                        id = ULID.parseULID(ULID.randomULID()),
-                        userId = ULID.parseULID(ULID.randomULID()),
-                        token = token,
-                        expiresAt = OffsetDateTime.now().minusHours(2),
-                        createdAt = OffsetDateTime.now().minusHours(3),
-                )
+            br.dev.demoraes.abrolhos.domain.entities.PasswordResetTokenEntity(
+                id = ULID.parseULID(ULID.randomULID()),
+                userId = ULID.parseULID(ULID.randomULID()),
+                token = token,
+                expiresAt = OffsetDateTime.now().minusHours(2),
+                createdAt = OffsetDateTime.now().minusHours(3),
+            )
 
         every { tokenRepository.findByToken(token) } returns expiredEntity
         every { tokenRepository.deleteById(any()) } returns Unit
@@ -270,24 +270,24 @@ class PasswordServiceTest {
         val token = PasswordResetToken("c".repeat(64))
         val userId = ULID.parseULID(ULID.randomULID())
         val validEntity =
-                br.dev.demoraes.abrolhos.domain.entities.PasswordResetTokenEntity(
-                        id = ULID.parseULID(ULID.randomULID()),
-                        userId = userId,
-                        token = token,
-                        expiresAt = OffsetDateTime.now().plusHours(1),
-                        createdAt = OffsetDateTime.now(),
-                )
+            br.dev.demoraes.abrolhos.domain.entities.PasswordResetTokenEntity(
+                id = ULID.parseULID(ULID.randomULID()),
+                userId = userId,
+                token = token,
+                expiresAt = OffsetDateTime.now().plusHours(1),
+                createdAt = OffsetDateTime.now(),
+            )
         val user =
-                User(
-                        id = userId,
-                        username = Username("testuser"),
-                        totpSecret = null,
-                        passwordHash = null,
-                        isActive = true,
-                        role = Role.USER,
-                        createdAt = OffsetDateTime.now(),
-                        updatedAt = OffsetDateTime.now(),
-                )
+            User(
+                id = userId,
+                username = Username("testuser"),
+                totpSecret = null,
+                passwordHash = null,
+                isActive = true,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now(),
+            )
 
         every { tokenRepository.findByToken(token) } returns validEntity
         every { userRepository.findById(userId) } returns user
