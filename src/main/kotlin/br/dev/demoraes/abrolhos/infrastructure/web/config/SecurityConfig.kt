@@ -40,6 +40,7 @@ class SecurityConfig(
                 authorize("/api/auth/login", permitAll)
                 authorize("/api/posts", permitAll)
                 authorize("/api/posts/*", permitAll)
+                authorize("/actuator/**", permitAll)
                 authorize("/error", permitAll)
                 authorize(anyRequest, authenticated)
             }

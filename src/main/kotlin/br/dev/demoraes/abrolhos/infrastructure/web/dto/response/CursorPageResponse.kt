@@ -9,7 +9,7 @@ package br.dev.demoraes.abrolhos.infrastructure.web.dto.response
  * @property hasNext whether more pages exist after this one
  */
 data class CursorPageResponse<T>(
-        val items: List<T>,
-        val nextCursor: String?,
-        val hasNext: Boolean,
+    val items: List<T>,
+    val nextCursor: String?,
+    val hasNext: Boolean,
 )

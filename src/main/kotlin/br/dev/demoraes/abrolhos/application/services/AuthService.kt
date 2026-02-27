@@ -10,6 +10,7 @@ import br.dev.demoraes.abrolhos.domain.exceptions.InvalidTotpCodeException
 import br.dev.demoraes.abrolhos.domain.exceptions.UserNotFoundException
 import br.dev.demoraes.abrolhos.domain.repository.InviteRepository
 import br.dev.demoraes.abrolhos.domain.repository.UserRepository
+import br.dev.demoraes.abrolhos.infrastructure.monitoring.MetricsService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -30,6 +31,7 @@ class AuthService(
     private val inviteRepository: InviteRepository,
     private val totpService: TotpService,
     private val tokenService: TokenService,
+    private val metricsService: MetricsService,
 ) {
     data class InvitationDetails(val username: String, val provisioningUri: String)
 
@@ -139,24 +141,37 @@ class AuthService(
     @Suppress("ThrowsCount")
     @Transactional(readOnly = true)
     fun login(username: Username, totpCode: TotpCode): String {
+        metricsService.recordLoginAttempt()
+
         // Find user
         val user =
             userRepository.findByUsername(username)
-                ?: throw AuthenticationException("Invalid credentials")
+                ?: run {
+                    metricsService.recordLoginFailure()
+                    throw AuthenticationException("Invalid credentials")
+                }
 
         // Check user is active
         if (!user.isActive) {
+            metricsService.recordLoginFailure()
             throw AuthenticationException("Invalid credentials")
         }
 
         // Verify TOTP code
-        val secret = user.totpSecret ?: throw AuthenticationException("Invalid credentials")
+        val secret =
+            user.totpSecret
+                ?: run {
+                    metricsService.recordLoginFailure()
+                    throw AuthenticationException("Invalid credentials")
+                }
 
         if (!totpService.verifyCode(secret, totpCode)) {
+            metricsService.recordLoginFailure()
             throw AuthenticationException("Invalid credentials")
         }
 
         // Generate session token
+        metricsService.recordLoginSuccess()
         return tokenService.generateToken(user)
     }
 }

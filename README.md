@@ -14,6 +14,8 @@ Abrolhos is a modern, lightweight blog engine and content management system buil
 - **Property-Based Testing**: Comprehensive test suite including property-based tests for TOTP security.
 - **Modern Stack**: Built with Kotlin 1.9, Spring Boot 3.4, and Java 21.
 - **Docker Ready**: Easy database setup using Docker Compose.
+- **Integration Testing**: Uses Testcontainers to spin up isolated PostgreSQL and Redis containers.
+- **Observability**: Exposes Micrometer Prometheus metrics and custom health probes via Actuator, with structured JSON logging natively matching VictoriaLogs.
 
 ## 🛠️ Technologies
 
@@ -25,7 +27,8 @@ Abrolhos is a modern, lightweight blog engine and content management system buil
 - **Security**: Spring Security with JWT ([Auth0 Java JWT](https://github.com/auth0/java-jwt))
 - **TOTP**: [Kotlin OTP](https://github.com/marcelkliemannel/kotlin-onetimepassword)
 - **Documentation**: [SpringDoc OpenAPI](https://springdoc.org/)
-- **Testing**: JUnit 5, Kotest, MockK, SpringMockK
+- **Monitoring**: Micrometer Prometheus Registry & Logstash Encoder
+- **Testing**: JUnit 5, Kotest, MockK, SpringMockK, Testcontainers
 - **Property-Based Testing**: [Kotest Property](https://kotest.io/docs/proptest/property-based-testing.html)
 - **Static Analysis**: [Detekt](https://detekt.dev/)
 - **Identifiers**: [ULID Kotlin](https://github.com/aallam/ulid-kotlin)
@@ -102,12 +105,15 @@ Once the application is running, you can access the interactive API documentatio
 - `POST /api/posts` - Create new post (authenticated)
 
 **Health & Monitoring**:
-- `GET /actuator/health` - Application health check
+- `GET /actuator/health` - Application health check (with custom DB, Redis, and disk space indicators)
+- `GET /actuator/health/liveness` - Dedicated liveness probe
+- `GET /actuator/health/readiness` - Dedicated readiness probe
+- `GET /actuator/prometheus` - VictoriaMetrics compatible metrics (includes custom business counters)
 - `GET /actuator/info` - Application information
 
 ## 🧪 Testing
 
-The project includes comprehensive testing with unit tests, integration tests, and property-based tests.
+The project includes comprehensive testing with unit tests, integration tests (backed by Testcontainers), and property-based tests.
 
 Run the test suite using Gradle:
 
@@ -123,7 +129,7 @@ Run the test suite using Gradle:
   - Cross-implementation validation with `oathtool`
   - TOTP secret persistence and usage
   - RFC 6238 compliance
-- **Integration Tests**: Authentication flows, time drift handling
+- **Integration Tests**: API endpoints (`Auth` and `Posts`), Testcontainer-based db/cache testing, time drift handling
 
 ### Running Specific Tests
 
@@ -133,6 +139,9 @@ Run the test suite using Gradle:
 
 # Run only property-based tests
 ./gradlew test --tests "*PropertyTest"
+
+# Run integration tests (REQUIRES DOCKER to be running)
+./gradlew integrationTest
 ```
 
 ## 🧹 Code Quality

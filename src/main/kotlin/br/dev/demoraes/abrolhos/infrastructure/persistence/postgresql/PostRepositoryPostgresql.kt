@@ -18,29 +18,29 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface PostRepositoryPostgresql :
-        JpaRepository<PostEntity, String>, JpaSpecificationExecutor<PostEntity> {
-        fun findBySlug(slug: String): PostEntity?
+    JpaRepository<PostEntity, String>, JpaSpecificationExecutor<PostEntity> {
+    fun findBySlug(slug: String): PostEntity?
 
-        fun findByStatus(status: PostStatus, pageable: Pageable): Page<PostEntity>
+    fun findByStatus(status: PostStatus, pageable: Pageable): Page<PostEntity>
 
-        @EntityGraph(attributePaths = ["author", "category", "tags"])
-        fun findBySlugAndStatus(
-                slug: String,
-                status: PostStatus,
-        ): PostEntity?
+    @EntityGraph(attributePaths = ["author", "category", "tags"])
+    fun findBySlugAndStatus(
+        slug: String,
+        status: PostStatus,
+    ): PostEntity?
 
-        fun findByCategorySlugAndStatus(
-                slug: String,
-                status: PostStatus,
-        ): List<PostEntity>
+    fun findByCategorySlugAndStatus(
+        slug: String,
+        status: PostStatus,
+    ): List<PostEntity>
 
-        fun findByTagsSlugAndStatus(
-                slug: String,
-                status: PostStatus,
-        ): List<PostEntity>
+    fun findByTagsSlugAndStatus(
+        slug: String,
+        status: PostStatus,
+    ): List<PostEntity>
 
-        @Query(
-                """
+    @Query(
+        """
         SELECT
             p.id AS id,
             p.author.username AS authorUsername,
@@ -54,22 +54,22 @@ interface PostRepositoryPostgresql :
           AND (:categoryName IS NULL OR p.category.name = :categoryName)
           AND (:tagName IS NULL OR EXISTS (SELECT t FROM p.tags t WHERE t.name = :tagName))
     """,
-        )
-        fun searchSummary(
-                status: PostStatus,
-                categoryName: String?,
-                tagName: String?,
-                pageable: Pageable,
-        ): Page<PostSummary>
+    )
+    fun searchSummary(
+        status: PostStatus,
+        categoryName: String?,
+        tagName: String?,
+        pageable: Pageable,
+    ): Page<PostSummary>
 
-        @Query(value = "SELECT * FROM posts", nativeQuery = true)
-        fun findAllIncludingDeleted(): List<PostEntity>?
+    @Query(value = "SELECT * FROM posts", nativeQuery = true)
+    fun findAllIncludingDeleted(): List<PostEntity>?
 
-        @Query(value = "SELECT * FROM posts WHERE deleted_at IS NOT NULL", nativeQuery = true)
-        fun findOnlyDeleted(): List<PostEntity>?
+    @Query(value = "SELECT * FROM posts WHERE deleted_at IS NOT NULL", nativeQuery = true)
+    fun findOnlyDeleted(): List<PostEntity>?
 
-        @Query(
-                """
+    @Query(
+        """
         SELECT
             p.id AS id,
             p.author.username AS authorUsername,
@@ -82,14 +82,14 @@ interface PostRepositoryPostgresql :
         WHERE p.status = :status
         ORDER BY p.publishedAt DESC, p.id DESC
     """,
-        )
-        fun searchSummaryFirstPage(
-                status: PostStatus,
-                pageable: Pageable,
-        ): List<PostSummary>
+    )
+    fun searchSummaryFirstPage(
+        status: PostStatus,
+        pageable: Pageable,
+    ): List<PostSummary>
 
-        @Query(
-                """
+    @Query(
+        """
         SELECT
             p.id AS id,
             p.author.username AS authorUsername,
@@ -106,11 +106,11 @@ interface PostRepositoryPostgresql :
           )
         ORDER BY p.publishedAt DESC, p.id DESC
     """,
-        )
-        fun searchSummaryAfterCursor(
-                status: PostStatus,
-                cursorDate: java.time.OffsetDateTime,
-                cursorId: String,
-                pageable: Pageable,
-        ): List<PostSummary>
+    )
+    fun searchSummaryAfterCursor(
+        status: PostStatus,
+        cursorDate: java.time.OffsetDateTime,
+        cursorId: String,
+        pageable: Pageable,
+    ): List<PostSummary>
 }

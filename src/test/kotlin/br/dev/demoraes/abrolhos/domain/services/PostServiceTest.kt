@@ -18,6 +18,7 @@ import br.dev.demoraes.abrolhos.domain.repository.CategoryRepository
 import br.dev.demoraes.abrolhos.domain.repository.PostRepository
 import br.dev.demoraes.abrolhos.domain.repository.TagRepository
 import br.dev.demoraes.abrolhos.domain.repository.UserRepository
+import br.dev.demoraes.abrolhos.infrastructure.monitoring.MetricsService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -37,42 +38,48 @@ class PostServiceTest {
     private val userRepository = mockk<UserRepository>()
     private val categoryRepository = mockk<CategoryRepository>()
     private val tagRepository = mockk<TagRepository>()
+    private val metricsService = mockk<MetricsService>(relaxed = true)
 
-    private val postService = PostService(
-        postRepository,
-        userRepository,
-        categoryRepository,
-        tagRepository
-    )
+    private val postService =
+        PostService(
+            postRepository,
+            userRepository,
+            categoryRepository,
+            tagRepository,
+            metricsService
+        )
 
     @Test
     fun `createPost should create and save a post successfully`() {
         // Given
-        val author = User(
-            id = ULID.nextULID(),
-            username = Username("author"),
-            totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
-            isActive = true,
-            role = Role.USER,
-            createdAt = OffsetDateTime.now(),
-            updatedAt = OffsetDateTime.now()
-        )
-        val category = Category(
-            id = ULID.nextULID(),
-            name = CategoryName("Category"),
-            slug = CategorySlug("category"),
-            posts = emptySet(),
-            createdAt = OffsetDateTime.now(),
-            updatedAt = OffsetDateTime.now()
-        )
-        val tag = Tag(
-            id = ULID.nextULID(),
-            name = TagName("Tag"),
-            slug = TagSlug("tag"),
-            posts = emptySet(),
-            createdAt = OffsetDateTime.now(),
-            updatedAt = OffsetDateTime.now()
-        )
+        val author =
+            User(
+                id = ULID.nextULID(),
+                username = Username("author"),
+                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                isActive = true,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
+        val category =
+            Category(
+                id = ULID.nextULID(),
+                name = CategoryName("Category"),
+                slug = CategorySlug("category"),
+                posts = emptySet(),
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
+        val tag =
+            Tag(
+                id = ULID.nextULID(),
+                name = TagName("Tag"),
+                slug = TagSlug("tag"),
+                posts = emptySet(),
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
 
         every { userRepository.findByUsername(Username("author")) } returns author
         every { categoryRepository.findByName(CategoryName("Category")) } returns category
@@ -80,14 +87,15 @@ class PostServiceTest {
         every { postRepository.save(any()) } answers { firstArg() }
 
         // When
-        val post = postService.createPost(
-            title = "Post Title",
-            content = "Post Content",
-            status = PostStatus.PUBLISHED,
-            categoryName = "Category",
-            tagNames = listOf("Tag"),
-            authorUsername = "author"
-        )
+        val post =
+            postService.createPost(
+                title = "Post Title",
+                content = "Post Content",
+                status = PostStatus.PUBLISHED,
+                categoryName = "Category",
+                tagNames = listOf("Tag"),
+                authorUsername = "author"
+            )
 
         // Then
         assertNotNull(post)
@@ -106,29 +114,31 @@ class PostServiceTest {
     @Test
     fun `createPost should generate correct slug with special characters`() {
         // Given
-        val author = User(
-            id = ULID.nextULID(),
-            username = Username("author"),
-            totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
-            isActive = true,
-            role = Role.USER,
-            createdAt = OffsetDateTime.now(),
-            updatedAt = OffsetDateTime.now()
-        )
+        val author =
+            User(
+                id = ULID.nextULID(),
+                username = Username("author"),
+                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                isActive = true,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
         every { userRepository.findByUsername(Username("author")) } returns author
         every { categoryRepository.findByName(any()) } returns mockk(relaxed = true)
         every { tagRepository.findByName(any()) } returns mockk(relaxed = true)
         every { postRepository.save(any()) } answers { firstArg() }
 
         // When
-        val post = postService.createPost(
-            title = "  My Post Title!!!  123  ",
-            content = "Content",
-            status = PostStatus.DRAFT,
-            categoryName = "Category",
-            tagNames = emptyList(),
-            authorUsername = "author"
-        )
+        val post =
+            postService.createPost(
+                title = "  My Post Title!!!  123  ",
+                content = "Content",
+                status = PostStatus.DRAFT,
+                categoryName = "Category",
+                tagNames = emptyList(),
+                authorUsername = "author"
+            )
 
         // Then
         assertEquals("my-post-title-123", post.slug.value)
@@ -155,15 +165,16 @@ class PostServiceTest {
     @Test
     fun `createPost should create category if not found`() {
         // Given
-        val author = User(
-            id = ULID.nextULID(),
-            username = Username("author"),
-            totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
-            isActive = true,
-            role = Role.USER,
-            createdAt = OffsetDateTime.now(),
-            updatedAt = OffsetDateTime.now()
-        )
+        val author =
+            User(
+                id = ULID.nextULID(),
+                username = Username("author"),
+                totpSecret = TotpSecret("JBSWY3DPEHPK3PXP"),
+                isActive = true,
+                role = Role.USER,
+                createdAt = OffsetDateTime.now(),
+                updatedAt = OffsetDateTime.now()
+            )
         every { userRepository.findByUsername(Username("author")) } returns author
         every { categoryRepository.findByName(CategoryName("New Category")) } returns null
         every { categoryRepository.save(any()) } answers { firstArg() }
@@ -208,9 +219,7 @@ class PostServiceTest {
         every { postRepository.findPublishedBySlug(slug) } returns null
 
         // When / Then
-        assertThrows<NoSuchElementException> {
-            postService.findBySlug(slug)
-        }
+        assertThrows<NoSuchElementException> { postService.findBySlug(slug) }
     }
 
     @Test
@@ -222,7 +231,8 @@ class PostServiceTest {
         every { postRepository.searchSummary(pageable, any(), any(), any()) } returns page
 
         // When
-        val result = postService.searchPostSummaries(pageable, "Category", "Tag", PostStatus.PUBLISHED)
+        val result =
+            postService.searchPostSummaries(pageable, "Category", "Tag", PostStatus.PUBLISHED)
 
         // Then
         assertEquals(1, result.content.size)

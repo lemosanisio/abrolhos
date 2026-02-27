@@ -12,7 +12,7 @@ package br.dev.demoraes.abrolhos.domain.entities
  * @property hasNext whether more pages exist after this one
  */
 data class CursorPage<T>(
-        val items: List<T>,
-        val nextCursor: String?,
-        val hasNext: Boolean,
+    val items: List<T>,
+    val nextCursor: String?,
+    val hasNext: Boolean,
 )

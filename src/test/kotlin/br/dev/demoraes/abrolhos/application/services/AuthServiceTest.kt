@@ -13,6 +13,7 @@ import br.dev.demoraes.abrolhos.domain.exceptions.InvalidTotpCodeException
 import br.dev.demoraes.abrolhos.domain.exceptions.UserNotFoundException
 import br.dev.demoraes.abrolhos.domain.repository.InviteRepository
 import br.dev.demoraes.abrolhos.domain.repository.UserRepository
+import br.dev.demoraes.abrolhos.infrastructure.monitoring.MetricsService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -28,8 +29,9 @@ class AuthServiceTest {
     private val inviteRepository: InviteRepository = mockk()
     private val totpService: TotpService = mockk()
     private val tokenService: TokenService = mockk()
+    private val metricsService: MetricsService = mockk(relaxed = true)
     private val authService =
-        AuthService(userRepository, inviteRepository, totpService, tokenService)
+        AuthService(userRepository, inviteRepository, totpService, tokenService, metricsService)
 
     private val testSecret = TotpSecret("JBSWY3DPEHPK3PXP")
 
@@ -149,9 +151,7 @@ class AuthServiceTest {
         every { userRepository.findById(any()) } returns inactiveUser
         every { totpService.verifyCode(newSecret, totpCode) } returns false
 
-        assertThrows<InvalidTotpCodeException> {
-            authService.activateAccount(token, totpCode)
-        }
+        assertThrows<InvalidTotpCodeException> { authService.activateAccount(token, totpCode) }
     }
 
     @Test
@@ -227,11 +227,13 @@ class AuthServiceTest {
         every { inviteRepository.findByToken(token) } returns invite
         every { userRepository.findById(any()) } returns inactiveUser
 
-        val exception = assertThrows<IllegalStateException> {
-            authService.activateAccount(token, totpCode)
-        }
+        val exception =
+            assertThrows<IllegalStateException> { authService.activateAccount(token, totpCode) }
 
-        assertEquals("TOTP secret not found in invite. Invite must be validated first.", exception.message)
+        assertEquals(
+            "TOTP secret not found in invite. Invite must be validated first.",
+            exception.message
+        )
     }
 
     @Test
@@ -265,11 +267,8 @@ class AuthServiceTest {
         every { inviteRepository.findByToken(token) } returns invite
         every { userRepository.findById(any()) } returns inactiveUser
         every { totpService.generateSecret() } returns newSecret
-        every { totpService.validateSecret(newSecret) } returns SecretValidation(
-            isValid = true,
-            byteCount = 10,
-            expectedByteCount = 20
-        )
+        every { totpService.validateSecret(newSecret) } returns
+            SecretValidation(isValid = true, byteCount = 10, expectedByteCount = 20)
         every { totpService.generateProvisioningUri("testuser", newSecret) } returns provisioningUri
         every { inviteRepository.save(any()) } returns invite.copy(totpSecret = newSecret)
 

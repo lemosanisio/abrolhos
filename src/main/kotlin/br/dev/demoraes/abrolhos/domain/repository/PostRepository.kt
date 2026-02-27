@@ -19,15 +19,15 @@ interface PostRepository {
     fun findPublishedBySlug(slug: String): Post?
 
     fun searchSummary(
-            pageable: Pageable,
-            categoryName: String?,
-            tagName: String?,
-            status: PostStatus
+        pageable: Pageable,
+        categoryName: String?,
+        tagName: String?,
+        status: PostStatus
     ): Page<PostSummary>
 
     fun searchSummaryByCursor(
-            cursor: String?,
-            size: Int,
-            status: PostStatus
+        cursor: String?,
+        size: Int,
+        status: PostStatus
     ): CursorPage<PostSummary>
 }

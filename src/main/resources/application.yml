@@ -28,11 +28,21 @@ management:
   endpoints:
     web:
       exposure:
-        include: ${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE}
+        include: ${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE:health,info,metrics,prometheus}
   endpoint:
     health:
       probes:
         enabled: ${MANAGEMENT_ENDPOINTS_HEALTH_PROBES_ENABLED}
+      show-details: always
+      group:
+        readiness:
+          include: readinessState,db,redis
+        liveness:
+          include: livenessState,diskSpace
+  metrics:
+    tags:
+      application: abrolhos
+      environment: ${ENVIRONMENT:dev}
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}
