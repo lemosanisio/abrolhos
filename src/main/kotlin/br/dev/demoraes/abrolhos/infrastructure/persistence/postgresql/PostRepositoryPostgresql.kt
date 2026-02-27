@@ -5,6 +5,7 @@ import br.dev.demoraes.abrolhos.domain.entities.PostSummary
 import br.dev.demoraes.abrolhos.infrastructure.persistence.entities.PostEntity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
@@ -17,28 +18,29 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface PostRepositoryPostgresql :
-    JpaRepository<PostEntity, String>, JpaSpecificationExecutor<PostEntity> {
+        JpaRepository<PostEntity, String>, JpaSpecificationExecutor<PostEntity> {
     fun findBySlug(slug: String): PostEntity?
 
     fun findByStatus(status: PostStatus, pageable: Pageable): Page<PostEntity>
 
+    @EntityGraph(attributePaths = ["author", "category", "tags"])
     fun findBySlugAndStatus(
-        slug: String,
-        status: PostStatus,
+            slug: String,
+            status: PostStatus,
     ): PostEntity?
 
     fun findByCategorySlugAndStatus(
-        slug: String,
-        status: PostStatus,
+            slug: String,
+            status: PostStatus,
     ): List<PostEntity>
 
     fun findByTagsSlugAndStatus(
-        slug: String,
-        status: PostStatus,
+            slug: String,
+            status: PostStatus,
     ): List<PostEntity>
 
     @Query(
-        """
+            """
         SELECT
             p.id AS id,
             p.author.username AS authorUsername,
@@ -54,10 +56,10 @@ interface PostRepositoryPostgresql :
     """,
     )
     fun searchSummary(
-        status: PostStatus,
-        categoryName: String?,
-        tagName: String?,
-        pageable: Pageable,
+            status: PostStatus,
+            categoryName: String?,
+            tagName: String?,
+            pageable: Pageable,
     ): Page<PostSummary>
 
     @Query(value = "SELECT * FROM posts", nativeQuery = true)

@@ -13,6 +13,14 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+      pool-name: AbrolhosHikariPool
   flyway:
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE}
 
@@ -53,3 +61,9 @@ logging:
   level:
     root: INFO
     br.dev.demoraes.abrolhos: DEBUG
+
+server:
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain
+    min-response-size: 1024
