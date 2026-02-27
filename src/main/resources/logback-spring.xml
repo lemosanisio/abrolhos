@@ -66,8 +66,8 @@
     <!-- Production profile: structured JSON logging (compatible with VictoriaLogs) -->
     <springProfile name="production">
         <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-                <customFields>{"application":"abrolhos"}</customFields>
+            <encoder class="org.springframework.boot.logging.logback.StructuredLogEncoder">
+                <format>ecs</format>
             </encoder>
         </appender>
 
@@ -78,8 +78,8 @@
                 <fileNamePattern>logs/audit.%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>90</maxHistory>
             </rollingPolicy>
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-                <customFields>{"application":"abrolhos","log_type":"audit"}</customFields>
+            <encoder class="org.springframework.boot.logging.logback.StructuredLogEncoder">
+                <format>ecs</format>
             </encoder>
         </appender>
 

@@ -68,6 +68,10 @@ security:
     old-keys: ${SECURITY_ENCRYPTION_OLD_KEYS:}
 
 logging:
+  structured:
+    format:
+      console: ecs
+      file: ecs
   level:
     root: INFO
     br.dev.demoraes.abrolhos: DEBUG

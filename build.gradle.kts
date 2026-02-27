@@ -42,7 +42,6 @@ dependencies {
     
     // Monitoring dependencies
     implementation("io.micrometer:micrometer-registry-prometheus")
-    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
     
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.6")
     runtimeOnly("org.postgresql:postgresql")
