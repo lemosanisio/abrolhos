@@ -3,6 +3,7 @@ package br.dev.demoraes.abrolhos.infrastructure.web.config
 import br.dev.demoraes.abrolhos.infrastructure.web.filters.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.invoke
@@ -40,8 +41,12 @@ class SecurityConfig(
                 authorize("/api/auth/invite/*", permitAll)
                 authorize("/api/auth/activate", permitAll)
                 authorize("/api/auth/login", permitAll)
+                // PUT and DELETE on posts require authentication (must come before the permitAll
+                // rules)
+                authorize(HttpMethod.PUT, "/api/posts/**", authenticated)
+                authorize(HttpMethod.DELETE, "/api/posts/**", authenticated)
                 authorize("/api/posts", permitAll)
-                authorize("/api/posts/*", permitAll)
+                authorize("/api/posts/**", permitAll)
                 authorize("/api/password/reset/request", permitAll)
                 authorize("/api/password/reset/confirm", permitAll)
                 authorize("/actuator/**", permitAll)

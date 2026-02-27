@@ -1,8 +1,8 @@
 package br.dev.demoraes.abrolhos.domain.entities
 
 import com.fasterxml.jackson.annotation.JsonValue
-import ulid.ULID
 import java.time.OffsetDateTime
+import ulid.ULID
 
 /**
  * Represents a blog post.
@@ -19,42 +19,69 @@ import java.time.OffsetDateTime
  * @property tags Set of tags associated with the post
  */
 data class Post(
-    val id: ULID,
-    val author: User,
-    val title: PostTitle,
-    val slug: PostSlug,
-    val content: PostContent,
-    val status: PostStatus,
-    val publishedAt: OffsetDateTime?,
-    val category: Category,
-    val tags: Set<Tag>,
-    val createdAt: OffsetDateTime,
-    val updatedAt: OffsetDateTime,
+        val id: ULID,
+        val author: User,
+        val title: PostTitle,
+        val slug: PostSlug,
+        val content: PostContent,
+        val status: PostStatus,
+        val publishedAt: OffsetDateTime?,
+        val category: Category,
+        val tags: Set<Tag>,
+        val createdAt: OffsetDateTime,
+        val updatedAt: OffsetDateTime,
 ) {
     companion object {
         fun create(
-            author: User,
-            title: PostTitle,
-            slug: PostSlug,
-            content: PostContent,
-            category: Category,
-            tags: Set<Tag>,
+                author: User,
+                title: PostTitle,
+                slug: PostSlug,
+                content: PostContent,
+                category: Category,
+                tags: Set<Tag>,
         ): Post {
             return Post(
-                id = ULID.nextULID(),
-                author = author,
-                title = title,
-                slug = slug,
-                content = content,
-                status = PostStatus.DRAFT,
-                category = category,
-                tags = tags,
-                createdAt = OffsetDateTime.now(), // Set initial timestamps
-                updatedAt = OffsetDateTime.now(),
-                publishedAt = null,
+                    id = ULID.nextULID(),
+                    author = author,
+                    title = title,
+                    slug = slug,
+                    content = content,
+                    status = PostStatus.DRAFT,
+                    category = category,
+                    tags = tags,
+                    createdAt = OffsetDateTime.now(), // Set initial timestamps
+                    updatedAt = OffsetDateTime.now(),
+                    publishedAt = null,
             )
         }
     }
+
+    /** Returns true if the given user ID matches the post author's ID. */
+    fun isOwnedBy(userId: ULID): Boolean = author.id == userId
+
+    /**
+     * Returns a new [Post] with the specified fields replaced, and [updatedAt] set to now. Any
+     * parameter left null keeps its current value.
+     */
+    fun withUpdatedFields(
+            title: PostTitle? = null,
+            slug: PostSlug? = null,
+            content: PostContent? = null,
+            status: PostStatus? = null,
+            category: Category? = null,
+            tags: Set<Tag>? = null,
+            publishedAt: OffsetDateTime? = null,
+    ): Post =
+            copy(
+                    title = title ?: this.title,
+                    slug = slug ?: this.slug,
+                    content = content ?: this.content,
+                    status = status ?: this.status,
+                    category = category ?: this.category,
+                    tags = tags ?: this.tags,
+                    publishedAt = publishedAt ?: this.publishedAt,
+                    updatedAt = OffsetDateTime.now(),
+            )
 }
 
 enum class PostStatus {

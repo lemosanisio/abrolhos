@@ -25,101 +25,133 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 @RestControllerAdvice
 class GlobalExceptionHandler {
 
-    @ExceptionHandler(AuthenticationException::class)
-    @Suppress("UnusedParameter")
-    fun handleAuthenticationException(e: AuthenticationException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ErrorResponse("Invalid credentials", HttpStatus.UNAUTHORIZED.value()))
-    }
+        @ExceptionHandler(AuthenticationException::class)
+        @Suppress("UnusedParameter")
+        fun handleAuthenticationException(
+                e: AuthenticationException
+        ): ResponseEntity<ErrorResponse> {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ErrorResponse("Invalid credentials", HttpStatus.UNAUTHORIZED.value()))
+        }
 
-    @ExceptionHandler(InvalidInviteException::class)
-    fun handleInvalidInviteException(e: InvalidInviteException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse(e.message ?: "Invalid invite", HttpStatus.BAD_REQUEST.value()))
-    }
-
-    @ExceptionHandler(AccountAlreadyActiveException::class)
-    fun handleAccountAlreadyActiveException(
-            e: AccountAlreadyActiveException
-    ): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(
-                        ErrorResponse(
-                                e.message ?: "Account already active",
-                                HttpStatus.CONFLICT.value()
+        @ExceptionHandler(InvalidInviteException::class)
+        fun handleInvalidInviteException(e: InvalidInviteException): ResponseEntity<ErrorResponse> {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(
+                                ErrorResponse(
+                                        e.message ?: "Invalid invite",
+                                        HttpStatus.BAD_REQUEST.value()
+                                )
                         )
-                )
-    }
+        }
 
-    @ExceptionHandler(InvalidTotpCodeException::class)
-    fun handleInvalidTotpCodeException(e: InvalidTotpCodeException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                        ErrorResponse(
-                                e.message ?: "Invalid TOTP code",
-                                HttpStatus.BAD_REQUEST.value()
+        @ExceptionHandler(AccountAlreadyActiveException::class)
+        fun handleAccountAlreadyActiveException(
+                e: AccountAlreadyActiveException
+        ): ResponseEntity<ErrorResponse> {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(
+                                ErrorResponse(
+                                        e.message ?: "Account already active",
+                                        HttpStatus.CONFLICT.value()
+                                )
                         )
-                )
-    }
+        }
 
-    @ExceptionHandler(PasswordPolicyViolationException::class)
-    fun handlePasswordPolicyViolationException(
-            e: PasswordPolicyViolationException
-    ): ResponseEntity<PasswordValidationErrorResponse> {
-        return ResponseEntity.badRequest().body(PasswordValidationErrorResponse(e.violations))
-    }
-
-    @ExceptionHandler(InvalidPasswordException::class)
-    fun handleInvalidPasswordException(e: InvalidPasswordException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        ErrorResponse(
-                                e.message ?: "Invalid password",
-                                HttpStatus.UNAUTHORIZED.value()
+        @ExceptionHandler(InvalidTotpCodeException::class)
+        fun handleInvalidTotpCodeException(
+                e: InvalidTotpCodeException
+        ): ResponseEntity<ErrorResponse> {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(
+                                ErrorResponse(
+                                        e.message ?: "Invalid TOTP code",
+                                        HttpStatus.BAD_REQUEST.value()
+                                )
                         )
-                )
-    }
+        }
 
-    @ExceptionHandler(PasswordResetTokenExpiredException::class)
-    fun handlePasswordResetTokenExpiredException(
-            e: PasswordResetTokenExpiredException
-    ): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.badRequest()
-                .body(
-                        ErrorResponse(
-                                e.message ?: "Invalid or expired token",
-                                HttpStatus.BAD_REQUEST.value()
+        @ExceptionHandler(PasswordPolicyViolationException::class)
+        fun handlePasswordPolicyViolationException(
+                e: PasswordPolicyViolationException
+        ): ResponseEntity<PasswordValidationErrorResponse> {
+                return ResponseEntity.badRequest()
+                        .body(PasswordValidationErrorResponse(e.violations))
+        }
+
+        @ExceptionHandler(InvalidPasswordException::class)
+        fun handleInvalidPasswordException(
+                e: InvalidPasswordException
+        ): ResponseEntity<ErrorResponse> {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(
+                                ErrorResponse(
+                                        e.message ?: "Invalid password",
+                                        HttpStatus.UNAUTHORIZED.value()
+                                )
                         )
-                )
-    }
+        }
 
-    @ExceptionHandler(PasswordResetTokenNotFoundException::class)
-    fun handlePasswordResetTokenNotFoundException(
-            e: PasswordResetTokenNotFoundException
-    ): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.badRequest()
-                .body(
-                        ErrorResponse(
-                                e.message ?: "Invalid or expired token",
-                                HttpStatus.BAD_REQUEST.value()
+        @ExceptionHandler(PasswordResetTokenExpiredException::class)
+        fun handlePasswordResetTokenExpiredException(
+                e: PasswordResetTokenExpiredException
+        ): ResponseEntity<ErrorResponse> {
+                return ResponseEntity.badRequest()
+                        .body(
+                                ErrorResponse(
+                                        e.message ?: "Invalid or expired token",
+                                        HttpStatus.BAD_REQUEST.value()
+                                )
                         )
-                )
-    }
+        }
 
-    @ExceptionHandler(PasswordResetException::class)
-    fun handlePasswordResetException(e: PasswordResetException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body(
-                        ErrorResponse(
-                                e.message ?: "Too many attempts",
-                                HttpStatus.TOO_MANY_REQUESTS.value()
+        @ExceptionHandler(PasswordResetTokenNotFoundException::class)
+        fun handlePasswordResetTokenNotFoundException(
+                e: PasswordResetTokenNotFoundException
+        ): ResponseEntity<ErrorResponse> {
+                return ResponseEntity.badRequest()
+                        .body(
+                                ErrorResponse(
+                                        e.message ?: "Invalid or expired token",
+                                        HttpStatus.BAD_REQUEST.value()
+                                )
                         )
-                )
-    }
+        }
 
-    @ExceptionHandler(IllegalArgumentException::class)
-    fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse(e.message ?: "Invalid input", HttpStatus.BAD_REQUEST.value()))
-    }
+        @ExceptionHandler(PasswordResetException::class)
+        fun handlePasswordResetException(e: PasswordResetException): ResponseEntity<ErrorResponse> {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .body(
+                                ErrorResponse(
+                                        e.message ?: "Too many attempts",
+                                        HttpStatus.TOO_MANY_REQUESTS.value()
+                                )
+                        )
+        }
+
+        @ExceptionHandler(IllegalArgumentException::class)
+        fun handleIllegalArgumentException(
+                e: IllegalArgumentException
+        ): ResponseEntity<ErrorResponse> {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(
+                                ErrorResponse(
+                                        e.message ?: "Invalid input",
+                                        HttpStatus.BAD_REQUEST.value()
+                                )
+                        )
+        }
+
+        @ExceptionHandler(kotlin.NoSuchElementException::class)
+        fun handleNoSuchElementException(
+                e: kotlin.NoSuchElementException
+        ): ResponseEntity<ErrorResponse> {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(
+                                ErrorResponse(
+                                        e.message ?: "Resource not found",
+                                        HttpStatus.NOT_FOUND.value()
+                                )
+                        )
+        }
 }

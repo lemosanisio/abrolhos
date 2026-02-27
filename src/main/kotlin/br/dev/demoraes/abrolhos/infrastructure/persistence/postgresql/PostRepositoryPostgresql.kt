@@ -3,6 +3,7 @@ package br.dev.demoraes.abrolhos.infrastructure.persistence.postgresql
 import br.dev.demoraes.abrolhos.domain.entities.PostStatus
 import br.dev.demoraes.abrolhos.domain.entities.PostSummary
 import br.dev.demoraes.abrolhos.infrastructure.persistence.entities.PostEntity
+import java.time.OffsetDateTime
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.EntityGraph
@@ -18,29 +19,38 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface PostRepositoryPostgresql :
-    JpaRepository<PostEntity, String>, JpaSpecificationExecutor<PostEntity> {
+        JpaRepository<PostEntity, String>, JpaSpecificationExecutor<PostEntity> {
     fun findBySlug(slug: String): PostEntity?
 
     fun findByStatus(status: PostStatus, pageable: Pageable): Page<PostEntity>
 
     @EntityGraph(attributePaths = ["author", "category", "tags"])
     fun findBySlugAndStatus(
-        slug: String,
-        status: PostStatus,
+            slug: String,
+            status: PostStatus,
     ): PostEntity?
 
+    @EntityGraph(attributePaths = ["author", "category", "tags"])
+    fun findBySlugAndAuthorId(slug: String, authorId: String): PostEntity?
+
+    @EntityGraph(attributePaths = ["author", "category", "tags"])
+    fun findByStatusAndPublishedAtLessThanEqual(
+            status: PostStatus,
+            publishedAt: OffsetDateTime,
+    ): List<PostEntity>
+
     fun findByCategorySlugAndStatus(
-        slug: String,
-        status: PostStatus,
+            slug: String,
+            status: PostStatus,
     ): List<PostEntity>
 
     fun findByTagsSlugAndStatus(
-        slug: String,
-        status: PostStatus,
+            slug: String,
+            status: PostStatus,
     ): List<PostEntity>
 
     @Query(
-        """
+            """
         SELECT
             p.id AS id,
             p.author.username AS authorUsername,
@@ -56,10 +66,10 @@ interface PostRepositoryPostgresql :
     """,
     )
     fun searchSummary(
-        status: PostStatus,
-        categoryName: String?,
-        tagName: String?,
-        pageable: Pageable,
+            status: PostStatus,
+            categoryName: String?,
+            tagName: String?,
+            pageable: Pageable,
     ): Page<PostSummary>
 
     @Query(value = "SELECT * FROM posts", nativeQuery = true)
@@ -69,7 +79,7 @@ interface PostRepositoryPostgresql :
     fun findOnlyDeleted(): List<PostEntity>?
 
     @Query(
-        """
+            """
         SELECT
             p.id AS id,
             p.author.username AS authorUsername,
@@ -84,12 +94,12 @@ interface PostRepositoryPostgresql :
     """,
     )
     fun searchSummaryFirstPage(
-        status: PostStatus,
-        pageable: Pageable,
+            status: PostStatus,
+            pageable: Pageable,
     ): List<PostSummary>
 
     @Query(
-        """
+            """
         SELECT
             p.id AS id,
             p.author.username AS authorUsername,
@@ -108,9 +118,9 @@ interface PostRepositoryPostgresql :
     """,
     )
     fun searchSummaryAfterCursor(
-        status: PostStatus,
-        cursorDate: java.time.OffsetDateTime,
-        cursorId: String,
-        pageable: Pageable,
+            status: PostStatus,
+            cursorDate: java.time.OffsetDateTime,
+            cursorId: String,
+            pageable: Pageable,
     ): List<PostSummary>
 }

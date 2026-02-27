@@ -5,7 +5,7 @@ Abrolhos is a modern, lightweight blog engine and content management system buil
 ## 🚀 Features
 
 - **Two-Factor Authentication**: Secure primary authentication via passwords, and secondary Time-based One-Time Passwords (TOTP) with invitation-based user provisioning.
-- **Post Management**: Create, read, and list blog posts with support for slugs and status (`DRAFT`, `PUBLISHED`, `SCHEDULED`, `ARCHIVED`).
+- **Post Management**: Full CRUD capabilities to create, read, edit, and soft-delete blog posts. Supports draft visibility rules, slugs, auto-publishing for `SCHEDULED` posts, and standard statuses (`DRAFT`, `PUBLISHED`, `SCHEDULED`, `ARCHIVED`).
 - **Categorization**: Organize content using categories and tags with automatic slug generation.
 - **Domain-Driven Design**: Uses value classes (inline classes) and ULIDs for strong typing and efficient identification.
 - **RESTful API**: Fully documented API using SpringDoc OpenAPI (Swagger).
@@ -108,8 +108,10 @@ Once the application is running, you can access the interactive API documentatio
 
 **Posts** (some require authentication):
 - `GET /api/posts` - List posts with cursor-based pagination and filtering
-- `GET /api/posts/{slug}` - Get post by slug
+- `GET /api/posts/{slug}` - Get post by slug (drafts restricted to authors)
 - `POST /api/posts` - Create new post (authenticated)
+- `PUT /api/posts/{slug}` - Edit post (authenticated)
+- `DELETE /api/posts/{slug}` - Soft-delete post (authenticated)
 
 **Health & Monitoring**:
 - `GET /actuator/health` - Application health check (with custom DB, Redis, and disk space indicators)

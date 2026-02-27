@@ -93,3 +93,7 @@ server:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/plain
     min-response-size: 1024
+
+app:
+  scheduled-publishing:
+    interval: 60000  # ms; default 1 minute

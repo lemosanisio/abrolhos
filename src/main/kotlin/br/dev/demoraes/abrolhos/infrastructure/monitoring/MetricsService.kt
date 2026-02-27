@@ -3,8 +3,8 @@ package br.dev.demoraes.abrolhos.infrastructure.monitoring
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
-import org.springframework.stereotype.Service
 import java.time.Duration
+import org.springframework.stereotype.Service
 
 /**
  * Service for recording custom business metrics.
@@ -17,36 +17,56 @@ class MetricsService(private val meterRegistry: MeterRegistry) {
 
     // Authentication metrics
     private val loginAttempts: Counter =
-        Counter.builder("auth.login.attempts")
-            .description("Total number of login attempts")
-            .register(meterRegistry)
+            Counter.builder("auth.login.attempts")
+                    .description("Total number of login attempts")
+                    .register(meterRegistry)
 
     private val loginSuccesses: Counter =
-        Counter.builder("auth.login.success")
-            .description("Total number of successful logins")
-            .register(meterRegistry)
+            Counter.builder("auth.login.success")
+                    .description("Total number of successful logins")
+                    .register(meterRegistry)
 
     private val loginFailures: Counter =
-        Counter.builder("auth.login.failure")
-            .description("Total number of failed logins")
-            .register(meterRegistry)
+            Counter.builder("auth.login.failure")
+                    .description("Total number of failed logins")
+                    .register(meterRegistry)
 
     // Post metrics
     private val postCreations: Counter =
-        Counter.builder("posts.created")
-            .description("Total number of posts created")
-            .register(meterRegistry)
+            Counter.builder("posts.created")
+                    .description("Total number of posts created")
+                    .register(meterRegistry)
 
     private val postViews: Counter =
-        Counter.builder("posts.views")
-            .description("Total number of post views")
-            .register(meterRegistry)
+            Counter.builder("posts.views")
+                    .description("Total number of post views")
+                    .register(meterRegistry)
+
+    private val postUpdates: Counter =
+            Counter.builder("posts.updated")
+                    .description("Total number of posts updated")
+                    .register(meterRegistry)
+
+    private val postDeletions: Counter =
+            Counter.builder("posts.deleted")
+                    .description("Total number of posts deleted")
+                    .register(meterRegistry)
+
+    private val postAutoPublished: Counter =
+            Counter.builder("posts.auto_published")
+                    .description("Total number of posts auto-published by the scheduled job")
+                    .register(meterRegistry)
 
     // Timers
     private val postQueryTimer: Timer =
-        Timer.builder("posts.query.time")
-            .description("Time taken to query posts")
-            .register(meterRegistry)
+            Timer.builder("posts.query.time")
+                    .description("Time taken to query posts")
+                    .register(meterRegistry)
+
+    private val scheduledPublishingJobTimer: Timer =
+            Timer.builder("posts.scheduled_publishing.time")
+                    .description("Time taken to run the scheduled publishing job")
+                    .register(meterRegistry)
 
     /** Records a single login attempt (independent of outcome). */
     fun recordLoginAttempt() = loginAttempts.increment()
@@ -60,8 +80,17 @@ class MetricsService(private val meterRegistry: MeterRegistry) {
     /** Records a successful post creation via POST /api/posts. */
     fun recordPostCreation() = postCreations.increment()
 
-    /** Records a single read request to a post via GET /api/posts/{slug}. */
+    /** Records a single read request to a published post. */
     fun recordPostView() = postViews.increment()
+
+    /** Records a successful post update via PUT /api/posts/{slug}. */
+    fun recordPostUpdate() = postUpdates.increment()
+
+    /** Records a successful post soft-delete via DELETE /api/posts/{slug}. */
+    fun recordPostDeletion() = postDeletions.increment()
+
+    /** Records a post auto-published by the scheduled publishing job. */
+    fun recordPostAutoPublished() = postAutoPublished.increment()
 
     /**
      * Records the database query execution time for listing/searching posts.
@@ -69,5 +98,13 @@ class MetricsService(private val meterRegistry: MeterRegistry) {
      */
     fun recordPostQueryTime(duration: Duration) {
         postQueryTimer.record(duration)
+    }
+
+    /**
+     * Records the total execution time of a scheduled publishing job run.
+     * @param duration The exact duration measured via [System.nanoTime].
+     */
+    fun recordScheduledPublishingJobTime(duration: Duration) {
+        scheduledPublishingJobTimer.record(duration)
     }
 }
