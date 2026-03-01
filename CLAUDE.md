@@ -98,8 +98,9 @@ Migrations live in `src/main/resources/db/migration/` (Flyway `V__*.sql` naming)
 
 - `postSummaries` and `postBySlug` caches, 7-day TTL.
 - Values serialized with `GenericJackson2JsonRedisSerializer` + `activateDefaultTyping` (adds `@class` field).
-- Error handler is fail-open: GET/PUT/EVICT errors are logged as WARN and swallowed — the app falls back to the DB.
+- Error handler is fail-open: `CacheConfig` implements `CachingConfigurer` and overrides `errorHandler()` to log GET/PUT/EVICT errors as WARN and swallow them — the app falls back to the DB.
 - Cache DTOs (`PostSummaryDto`, `SerializablePage`) must be concrete, Jackson-serializable classes — JPA proxies are not cacheable.
+- `searchSummary` JPQL query orders by `publishedAt DESC, id DESC` — paginated post lists return newest-first, consistent with the cursor-based endpoint.
 
 ## Security
 
@@ -110,5 +111,4 @@ Migrations live in `src/main/resources/db/migration/` (Flyway `V__*.sql` naming)
 
 ## Known Inconsistencies / Technical Debt
 
-- `PageImpl` serialization emits a WARN on every paginated response — tracked, not yet resolved (`@EnableSpringDataWebSupport`).
 - Zipkin traces drop silently when no Zipkin server is running locally (expected in dev).
