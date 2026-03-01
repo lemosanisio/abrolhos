@@ -22,6 +22,9 @@ class TagRepositoryImpl(
     override fun findByName(name: TagName): Tag? =
         tagRepositoryPostgresql.findByName(name.value)?.toDomain()
 
+    override fun findBySlug(slug: TagSlug): Tag? =
+        tagRepositoryPostgresql.findBySlug(slug.value)?.toDomain()
+
     override fun save(tag: Tag): Tag =
         tagRepositoryPostgresql
             .save(

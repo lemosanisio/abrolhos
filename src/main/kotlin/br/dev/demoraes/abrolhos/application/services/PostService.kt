@@ -332,10 +332,10 @@ class PostService(
 
     private fun findOrCreateTag(name: String): Tag {
         val tagName = TagName(name)
-        return tagRepository.findByName(tagName)
+        val slug = generateSlug(name)
+        return tagRepository.findBySlug(TagSlug(slug))
             ?: run {
                 logger.info("Tag '{}' not found, creating new one", name)
-                val slug = generateSlug(name)
                 tagRepository.save(
                     Tag(
                         id = ULID.nextULID(),
