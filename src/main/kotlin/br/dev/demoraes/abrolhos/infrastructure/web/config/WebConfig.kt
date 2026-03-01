@@ -3,6 +3,8 @@ package br.dev.demoraes.abrolhos.infrastructure.web.config
 
 import br.dev.demoraes.abrolhos.infrastructure.web.filters.RateLimitFilter
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.web.config.EnableSpringDataWebSupport
+import org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
@@ -14,6 +16,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  * Requirements: 2.1, 2.2, 2.3, 2.6, 2.7, 2.8
  */
 @Configuration
+@EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 class WebConfig(
     private val rateLimitFilter: RateLimitFilter
 ) : WebMvcConfigurer {

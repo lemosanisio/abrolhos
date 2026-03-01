@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import java.time.Duration
 import org.slf4j.LoggerFactory
 import org.springframework.cache.Cache
+import org.springframework.cache.annotation.CachingConfigurer
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.cache.interceptor.CacheErrorHandler
 import org.springframework.cache.interceptor.SimpleCacheErrorHandler
@@ -25,7 +26,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
  */
 @Configuration
 @EnableCaching
-class CacheConfig(private val objectMapper: ObjectMapper) {
+class CacheConfig(private val objectMapper: ObjectMapper) : CachingConfigurer {
 
     @Bean
     fun cacheManager(
@@ -64,8 +65,7 @@ class CacheConfig(private val objectMapper: ObjectMapper) {
         return MetricsCacheManager(redisCacheManager, metricsService)
     }
 
-    @Bean
-    fun cacheErrorHandler(): CacheErrorHandler =
+    override fun errorHandler(): CacheErrorHandler =
             object : SimpleCacheErrorHandler() {
                 override fun handleCacheGetError(
                         exception: RuntimeException,

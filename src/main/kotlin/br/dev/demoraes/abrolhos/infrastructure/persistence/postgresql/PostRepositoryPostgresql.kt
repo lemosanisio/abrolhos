@@ -63,6 +63,7 @@ interface PostRepositoryPostgresql :
         WHERE p.status = :status
           AND (:categoryName IS NULL OR p.category.name = :categoryName)
           AND (:tagName IS NULL OR EXISTS (SELECT t FROM p.tags t WHERE t.name = :tagName))
+        ORDER BY p.publishedAt DESC, p.id DESC
     """,
     )
     fun searchSummary(
