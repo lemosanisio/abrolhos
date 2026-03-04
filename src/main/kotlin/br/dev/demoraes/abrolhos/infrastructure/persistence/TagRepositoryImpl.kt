@@ -9,11 +9,21 @@ import br.dev.demoraes.abrolhos.infrastructure.persistence.postgresql.TagReposit
 import org.springframework.stereotype.Repository
 import ulid.ULID
 
+/**
+ * Persistence implementation for Tag repository.
+ *
+ * Bridges the Domain layer (TagRepository interface) and the Infrastructure layer (JPA/Hibernate).
+ * Handles the mapping between Domain entities (Tag) and Persistence entities (TagEntity).
+ */
 @Repository
 class TagRepositoryImpl(
     private val tagRepositoryPostgresql: TagRepositoryPostgresql,
 ) : TagRepository {
-    override fun findByName(name: TagName): Tag? = tagRepositoryPostgresql.findByName(name.value)?.toDomain()
+    override fun findByName(name: TagName): Tag? =
+        tagRepositoryPostgresql.findByName(name.value)?.toDomain()
+
+    override fun findBySlug(slug: TagSlug): Tag? =
+        tagRepositoryPostgresql.findBySlug(slug.value)?.toDomain()
 
     override fun save(tag: Tag): Tag =
         tagRepositoryPostgresql

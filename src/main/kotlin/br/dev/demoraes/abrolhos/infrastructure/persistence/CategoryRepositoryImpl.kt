@@ -9,6 +9,13 @@ import br.dev.demoraes.abrolhos.infrastructure.persistence.postgresql.CategoryRe
 import org.springframework.stereotype.Repository
 import ulid.ULID
 
+/**
+ * Persistence implementation for Category repository.
+ *
+ * Bridges the Domain layer (CategoryRepository interface) and the Infrastructure layer
+ * (JPA/Hibernate). Handles the mapping between Domain entities (Category) and Persistence entities
+ * (CategoryEntity).
+ */
 @Repository
 class CategoryRepositoryImpl(
     private val categoryRepositoryPostgresql: CategoryRepositoryPostgresql,

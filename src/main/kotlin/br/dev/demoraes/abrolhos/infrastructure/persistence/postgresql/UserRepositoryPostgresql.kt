@@ -5,6 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
+/**
+ * Spring Data JPA repository for UserEntity.
+ *
+ * Provides standard CRUD operations for User persistence.
+ */
 interface UserRepositoryPostgresql : JpaRepository<UserEntity, String> {
     @Query("SELECT u FROM UserEntity u WHERE u.id = :id")
     fun findByIdOrNull(
@@ -15,4 +20,6 @@ interface UserRepositoryPostgresql : JpaRepository<UserEntity, String> {
     fun findByUsername(
         @Param("username") username: String,
     ): UserEntity?
+
+    fun existsByUsername(username: String): Boolean
 }

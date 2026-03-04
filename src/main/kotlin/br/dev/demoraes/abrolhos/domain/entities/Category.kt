@@ -4,6 +4,17 @@ import com.fasterxml.jackson.annotation.JsonValue
 import ulid.ULID
 import java.time.OffsetDateTime
 
+/**
+ * Represents a logical grouping for posts.
+ *
+ * Categories are used to organize content in a hierarchical or thematic way. Each post belongs to
+ * exactly one category.
+ *
+ * @property id Unique identifier (ULID)
+ * @property name Display name of the category
+ * @property slug URL-friendly identifier
+ * @property posts Collection of posts in this category
+ */
 data class Category(
     val id: ULID,
     val name: CategoryName,

@@ -13,6 +13,7 @@ import br.dev.demoraes.abrolhos.domain.entities.Tag
 import br.dev.demoraes.abrolhos.domain.entities.TagName
 import br.dev.demoraes.abrolhos.domain.entities.TagSlug
 import br.dev.demoraes.abrolhos.domain.repository.PostRepository
+import br.dev.demoraes.abrolhos.infrastructure.cache.dto.PostSummaryDto
 import br.dev.demoraes.abrolhos.infrastructure.persistence.entities.CategoryEntity
 import br.dev.demoraes.abrolhos.infrastructure.persistence.entities.PostEntity
 import br.dev.demoraes.abrolhos.infrastructure.persistence.entities.TagEntity
@@ -27,6 +28,12 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import ulid.ULID
 
+/**
+ * Persistence implementation for Post repository.
+ *
+ * Bridges the Domain layer (PostRepository interface) and the Infrastructure layer (JPA/Hibernate).
+ * Handles the mapping between Domain entities (Post) and Persistence entities (PostEntity).
+ */
 @Repository
 class PostRepositoryImpl(
     private val postRepositoryPostgresql: PostRepositoryPostgresql,
@@ -42,9 +49,32 @@ class PostRepositoryImpl(
     }
 
     override fun findPublishedBySlug(slug: String): Post? {
-        return postRepositoryPostgresql
-            .findBySlugAndStatus(slug, PostStatus.PUBLISHED)
-            ?.toDomain()
+        return postRepositoryPostgresql.findBySlugAndStatus(slug, PostStatus.PUBLISHED)?.toDomain()
+    }
+
+    override fun findBySlug(slug: String): Post? {
+        return postRepositoryPostgresql.findBySlug(slug)?.toDomain()
+    }
+
+    override fun findBySlugAndAuthorId(slug: String, authorId: ulid.ULID): Post? {
+        return postRepositoryPostgresql.findBySlugAndAuthorId(slug, authorId.toString())?.toDomain()
+    }
+
+    override fun findScheduledPostsReadyToPublish(now: java.time.OffsetDateTime): List<Post> {
+        return postRepositoryPostgresql.findByStatusAndPublishedAtLessThanEqual(
+            PostStatus.SCHEDULED,
+            now
+        )
+            .map { it.toDomain() }
+    }
+
+    override fun delete(post: Post) {
+        val entity =
+            postRepositoryPostgresql.findBySlug(post.slug.value)
+                ?: throw NoSuchElementException(
+                    "Post with slug '${post.slug.value}' not found for deletion"
+                )
+        postRepositoryPostgresql.delete(entity) // triggers @SQLDelete soft-delete
     }
 
     override fun searchSummary(
@@ -53,7 +83,92 @@ class PostRepositoryImpl(
         tagName: String?,
         status: PostStatus,
     ): Page<PostSummary> {
-        return postRepositoryPostgresql.searchSummary(status, categoryName, tagName, pageable).map { it }
+        val page: Page<PostSummary> =
+            postRepositoryPostgresql.searchSummary(status, categoryName, tagName, pageable)
+                .map { projection ->
+                    PostSummaryDto(
+                        id = projection.id,
+                        authorUsername = projection.authorUsername,
+                        title = projection.title,
+                        slug = projection.slug,
+                        categoryName = projection.categoryName,
+                        shortContent = projection.shortContent,
+                        publishedAt = projection.publishedAt,
+                    )
+                } as
+                Page<PostSummary>
+        return br.dev.demoraes.abrolhos.infrastructure.cache.dto.SerializablePage<PostSummary>(page)
+    }
+
+    override fun searchSummaryByCursor(
+        cursor: String?,
+        size: Int,
+        status: PostStatus,
+    ): br.dev.demoraes.abrolhos.domain.entities.CursorPage<PostSummary> {
+        val (cursorDate, cursorId) = decodeCursor(cursor)
+
+        // Fetch size + 1 to detect hasNext
+        val pageRequest = org.springframework.data.domain.PageRequest.of(0, size + 1)
+        val results =
+            if (cursorDate != null && cursorId != null) {
+                postRepositoryPostgresql.searchSummaryAfterCursor(
+                    status = status,
+                    cursorDate = cursorDate,
+                    cursorId = cursorId,
+                    pageable = pageRequest,
+                )
+            } else {
+                postRepositoryPostgresql.searchSummaryFirstPage(
+                    status = status,
+                    pageable = pageRequest,
+                )
+            }
+
+        val hasNext = results.size > size
+        val items =
+            results.take(size).map { projection ->
+                PostSummaryDto(
+                    id = projection.id,
+                    authorUsername = projection.authorUsername,
+                    title = projection.title,
+                    slug = projection.slug,
+                    categoryName = projection.categoryName,
+                    shortContent = projection.shortContent,
+                    publishedAt = projection.publishedAt,
+                )
+            }
+
+        val nextCursor =
+            if (hasNext && items.isNotEmpty()) {
+                val last = items.last()
+                encodeCursor(last.publishedAt, last.id)
+            } else {
+                null
+            }
+
+        return br.dev.demoraes.abrolhos.domain.entities.CursorPage(
+            items = items,
+            nextCursor = nextCursor,
+            hasNext = hasNext,
+        )
+    }
+
+    private fun encodeCursor(publishedAt: java.time.OffsetDateTime, id: String): String {
+        val raw = "$publishedAt|$id"
+        return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(raw.toByteArray())
+    }
+
+    private fun decodeCursor(cursor: String?): Pair<java.time.OffsetDateTime?, String?> {
+        if (cursor.isNullOrBlank()) return Pair(null, null)
+        return try {
+            val decoded = String(java.util.Base64.getUrlDecoder().decode(cursor))
+            val parts = decoded.split("|", limit = 2)
+            if (parts.size != 2) throw IllegalArgumentException("Invalid cursor format")
+            val date = java.time.OffsetDateTime.parse(parts[0])
+            Pair(date, parts[1])
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Invalid cursor: ${e.message}", e)
+        }
     }
 
     private fun Post.toEntity(): PostEntity {
@@ -63,8 +178,7 @@ class PostRepositoryImpl(
                     "Author with id ${this.author.id} not found",
                 )
 
-        val categoryEntity: CategoryEntity? =
-            categoryJpa.findBySlug(this.category.slug.value)
+        val categoryEntity: CategoryEntity? = categoryJpa.findBySlug(this.category.slug.value)
 
         val tagEntities: MutableSet<TagEntity> =
             tagJpa.findByNameIn(this.tags.map { it.name.value }.toSet()).toMutableSet()

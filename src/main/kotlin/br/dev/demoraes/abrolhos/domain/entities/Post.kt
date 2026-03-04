@@ -4,6 +4,20 @@ import com.fasterxml.jackson.annotation.JsonValue
 import ulid.ULID
 import java.time.OffsetDateTime
 
+/**
+ * Represents a blog post.
+ *
+ * This is the core content entity. It aggregates the author, content, status, category, and tags.
+ *
+ * @property id Unique identifier (ULID)
+ * @property author The user who created the post
+ * @property title The title of the post
+ * @property slug URL-friendly identifier
+ * @property content The main body of the post
+ * @property status Current state (DRAFT, PUBLISHED, etc.)
+ * @property category The category this post belongs to
+ * @property tags Set of tags associated with the post
+ */
 data class Post(
     val id: ULID,
     val author: User,
@@ -41,6 +55,33 @@ data class Post(
             )
         }
     }
+
+    /** Returns true if the given user ID matches the post author's ID. */
+    fun isOwnedBy(userId: ULID): Boolean = author.id == userId
+
+    /**
+     * Returns a new [Post] with the specified fields replaced, and [updatedAt] set to now. Any
+     * parameter left null keeps its current value.
+     */
+    fun withUpdatedFields(
+        title: PostTitle? = null,
+        slug: PostSlug? = null,
+        content: PostContent? = null,
+        status: PostStatus? = null,
+        category: Category? = null,
+        tags: Set<Tag>? = null,
+        publishedAt: OffsetDateTime? = null,
+    ): Post =
+        copy(
+            title = title ?: this.title,
+            slug = slug ?: this.slug,
+            content = content ?: this.content,
+            status = status ?: this.status,
+            category = category ?: this.category,
+            tags = tags ?: this.tags,
+            publishedAt = publishedAt ?: this.publishedAt,
+            updatedAt = OffsetDateTime.now(),
+        )
 }
 
 enum class PostStatus {

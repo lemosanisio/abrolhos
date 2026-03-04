@@ -18,5 +18,15 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
 
+  redis:
+    image: redis:alpine
+    container_name: abrolhos-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
 volumes:
   abrolhos_pgdata:
+  redis_data:

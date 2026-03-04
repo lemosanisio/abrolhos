@@ -5,11 +5,18 @@ import br.dev.demoraes.abrolhos.domain.entities.PostSummary
 import br.dev.demoraes.abrolhos.infrastructure.persistence.entities.PostEntity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
+import java.time.OffsetDateTime
 
+/**
+ * Spring Data JPA repository for PostEntity.
+ *
+ * Provides complex queries for searching, filtering, and projecting post data.
+ */
 @Repository
 interface PostRepositoryPostgresql :
     JpaRepository<PostEntity, String>, JpaSpecificationExecutor<PostEntity> {
@@ -17,10 +24,20 @@ interface PostRepositoryPostgresql :
 
     fun findByStatus(status: PostStatus, pageable: Pageable): Page<PostEntity>
 
+    @EntityGraph(attributePaths = ["author", "category", "tags"])
     fun findBySlugAndStatus(
         slug: String,
         status: PostStatus,
     ): PostEntity?
+
+    @EntityGraph(attributePaths = ["author", "category", "tags"])
+    fun findBySlugAndAuthorId(slug: String, authorId: String): PostEntity?
+
+    @EntityGraph(attributePaths = ["author", "category", "tags"])
+    fun findByStatusAndPublishedAtLessThanEqual(
+        status: PostStatus,
+        publishedAt: OffsetDateTime,
+    ): List<PostEntity>
 
     fun findByCategorySlugAndStatus(
         slug: String,
@@ -46,6 +63,7 @@ interface PostRepositoryPostgresql :
         WHERE p.status = :status
           AND (:categoryName IS NULL OR p.category.name = :categoryName)
           AND (:tagName IS NULL OR EXISTS (SELECT t FROM p.tags t WHERE t.name = :tagName))
+        ORDER BY p.publishedAt DESC, p.id DESC
     """,
     )
     fun searchSummary(
@@ -60,4 +78,50 @@ interface PostRepositoryPostgresql :
 
     @Query(value = "SELECT * FROM posts WHERE deleted_at IS NOT NULL", nativeQuery = true)
     fun findOnlyDeleted(): List<PostEntity>?
+
+    @Query(
+        """
+        SELECT
+            p.id AS id,
+            p.author.username AS authorUsername,
+            p.title AS title,
+            p.slug AS slug,
+            p.category.name AS categoryName,
+            p.publishedAt AS publishedAt,
+            SUBSTRING(p.content, 1, 500) AS shortContent
+        FROM PostEntity p
+        WHERE p.status = :status
+        ORDER BY p.publishedAt DESC, p.id DESC
+    """,
+    )
+    fun searchSummaryFirstPage(
+        status: PostStatus,
+        pageable: Pageable,
+    ): List<PostSummary>
+
+    @Query(
+        """
+        SELECT
+            p.id AS id,
+            p.author.username AS authorUsername,
+            p.title AS title,
+            p.slug AS slug,
+            p.category.name AS categoryName,
+            p.publishedAt AS publishedAt,
+            SUBSTRING(p.content, 1, 500) AS shortContent
+        FROM PostEntity p
+        WHERE p.status = :status
+          AND (
+            p.publishedAt < :cursorDate
+            OR (p.publishedAt = :cursorDate AND p.id < :cursorId)
+          )
+        ORDER BY p.publishedAt DESC, p.id DESC
+    """,
+    )
+    fun searchSummaryAfterCursor(
+        status: PostStatus,
+        cursorDate: java.time.OffsetDateTime,
+        cursorId: String,
+        pageable: Pageable,
+    ): List<PostSummary>
 }

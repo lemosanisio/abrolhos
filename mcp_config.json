@@ -1,0 +1,38 @@
+{
+    "mcpServers": {
+        "blog-filesystem": {
+            "command": "bunx",
+            "args": [
+                "@modelcontextprotocol/server-filesystem",
+                "/home/anisio/HDD/Abrolhos/Backend/abrolhos/src/main/kotlin",
+                "/home/anisio/HDD/Abrolhos/Backend/abrolhos/src/main/resources",
+                "/home/anisio/HDD/Abrolhos/Backend/abrolhos/src/test/kotlin",
+                "/home/anisio/HDD/Abrolhos/Backend/abrolhos/build.gradle.kts",
+                "/home/anisio/HDD/Abrolhos/Backend/abrolhos/local.env",
+                "/home/anisio/HDD/Abrolhos/Backend/abrolhos/logs",
+                "/home/anisio/HDD/Abrolhos/Backend/abrolhos/scripts",
+                "/home/anisio/HDD/Abrolhos/Backend/abrolhos/gradle"
+            ]
+        },
+        "blog-postgres": {
+            "command": "bunx",
+            "args": [
+                "@modelcontextprotocol/server-postgres",
+                "postgresql://abrolhos:abrolhos@localhost:5432/abrolhos"
+            ]
+        },
+        "blog-redis": {
+            "command": "bunx",
+            "args": [
+                "mcp-server-redis",
+                "redis://localhost:6379"
+            ]
+        },
+        "blog-shell": {
+            "command": "bunx",
+            "args": [
+                "@modelcontextprotocol/server-shell"
+            ]
+        }
+    }
+}

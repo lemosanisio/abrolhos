@@ -4,11 +4,24 @@ import com.fasterxml.jackson.annotation.JsonValue
 import ulid.ULID
 import java.time.OffsetDateTime
 
+/**
+ * Represents a user in the system.
+ *
+ * Users are the central entity for authentication and authorization. They hold the credentials
+ * (like TOTP secret) and role information.
+ *
+ * @property id Unique identifier (ULID)
+ * @property username Unique username
+ * @property totpSecret Encrypted TOTP secret for 2FA
+ * @property isActive Whether the account is activated
+ * @property role User role (ADMIN, USER)
+ */
 data class User(
     val id: ULID,
     val username: Username,
-    val email: Email,
-    val passwordHash: PasswordHash,
+    val totpSecret: TotpSecret?,
+    val passwordHash: PasswordHash?, // Nullable during migration period
+    val isActive: Boolean,
     val role: Role,
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,
@@ -20,6 +33,14 @@ enum class Role {
 }
 
 @JvmInline
+/**
+ * Value class for Username.
+ *
+ * Enforces validation rules:
+ * - Length: 3-20 characters
+ * - Characters: lowercase letters, numbers, underscores
+ * - No reserved words
+ */
 value class Username(@get:JsonValue val value: String) {
     companion object {
         private const val MIN_LENGTH = 3
@@ -57,32 +78,14 @@ value class Username(@get:JsonValue val value: String) {
 }
 
 @JvmInline
-value class PasswordHash(@get:JsonValue val value: String) {
+value class TotpSecret(@get:JsonValue val value: String) {
     companion object {
-        const val MAX_LENGTH = 255
+        private val BASE32_REGEX = Regex("^[A-Z2-7]+$")
     }
 
     init {
-        require(value.isNotBlank()) { "Password hash cannot be blank." }
-        require(value.length <= MAX_LENGTH) { "Password hash is too long." }
-    }
-
-    override fun toString(): String = value
-}
-
-@JvmInline
-value class Email(@get:JsonValue val value: String) {
-    companion object {
-        private val EMAIL_REGEX =
-            Regex(
-                "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$",
-            )
-    }
-
-    init {
-        require(value.isNotBlank()) { "Email address cannot be blank." }
-
-        require(EMAIL_REGEX.matches(value)) { "Invalid email address format." }
+        require(value.isNotBlank()) { "TOTP secret cannot be blank." }
+        require(BASE32_REGEX.matches(value)) { "TOTP secret must be base32 encoded." }
     }
 
     override fun toString(): String = value
