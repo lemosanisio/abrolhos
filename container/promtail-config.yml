@@ -1,0 +1,38 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  # VictoriaLogs exposes a Loki-compatible push endpoint.
+  - url: http://victorialogs:9428/insert/loki/api/v1/push
+
+scrape_configs:
+  - job_name: abrolhos
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: abrolhos
+          __path__: /logs/app.log
+
+    pipeline_stages:
+      # Parse the ECS JSON produced by logback-spring.xml
+      - json:
+          expressions:
+            timestamp: '"@timestamp"'
+            level:     '"log.level"'
+            message:   message
+            correlation_id: correlationId
+
+      # Use the log's own timestamp instead of the ingestion time
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+
+      # Promote level and correlationId to indexed stream labels
+      - labels:
+          level:
+          correlation_id:

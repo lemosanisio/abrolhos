@@ -1,0 +1,17 @@
+scrape_configs:
+  - job_name: abrolhos
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          # Adjust if the app runs inside a container on a custom network.
+          # On Linux host networking, host.docker.internal is not available;
+          # use the host's IP on the docker/podman bridge (commonly 172.17.0.1)
+          # or the loopback alias below when running with --network=host.
+          - host.docker.internal:8080
+    metrics_path: /actuator/prometheus
+    # The actuator/prometheus endpoint requires ADMIN authentication.
+    # Set these to a valid admin JWT token for the dev environment, or
+    # expose prometheus without auth temporarily (SecurityConfig permitAll).
+    # basic_auth:
+    #   username: ...
+    #   password: ...
