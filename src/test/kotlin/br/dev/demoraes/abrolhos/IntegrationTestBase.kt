@@ -1,5 +1,7 @@
 package br.dev.demoraes.abrolhos
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Tag
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,6 +18,8 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 /**
  * Base class for integration tests using Testcontainers.
@@ -68,4 +72,35 @@ abstract class IntegrationTestBase {
     protected fun <T> jsonEntity(body: T): HttpEntity<T> {
         return HttpEntity(body, jsonHeaders())
     }
+
+    /**
+     * Generates a JWT signed with the test secret. The [expiresAt] parameter controls expiry
+     * so that both valid and pre-expired tokens can be produced.
+     */
+    protected fun generateJwt(
+        username: String,
+        role: String,
+        userId: String = "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        expiresAt: Instant = Instant.now().plus(24, ChronoUnit.HOURS),
+    ): String {
+        val algorithm = Algorithm.HMAC256(jwtSecret)
+        return JWT.create()
+            .withSubject(userId)
+            .withClaim("username", username)
+            .withClaim("role", role)
+            .withExpiresAt(expiresAt)
+            .sign(algorithm)
+    }
+
+    /** Generates a JWT that is already expired. */
+    protected fun generateExpiredJwt(username: String, role: String): String =
+        generateJwt(username, role, expiresAt = Instant.now().minus(1, ChronoUnit.HOURS))
+
+    /** Creates [HttpHeaders] with a Bearer token for the given JWT. */
+    protected fun authHeaders(jwt: String): HttpHeaders =
+        jsonHeaders().apply { setBearerAuth(jwt) }
+
+    /** Creates a JSON [HttpEntity] with the given body and a Bearer auth header. */
+    protected fun <T> jsonAuthEntity(body: T, jwt: String): HttpEntity<T> =
+        HttpEntity(body, authHeaders(jwt))
 }
